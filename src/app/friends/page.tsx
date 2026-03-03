@@ -274,20 +274,7 @@ export default function FriendsPage() {
                     >
                       💬
                     </Link>
-                    <button
-                      onClick={() => startCallWithFriend(friendId, friendName, 'voice')}
-                      className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium bg-green-500/15 text-green-400 border border-green-500/25 hover:bg-green-500/25 transition-all"
-                      title="Voice Call"
-                    >
-                      🎤
-                    </button>
-                    <button
-                      onClick={() => startCallWithFriend(friendId, friendName, 'video')}
-                      className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium bg-purple-500/15 text-purple-400 border border-purple-500/25 hover:bg-purple-500/25 transition-all"
-                      title="Video Call"
-                    >
-                      📹
-                    </button>
+
                     <button
                       onClick={() => handleRemoveFriend(friendId)}
                       className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium text-red-400 hover:bg-red-500/10 transition-all"

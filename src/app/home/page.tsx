@@ -225,10 +225,10 @@ export default function HomePage() {
           <p className="text-xs font-semibold">Anonymous Chat</p>
           <p className="text-[10px] text-[var(--muted)]">Talk freely, no names</p>
         </Link>
-        <Link href="/chat" className="card-hover p-4 text-center block">
-          <span className="text-2xl mb-1 block">💬</span>
-          <p className="text-xs font-semibold">Chat</p>
-          <p className="text-[10px] text-[var(--muted)]">Message friends</p>
+        <Link href="/circles" className="card-hover p-4 text-center block">
+          <span className="text-2xl mb-1 block">⭕</span>
+          <p className="text-xs font-semibold">Circles</p>
+          <p className="text-[10px] text-[var(--muted)]">Interest communities</p>
         </Link>
       </div>
 

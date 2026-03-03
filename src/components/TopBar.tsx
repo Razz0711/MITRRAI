@@ -15,7 +15,7 @@ import { getActiveTab } from './BottomTabs';
 const tabs = [
   { id: 'home', label: 'Home', icon: Home, href: '/home' },
   { id: 'radar', label: 'Radar', icon: Radio, href: '/radar' },
-  { id: 'chat', label: 'Chat', icon: MessageCircle, href: '/chat' },
+  { id: 'chat', label: 'Chat', icon: MessageCircle, href: '/anon' },
   { id: 'feed', label: 'Feed', icon: Flame, href: '/doubts' },
   { id: 'me', label: 'Me', icon: User, href: '/me' },
 ];

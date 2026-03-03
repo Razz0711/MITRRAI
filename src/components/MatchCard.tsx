@@ -4,7 +4,6 @@
 
 'use client';
 
-import Link from 'next/link';
 import { MatchResult, UserStatus } from '@/lib/types';
 import { StatusDot } from '@/components/StatusIndicator';
 
@@ -141,20 +140,7 @@ export default function MatchCard({ match, rank, userStatus, isBirthday, onViewP
           </button>
         )}
       </div>
-      <div className="flex gap-1.5 mt-1.5">
-        <Link
-          href={`/call?mode=voice&buddy=${encodeURIComponent(student.name)}`}
-          className="flex-1 px-2 py-1.5 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-xs text-center font-medium hover:bg-green-500/20 transition-all"
-        >
-          Voice Call
-        </Link>
-        <Link
-          href={`/call?mode=video&buddy=${encodeURIComponent(student.name)}`}
-          className="flex-1 px-2 py-1.5 rounded-lg bg-blue-500/10 border border-blue-500/20 text-blue-400 text-xs text-center font-medium hover:bg-blue-500/20 transition-all"
-        >
-          Video Call
-        </Link>
-      </div>
+
     </div>
   );
 }
