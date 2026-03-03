@@ -5,7 +5,7 @@
 
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import { StudentProfile } from '@/lib/types';
@@ -15,14 +15,10 @@ export default function MePage() {
   const { user, logout } = useAuth();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
-  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
     loadData();
-    const saved = localStorage.getItem('mitrai_profile_photo');
-    if (saved) setProfilePhoto(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -43,32 +39,6 @@ export default function MePage() {
     finally { setLoading(false); }
   };
 
-  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = () => {
-      const img = new Image();
-      img.onload = () => {
-        const canvas = document.createElement('canvas');
-        const size = 200;
-        canvas.width = size;
-        canvas.height = size;
-        const ctx = canvas.getContext('2d')!;
-        const min = Math.min(img.width, img.height);
-        const sx = (img.width - min) / 2;
-        const sy = (img.height - min) / 2;
-        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
-        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
-        setProfilePhoto(dataUrl);
-        localStorage.setItem('mitrai_profile_photo', dataUrl);
-        window.dispatchEvent(new Event('profilePhotoChanged'));
-      };
-      img.src = reader.result as string;
-    };
-    reader.readAsDataURL(file);
-  };
-
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
@@ -83,28 +53,9 @@ export default function MePage() {
       {/* ── Profile Card ── */}
       <div className="card p-5 mb-4">
         <div className="flex items-center gap-4">
-          <button
-            onClick={() => fileInputRef.current?.click()}
-            className="relative w-[52px] h-[52px] rounded-full shrink-0 group"
-          >
-            {profilePhoto ? (
-              <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover shadow-lg shadow-[var(--primary)]/20" />
-            ) : (
-              <div className="w-full h-full rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[var(--primary)]/20">
-                {(student?.name || user?.name || 'S').charAt(0).toUpperCase()}
-              </div>
-            )}
-            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-              <span className="text-white text-sm">📷</span>
-            </div>
-          </button>
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept="image/*"
-            className="hidden"
-            onChange={handlePhotoUpload}
-          />
+          <div className="w-[52px] h-[52px] rounded-full shrink-0 bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[var(--primary)]/20">
+            {(student?.name || user?.name || 'S').charAt(0).toUpperCase()}
+          </div>
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold truncate">{student?.name || user?.name || 'Student'}</h1>
             <p className="text-xs text-[var(--muted)] mt-0.5">
