@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 const DEPARTMENTS = [
-  'Mathematics', 'CSE', 'AI', 'Mechanical', 'Civil', 'Electrical',
+  'Mathematics', 'Computer Science', 'Artificial Intelligence', 'Mechanical', 'Civil Engineering', 'Electrical',
   'Electronics', 'Chemical', 'Physics', 'Chemistry',
 ];
 
