@@ -161,6 +161,51 @@ export default function MePage() {
         <MenuItem href="/feedback" icon="💬" label="Feedback" border />
       </div>
 
+      {/* Invite Batchmates */}
+      <div className="card p-4 mb-4">
+        <div className="flex items-center gap-2 mb-3">
+          <span className="text-base">📤</span>
+          <span className="text-[13px] font-medium">Invite Batchmates</span>
+        </div>
+        <div className="flex flex-col sm:flex-row gap-2">
+          <div className="flex-1 bg-white/5 rounded-lg px-3 py-2 text-[11px] text-[var(--muted)] truncate border border-[var(--border)]">
+            {typeof window !== 'undefined' ? `${window.location.origin}/login?ref=${student?.admissionNumber || user?.id?.slice(0, 6) || 'svnit'}` : ''}
+          </div>
+          <div className="flex gap-2">
+            <button
+              onClick={() => {
+                const link = `${window.location.origin}/login?ref=${student?.admissionNumber || user?.id?.slice(0, 6) || 'svnit'}`;
+                navigator.clipboard.writeText(link);
+              }}
+              className="btn-secondary text-xs px-3 py-2 whitespace-nowrap"
+            >
+              📋 Copy
+            </button>
+            <button
+              onClick={() => {
+                const link = `${window.location.origin}/login?ref=${student?.admissionNumber || user?.id?.slice(0, 6) || 'svnit'}`;
+                const msg = encodeURIComponent(`Hey! Join MitrAI \u2014 find study buddies at SVNIT 🎓\n${link}`);
+                window.open(`https://wa.me/?text=${msg}`, '_blank');
+              }}
+              className="text-xs px-3 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors whitespace-nowrap"
+            >
+              📱 WhatsApp
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Pro Banner */}
+      <Link href="/subscription" className="card p-4 mb-4 border-amber-500/20 block hover:border-amber-500/40 transition-colors">
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="text-[13px] font-medium text-amber-400">✨ MitrAI Pro</p>
+            <p className="text-[11px] text-[var(--muted)]">Free during launch — unlock all features</p>
+          </div>
+          <span className="text-[11px] text-amber-400 font-medium">Explore →</span>
+        </div>
+      </Link>
+
       {/* Sign Out */}
       {user && (
         <button

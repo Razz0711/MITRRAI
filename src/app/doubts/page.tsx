@@ -51,12 +51,10 @@ export default function DoubtsPage() {
   const [expandedDoubt, setExpandedDoubt] = useState<string | null>(null);
   const [replies, setReplies] = useState<Record<string, DoubtReply[]>>({});
   const [replyText, setReplyText] = useState('');
-  const [replyAnon, setReplyAnon] = useState(true);
   const [activeFilter, setActiveFilter] = useState('all');
 
   // Ask form
   const [askQuestion, setAskQuestion] = useState('');
-  const [askAnon, setAskAnon] = useState(true);
   const [askPostType, setAskPostType] = useState('doubt');
   const [asking, setAsking] = useState(false);
 
@@ -87,7 +85,7 @@ export default function DoubtsPage() {
         body: JSON.stringify({
           userId: user.id,
           question: askQuestion,
-          isAnonymous: askAnon,
+          isAnonymous: true,
           postType: askPostType,
         }),
       });
@@ -144,11 +142,10 @@ export default function DoubtsPage() {
           userId: user.id,
           userName: user.email?.split('@')[0] || 'Student',
           reply: replyText,
-          isAnonymous: replyAnon,
+          isAnonymous: true,
         }),
       });
       setReplyText('');
-      setReplyAnon(false);
       await loadReplies(doubtId);
       // Re-expand after loading
       setExpandedDoubt(doubtId);
@@ -246,15 +243,7 @@ export default function DoubtsPage() {
             className="w-full px-4 py-3 border border-[var(--border)] rounded-xl bg-[var(--surface-light)] text-[var(--foreground)] placeholder:text-[var(--muted)] text-sm resize-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]/50 outline-none transition-all"
           />
           <div className="flex items-center justify-between">
-            <label className="flex items-center gap-2 text-xs text-[var(--muted)] cursor-pointer select-none">
-              <input
-                type="checkbox"
-                checked={askAnon}
-                onChange={(e) => setAskAnon(e.target.checked)}
-                className="rounded accent-[var(--primary)]"
-              />
-              Post anonymously
-            </label>
+            <span className="text-[10px] text-[var(--muted)]">🕵‍♂️ All posts are anonymous</span>
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowAsk(false); setAskQuestion(''); }}
@@ -378,15 +367,6 @@ export default function DoubtsPage() {
                       placeholder="Write a reply..."
                       className="flex-1 px-3 py-2 text-xs border border-[var(--border)] rounded-lg bg-[var(--surface-light)] text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:ring-1 focus:ring-[var(--primary)]/30"
                     />
-                    <label className="flex items-center gap-1 text-[10px] text-[var(--muted)] cursor-pointer select-none">
-                      <input
-                        type="checkbox"
-                        checked={replyAnon}
-                        onChange={(e) => setReplyAnon(e.target.checked)}
-                        className="rounded"
-                      />
-                      Anon
-                    </label>
                     <button
                       onClick={() => handleReply(doubt.id)}
                       disabled={!replyText.trim()}
