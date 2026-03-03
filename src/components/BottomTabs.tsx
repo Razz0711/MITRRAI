@@ -4,7 +4,7 @@
 // ============================================
 
 export const TAB_ROUTES: Record<string, string[]> = {
-  home: ['/home', '/dashboard', '/matches'],
+  home: ['/home', '/dashboard', '/matches', '/ratings'],
   radar: ['/radar', '/skills'],
   chat: ['/anon', '/circles', '/rooms', '/chat'],
   feed: ['/doubts'],

@@ -146,18 +146,18 @@ export default function HomePage() {
 
       {/* More Actions */}
       <div className="grid grid-cols-4 gap-2 mb-6">
-        <Link href="/skills" className="card-hover p-3 text-center block relative">
+        <Link href="/ratings" className="card-hover p-3 text-center block relative">
           <span className="absolute top-0.5 right-0.5 text-[7px] font-bold text-green-400">NEW</span>
+          <span className="text-lg block mb-0.5">🎓</span>
+          <p className="text-[10px] font-medium">Rate Prof</p>
+        </Link>
+        <Link href="/skills" className="card-hover p-3 text-center block">
           <span className="text-lg block mb-0.5">🔄</span>
           <p className="text-[10px] font-medium">Skill Swap</p>
         </Link>
         <Link href="/rooms" className="card-hover p-3 text-center block">
           <span className="text-lg block mb-0.5">📚</span>
           <p className="text-[10px] font-medium">Rooms</p>
-        </Link>
-        <Link href="/circles" className="card-hover p-3 text-center block">
-          <span className="text-lg block mb-0.5">⭕</span>
-          <p className="text-[10px] font-medium">Circles</p>
         </Link>
         <Link href="/friends" className="card-hover p-3 text-center block">
           <span className="text-lg block mb-0.5">👥</span>

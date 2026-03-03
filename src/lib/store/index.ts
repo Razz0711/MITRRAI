@@ -25,3 +25,4 @@ export * from './gamification';
 export * from './rooms';
 export * from './doubts';
 export * from './anon';
+export * from './ratings';
