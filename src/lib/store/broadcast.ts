@@ -16,8 +16,8 @@ function getUrlForType(type: NotificationType): string {
   if (type === 'room_join' || type === 'room_message') return '/rooms';
   if (type === 'doubt_posted') return '/doubts';
   if (type === 'material_uploaded') return '/materials';
-  if (type === 'birthday_wish') return '/dashboard';
-  return '/dashboard';
+  if (type === 'birthday_wish') return '/home';
+  return '/home';
 }
 
 /** Broadcast a notification to all users — in-app + real Web Push */

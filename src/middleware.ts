@@ -64,9 +64,9 @@ export async function middleware(request: NextRequest) {
 
   // Allow public pages and public APIs without auth
   if (isPublicPage || isPublicApi) {
-    // If user is logged in and on login page, redirect to dashboard
+    // If user is logged in and on login page, redirect to home
     if (user && pathname === '/login') {
-      return NextResponse.redirect(new URL('/dashboard', request.url));
+      return NextResponse.redirect(new URL('/home', request.url));
     }
     return supabaseResponse;
   }

@@ -10,7 +10,7 @@ import { useState, useRef, useEffect } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/components/ThemeProvider';
 import {
-  LayoutDashboard, Handshake, Users, MessageCircle,
+  Home, Handshake, Users, MessageCircle,
   DoorOpen, Flame, CircleDot, MessageCircleMore,
   FileText, CalendarDays, ClipboardList, BookOpen,
   BarChart3, Sun, Moon, Sparkles, MessageSquare, LogOut, LogIn, MoreHorizontal
@@ -36,7 +36,7 @@ export default function Navbar() {
   // Primary links (always visible on desktop)
   const primaryLinks = user
     ? [
-        { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
+        { href: '/home', label: 'Home', icon: Home },
         { href: '/matches', label: 'Matches', icon: Handshake },
         { href: '/friends', label: 'Friends', icon: Users },
         { href: '/chat', label: 'Chat', icon: MessageCircle },

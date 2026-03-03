@@ -133,7 +133,7 @@ export async function POST(request: NextRequest) {
       read: false,
       createdAt: new Date().toISOString(),
     });
-    sendPushToUser(toUserId, { title: '🎂 Birthday Wish!', body: `${fromUserName || 'Someone'} wished you Happy Birthday! 🎉`, url: '/dashboard' }).catch(() => {});
+    sendPushToUser(toUserId, { title: '🎂 Birthday Wish!', body: `${fromUserName || 'Someone'} wished you Happy Birthday! 🎉`, url: '/home' }).catch(() => {});
 
     // Count total wishes
     const wishes = await getBirthdayWishesForUser(toUserId);

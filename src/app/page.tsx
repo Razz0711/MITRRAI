@@ -31,7 +31,7 @@ export default function Home() {
               <Link href="/login" className="btn-primary px-6">
                 Get Started
               </Link>
-              <Link href="/dashboard" className="btn-secondary px-6">
+              <Link href="/home" className="btn-secondary px-6">
                 View Demo
               </Link>
             </div>

@@ -65,7 +65,7 @@ export async function POST() {
     await sendPushToUser(authUser.id, {
       title: '🔔 MitrAI Test Notification',
       body: 'Push notifications are working! You will receive alerts even when the browser is closed.',
-      url: '/dashboard',
+      url: '/home',
     });
 
     return NextResponse.json({

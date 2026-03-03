@@ -94,7 +94,7 @@ function getUrlForNotif(n: NotifType): string {
   if (t === 'room_join' || t === 'room_message') return '/rooms';
   if (t === 'doubt_posted') return '/doubts';
   if (t === 'material_uploaded') return '/materials';
-  if (t === 'birthday_wish') return '/dashboard';
+  if (t === 'birthday_wish') return '/home';
   if (t === 'session_request' || t === 'session_accepted' || t === 'session_declined') return '/session';
-  return '/dashboard';
+  return '/home';
 }

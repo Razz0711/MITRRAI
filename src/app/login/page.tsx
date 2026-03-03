@@ -82,7 +82,7 @@ function LoginPageInner() {
 
   // Redirect if already logged in
   if (user) {
-    router.push('/dashboard');
+    router.push('/home');
     return null;
   }
 
@@ -179,7 +179,7 @@ function LoginPageInner() {
       } else {
         const result = await login(trimmedEmail, password);
         if (result.success) {
-          router.push('/dashboard');
+          router.push('/home');
         } else {
           setError(result.error || 'Invalid credentials');
         }

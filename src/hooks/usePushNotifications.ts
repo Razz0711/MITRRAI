@@ -172,7 +172,7 @@ export function usePushNotifications() {
         vibrate: [200, 100, 200],
         tag,
         renotify: true,
-        data: { url: options?.url || '/dashboard' },
+        data: { url: options?.url || '/home' },
       } as NotificationOptions;
 
       if (swReg.current) {

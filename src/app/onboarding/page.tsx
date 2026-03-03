@@ -289,10 +289,10 @@ export default function OnboardingPage() {
             <p className="text-[var(--success)] text-xs font-semibold mb-2">Profile created successfully</p>
             <div className="flex gap-2 justify-center">
               <button
-                onClick={() => router.push('/dashboard')}
+                onClick={() => router.push('/home')}
                 className="btn-primary text-xs"
               >
-                Dashboard
+                Home
               </button>
               <button
                 onClick={() => router.push('/matches')}
