@@ -64,7 +64,7 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const authUser = await getAuthUser();
   if (!authUser) return unauthorized();
-  if (!rateLimit(`ratings:${authUser.id}`, 15, 60_000)) return rateLimitExceeded();
+  if (!rateLimit(`ratings:${authUser.id}`, 100, 60_000)) return rateLimitExceeded();
 
   try {
     const body = await req.json();
@@ -94,6 +94,21 @@ export async function POST(req: NextRequest) {
       });
       if (!result) return NextResponse.json({ success: false, error: 'Failed to submit rating' }, { status: 500 });
       return NextResponse.json({ success: true, data: { rating: result } });
+    }
+
+    if (action === 'seedProfessors') {
+      // Bulk insert professors — { professors: [{ name, department, designation }] }
+      const list: { name: string; department: string; designation: string }[] = body.professors || [];
+      if (!Array.isArray(list) || list.length === 0) {
+        return NextResponse.json({ success: false, error: 'Provide professors array' }, { status: 400 });
+      }
+      let created = 0;
+      for (const p of list) {
+        if (!p.name?.trim() || !p.department?.trim()) continue;
+        const result = await createProfessor(p.name.trim(), p.department.trim(), p.designation?.trim());
+        if (result) created++;
+      }
+      return NextResponse.json({ success: true, data: { created, total: list.length } });
     }
 
     return NextResponse.json({ success: false, error: 'Invalid action' }, { status: 400 });
