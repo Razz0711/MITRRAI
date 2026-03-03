@@ -108,7 +108,7 @@ export default function HomePage() {
       )}
 
       {/* Hero CTA — Find Your Study Buddy */}
-      <Link href="/matches" className="card p-5 mb-6 block border-[var(--primary)]/30 hover:border-[var(--primary)]/60 transition-all group">
+      <Link href="/matches" className="card p-5 mb-4 block border-[var(--primary)]/30 hover:border-[var(--primary)]/60 transition-all group">
         <div className="flex items-center justify-between">
           <div>
             <p className="text-sm font-bold">🤝 Find Your <span className="gradient-text">Study Buddy</span></p>
@@ -116,6 +116,13 @@ export default function HomePage() {
           </div>
           <span className="text-xs text-[var(--primary-light)] font-medium group-hover:translate-x-0.5 transition-transform">Match Now →</span>
         </div>
+      </Link>
+
+      {/* Friends & Ratings */}
+      <Link href="/friends" className="card px-4 py-3.5 mb-6 flex items-center gap-3 hover:bg-white/[0.03] transition-colors">
+        <span className="text-base w-5 text-center">🤝</span>
+        <span className="text-[13px] font-medium flex-1">Friends & Ratings</span>
+        <span className="text-[var(--muted)] text-xs">›</span>
       </Link>
 
       {/* Primary Actions */}

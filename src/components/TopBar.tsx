@@ -5,11 +5,12 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/components/ThemeProvider';
-import { Home, Radio, MessageCircle, Flame, User, Sun, Moon } from 'lucide-react';
+import { Home, Radio, MessageCircle, Flame, Sun, Moon } from 'lucide-react';
 import { getActiveTab } from './BottomTabs';
 
 const tabs = [
@@ -17,7 +18,6 @@ const tabs = [
   { id: 'radar', label: 'Radar', icon: Radio, href: '/radar' },
   { id: 'chat', label: 'Chat', icon: MessageCircle, href: '/anon' },
   { id: 'feed', label: 'Feed', icon: Flame, href: '/doubts' },
-  { id: 'me', label: 'Me', icon: User, href: '/me' },
 ];
 
 export default function TopBar() {
@@ -25,6 +25,14 @@ export default function TopBar() {
   const { theme, toggleTheme } = useTheme();
   const pathname = usePathname();
   const activeTab = getActiveTab(pathname);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+
+  useEffect(() => {
+    const load = () => setProfilePhoto(localStorage.getItem('mitrai_profile_photo'));
+    load();
+    window.addEventListener('profilePhotoChanged', load);
+    return () => window.removeEventListener('profilePhotoChanged', load);
+  }, []);
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/90 backdrop-blur-md border-b border-[var(--border)]">
@@ -71,9 +79,13 @@ export default function TopBar() {
           </button>
           {user && (
             <Link href="/me" className="flex items-center gap-1.5">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white text-xs font-bold">
-                {user.name?.[0]?.toUpperCase() || '?'}
-              </div>
+              {profilePhoto ? (
+                <img src={profilePhoto} alt="" className="w-7 h-7 rounded-full object-cover" />
+              ) : (
+                <div className="w-7 h-7 rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white text-xs font-bold">
+                  {user.name?.[0]?.toUpperCase() || '?'}
+                </div>
+              )}
             </Link>
           )}
         </div>

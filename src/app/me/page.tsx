@@ -5,27 +5,24 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { useTheme } from '@/components/ThemeProvider';
 import { StudentProfile } from '@/lib/types';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 export default function MePage() {
   const { user, logout } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
-  const [xp, setXp] = useState<{ totalXp: number; level: string; currentStreak: number; longestStreak: number } | null>(null);
-  const [badges, setBadges] = useState<{ badgeId: string; badgeName: string; badgeEmoji: string; earnedAt: string }[]>([]);
-  const [studyStreak, setStudyStreak] = useState(0);
+  const [profilePhoto, setProfilePhoto] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (!user) return;
     loadData();
-    loadGamification();
-    loadStreak();
+    const saved = localStorage.getItem('mitrai_profile_photo');
+    if (saved) setProfilePhoto(saved);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
@@ -46,27 +43,31 @@ export default function MePage() {
     finally { setLoading(false); }
   };
 
-  const loadGamification = async () => {
-    if (!user) return;
-    try {
-      const res = await fetch(`/api/gamification?userId=${user.id}`);
-      const data = await res.json();
-      if (data.success) {
-        setXp(data.data.xp);
-        setBadges(data.data.badges || []);
-      }
-    } catch { /* ignore */ }
+  const handlePhotoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        const size = 200;
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d')!;
+        const min = Math.min(img.width, img.height);
+        const sx = (img.width - min) / 2;
+        const sy = (img.height - min) / 2;
+        ctx.drawImage(img, sx, sy, min, min, 0, 0, size, size);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.8);
+        setProfilePhoto(dataUrl);
+        localStorage.setItem('mitrai_profile_photo', dataUrl);
+        window.dispatchEvent(new Event('profilePhotoChanged'));
+      };
+      img.src = reader.result as string;
+    };
+    reader.readAsDataURL(file);
   };
-
-  const loadStreak = () => {
-    try {
-      const data = JSON.parse(localStorage.getItem('mitrai_study_streak') || '{"streak":0}');
-      setStudyStreak(data.streak || 0);
-    } catch { setStudyStreak(0); }
-  };
-
-  const xpProgress = xp ? ((xp.totalXp || 0) % 500) : 0;
-  const xpPercent = Math.min(100, xpProgress / 5);
 
   if (loading) {
     return (
@@ -82,9 +83,28 @@ export default function MePage() {
       {/* ── Profile Card ── */}
       <div className="card p-5 mb-4">
         <div className="flex items-center gap-4">
-          <div className="w-[52px] h-[52px] rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-lg shadow-[var(--primary)]/20">
-            {(student?.name || user?.name || 'S').charAt(0).toUpperCase()}
-          </div>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="relative w-[52px] h-[52px] rounded-full shrink-0 group"
+          >
+            {profilePhoto ? (
+              <img src={profilePhoto} alt="Profile" className="w-full h-full rounded-full object-cover shadow-lg shadow-[var(--primary)]/20" />
+            ) : (
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-[var(--primary)] to-[var(--secondary)] flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-[var(--primary)]/20">
+                {(student?.name || user?.name || 'S').charAt(0).toUpperCase()}
+              </div>
+            )}
+            <div className="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <span className="text-white text-sm">📷</span>
+            </div>
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/*"
+            className="hidden"
+            onChange={handlePhotoUpload}
+          />
           <div className="flex-1 min-w-0">
             <h1 className="text-base font-bold truncate">{student?.name || user?.name || 'Student'}</h1>
             <p className="text-xs text-[var(--muted)] mt-0.5">
@@ -98,66 +118,11 @@ export default function MePage() {
         </div>
       </div>
 
-      {/* ── Progress Strip ── */}
-      <div className="card p-4 mb-4">
-        <div className="flex items-center justify-between mb-3">
-          <div className="flex items-center gap-3">
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">🔥</span>
-              <span className="text-sm font-bold">{studyStreak}</span>
-              <span className="text-[10px] text-[var(--muted)]">day streak</span>
-            </div>
-            <div className="w-px h-4 bg-[var(--border)]" />
-            <div className="flex items-center gap-1.5">
-              <span className="text-sm">⚡</span>
-              <span className="text-sm font-bold">{xp?.totalXp || 0}</span>
-              <span className="text-[10px] text-[var(--muted)]">XP</span>
-            </div>
-          </div>
-          <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary-light)]">
-            {xp?.level || 'Beginner'}
-          </span>
-        </div>
-        <div className="w-full h-1.5 rounded-full bg-white/5 overflow-hidden">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] transition-all duration-700"
-            style={{ width: `${xpPercent}%` }}
-          />
-        </div>
-        <p className="text-[10px] text-[var(--muted)] mt-1.5">{xpProgress}/500 XP to next level</p>
 
-        {badges.length > 0 && (
-          <div className="flex gap-1.5 flex-wrap mt-3 pt-3 border-t border-[var(--border)]">
-            {badges.map(b => (
-              <span
-                key={b.badgeId}
-                title={b.badgeName}
-                className="text-[10px] bg-white/5 border border-[var(--border)] rounded-full px-2 py-0.5"
-              >
-                {b.badgeEmoji} {b.badgeName}
-              </span>
-            ))}
-          </div>
-        )}
-      </div>
 
       {/* ── Menu Items ── */}
       <div className="card overflow-hidden mb-4">
-        <MenuItem href="/friends" icon="🤝" label="Friends & Ratings" />
-        <MenuItem href="/matches" icon="🎯" label="Find Study Buddy" />
-      </div>
-
-      <div className="card overflow-hidden mb-4">
         <MenuItem href="/subscription" icon="✨" label="Pro Subscription" accent />
-        <button
-          onClick={toggleTheme}
-          className="w-full flex items-center gap-3 px-4 py-3.5 hover:bg-white/[0.03] transition-colors text-left border-t border-[var(--border)]"
-        >
-          <span className="text-base w-5 text-center">{theme === 'dark' ? '☀️' : '🌙'}</span>
-          <span className="text-[13px] font-medium flex-1">Appearance</span>
-          <span className="text-[11px] text-[var(--muted)] mr-1">{theme === 'dark' ? 'Dark' : 'Light'}</span>
-          <span className="text-[var(--muted)] text-xs">›</span>
-        </button>
         <MenuItem href="/feedback" icon="💬" label="Feedback" border />
       </div>
 
