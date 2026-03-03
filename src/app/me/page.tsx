@@ -166,10 +166,7 @@ export default function MePage() {
       <div>
         <h2 className="text-sm font-semibold mb-3">🎓 Academic</h2>
         <div className="space-y-1">
-          <MenuLink href="/attendance" icon="📊" label="Attendance" desc="Track your classes" />
           <MenuLink href="/analytics" icon="📈" label="Analytics" desc="Study insights & trends" />
-          <MenuLink href="/calendar" icon="📅" label="Calendar" desc="Exam & assignment dates" />
-          <MenuLink href="/study-plan" icon="📋" label="Study Plan" desc="Weekly AI-generated plan" />
         </div>
       </div>
 

@@ -4,11 +4,11 @@
 // ============================================
 
 export const TAB_ROUTES: Record<string, string[]> = {
-  home: ['/home', '/dashboard', '/calendar', '/study-plan'],
+  home: ['/home', '/dashboard'],
   connect: ['/chat', '/circles', '/rooms', '/call'],
-  learn: ['/session', '/doubts', '/materials'],
+  learn: ['/doubts'],
   discover: ['/matches', '/friends', '/anon'],
-  me: ['/me', '/subscription', '/attendance', '/analytics', '/feedback', '/onboarding'],
+  me: ['/me', '/subscription', '/analytics', '/feedback', '/onboarding'],
 };
 
 export function getActiveTab(pathname: string): string {

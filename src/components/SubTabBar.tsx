@@ -8,7 +8,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { MessageCircle, CircleDot, Users2, Bot, HelpCircle, FileText, Handshake, UserCheck, Ghost } from 'lucide-react';
+import { MessageCircle, CircleDot, Users2, HelpCircle, Handshake, UserCheck, Ghost } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 export interface SubTab {
@@ -24,9 +24,7 @@ const SUB_TABS: Record<string, SubTab[]> = {
     { label: 'Rooms', href: '/rooms', icon: Users2 },
   ],
   learn: [
-    { label: 'Session', href: '/session', icon: Bot },
     { label: 'Doubts', href: '/doubts', icon: HelpCircle },
-    { label: 'Materials', href: '/materials', icon: FileText },
   ],
   discover: [
     { label: 'Matches', href: '/matches', icon: Handshake },

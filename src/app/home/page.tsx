@@ -208,11 +208,6 @@ export default function HomePage() {
           <p className="text-xs font-semibold">Find Buddies</p>
           <p className="text-[10px] text-[var(--muted)]">Study matches</p>
         </Link>
-        <Link href="/session" className="card-hover p-4 text-center block">
-          <span className="text-2xl mb-1 block">🤖</span>
-          <p className="text-xs font-semibold">AI Session</p>
-          <p className="text-[10px] text-[var(--muted)]">Study with AI</p>
-        </Link>
         <Link href="/doubts" className="card-hover p-4 text-center block">
           <span className="text-2xl mb-1 block">❓</span>
           <p className="text-xs font-semibold">Doubts</p>
@@ -229,10 +224,6 @@ export default function HomePage() {
         <Link href="/circles" className="card-hover p-3 text-center block">
           <span className="text-lg block mb-0.5">⭕</span>
           <p className="text-[10px] font-medium">Circles</p>
-        </Link>
-        <Link href="/materials" className="card-hover p-3 text-center block">
-          <span className="text-lg block mb-0.5">📝</span>
-          <p className="text-[10px] font-medium">Notes</p>
         </Link>
         <Link href="/anon" className="card-hover p-3 text-center block">
           <span className="text-lg block mb-0.5">🎭</span>

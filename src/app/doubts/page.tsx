@@ -8,7 +8,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import SubTabBar from '@/components/SubTabBar';
 
 interface Doubt {
   id: string;
@@ -163,7 +162,6 @@ export default function DoubtsPage() {
 
   return (
     <div className="max-w-3xl mx-auto p-6 space-y-6">
-      <SubTabBar group="learn" />
       {/* Header */}
       <div className="flex items-center justify-between flex-wrap gap-3">
         <div>

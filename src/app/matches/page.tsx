@@ -266,11 +266,11 @@ export default function MatchesPage() {
                 )}
               </p>
               <div className="flex gap-2 justify-center">
-                <Link href="/study-plan" className="btn-primary text-xs">
-                  Create Study Plan
+                <Link href="/chat" className="btn-primary text-xs">
+                  Start Chatting
                 </Link>
-                <Link href="/session" className="btn-secondary text-xs">
-                  Start Session
+                <Link href="/doubts" className="btn-secondary text-xs">
+                  Ask a Doubt
                 </Link>
               </div>
             </div>

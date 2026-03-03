@@ -651,10 +651,6 @@ export default function DashboardPage() {
               <h3 className="text-sm font-semibold mb-1">Friends</h3>
               <p className="text-xs text-[var(--muted)]">Your buddy network</p>
             </Link>
-            <Link href="/study-plan" className="card-hover p-4 text-center block">
-              <h3 className="text-sm font-semibold mb-1">Study Plan</h3>
-              <p className="text-xs text-[var(--muted)]">Generate weekly plan</p>
-            </Link>
             <Link href="/subscription" className="card-hover p-4 text-center block border-amber-500/20">
               <h3 className="text-sm font-semibold mb-1">✨ Pro</h3>
               <p className="text-xs text-amber-400">Free during launch!</p>
