@@ -119,7 +119,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = async (email: string, password: string): Promise<{ success: boolean; error?: string }> => {
-    const maxRetries = 2;
+    const maxRetries = 1;
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const { error } = await supabaseBrowser.auth.signInWithPassword({
@@ -128,11 +128,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         });
 
         if (error) {
-          // Network-level failures — retry
+          // Network-level failures — retry once
           if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError') || error.message.includes('fetch')) {
             if (attempt < maxRetries) {
               console.warn(`[Auth] signIn attempt ${attempt + 1} failed (network), retrying...`);
-              await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+              await new Promise(r => setTimeout(r, 500));
               continue;
             }
             return { success: false, error: 'Unable to reach our servers. Please check your internet connection and try again.' };
@@ -147,7 +147,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch (err) {
         console.error(`[Auth] login attempt ${attempt + 1} error:`, err);
         if (attempt < maxRetries) {
-          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          await new Promise(r => setTimeout(r, 500));
           continue;
         }
         return { success: false, error: 'Login failed — please check your connection and try again.' };
@@ -183,9 +183,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return { success: false, error: result.error || 'Failed to create account' };
       }
 
-      // Step 2: Sign in to establish the session (retry up to 2 times)
+      // Step 2: Sign in to establish the session (retry once)
       let signInError = null;
-      for (let attempt = 0; attempt < 3; attempt++) {
+      for (let attempt = 0; attempt < 2; attempt++) {
         const { error } = await supabaseBrowser.auth.signInWithPassword({
           email: data.email.trim().toLowerCase(),
           password: data.password,
@@ -197,7 +197,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         signInError = error;
         console.warn(`[Auth] post-signup signIn attempt ${attempt + 1} failed:`, error.message);
         if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
-          await new Promise(r => setTimeout(r, 1500 * (attempt + 1)));
+          await new Promise(r => setTimeout(r, 800));
           continue;
         }
         break; // Non-network error — don't retry

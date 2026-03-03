@@ -39,6 +39,7 @@ function LoginPageInner() {
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
   const [otpResendTimer, setOtpResendTimer] = useState(0);
+  const [otpVerified, setOtpVerified] = useState(false); // tracks if OTP was already verified (prevents re-verify after login failure)
 
   // Resend timer countdown
   useEffect(() => {
@@ -95,10 +96,11 @@ function LoginPageInner() {
       return;
     }
     setOtpSending(true);
+    setOtpVerified(false); // reset verified state when resending
     setError('');
     try {
       const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
+      const timeout = setTimeout(() => controller.abort(), 12000);
       const res = await fetch('/api/otp', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -130,20 +132,25 @@ function LoginPageInner() {
     setOtpVerifying(true);
     setError('');
     try {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 20000);
-      const res = await fetch('/api/otp', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'verify', email: trimmedEmail, code: otpCode.trim() }),
-        signal: controller.signal,
-      });
-      clearTimeout(timeout);
-      const data = await res.json();
-      if (!data.success) {
-        setError(data.error || 'Invalid code');
-        setOtpVerifying(false);
-        return;
+      // Skip OTP API call if already verified (retry after login/signup failure)
+      if (!otpVerified) {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), 12000);
+        const res = await fetch('/api/otp', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'verify', email: trimmedEmail, code: otpCode.trim() }),
+          signal: controller.signal,
+        });
+        clearTimeout(timeout);
+        const data = await res.json();
+        if (!data.success) {
+          setError(data.error || 'Invalid code');
+          setOtpVerifying(false);
+          return;
+        }
+        // Mark OTP as verified so retries skip the verify step
+        setOtpVerified(true);
       }
 
       // OTP verified — now do actual login/signup
@@ -167,7 +174,7 @@ function LoginPageInner() {
         if (result.success) {
           router.push('/onboarding');
         } else {
-          setError(result.error || 'Something went wrong');
+          setError(result.error || 'Something went wrong. Tap "Verify & Continue" to retry.');
         }
       } else {
         const result = await login(trimmedEmail, password);
@@ -180,9 +187,9 @@ function LoginPageInner() {
     } catch (err) {
       console.error('verifyOtp:', err);
       if ((err as Error).name === 'AbortError') {
-        setError('Request timed out — please check your internet and try again.');
+        setError('Request timed out — tap "Verify & Continue" to retry.');
       } else {
-        setError('Network error — please check your internet and try again.');
+        setError('Network error — tap "Verify & Continue" to retry.');
       }
     } finally {
       setOtpVerifying(false);
@@ -425,12 +432,12 @@ function LoginPageInner() {
                   disabled={otpCode.length !== 6 || otpVerifying}
                   className="btn-primary w-full text-sm py-2.5 disabled:opacity-50"
                 >
-                  {otpVerifying ? 'Verifying...' : 'Verify & Continue'}
+                  {otpVerifying ? 'Verifying...' : otpVerified ? 'Retry Login' : 'Verify & Continue'}
                 </button>
 
                 <div className="flex items-center justify-between">
                   <button
-                    onClick={() => { setOtpStep(false); setOtpCode(''); setError(''); }}
+                    onClick={() => { setOtpStep(false); setOtpCode(''); setOtpVerified(false); setError(''); }}
                     className="text-xs text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
                   >
                     ← Go back

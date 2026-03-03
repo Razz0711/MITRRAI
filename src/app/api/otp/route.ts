@@ -10,13 +10,19 @@ import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
 
-// Create reusable transporter
+// Create reusable transporter with connection pooling and timeouts
 const transporter = nodemailer.createTransport({
   service: 'gmail',
+  pool: true,
+  maxConnections: 3,
+  maxMessages: 50,
   auth: {
     user: (process.env.SMTP_EMAIL || '').trim(),
     pass: (process.env.SMTP_APP_PASSWORD || '').trim(),
   },
+  connectionTimeout: 8000,  // 8s to establish connection
+  greetingTimeout: 8000,    // 8s for SMTP greeting
+  socketTimeout: 10000,     // 10s for socket inactivity
 });
 
 async function sendOtpEmail(to: string, code: string) {
@@ -65,8 +71,8 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (action === 'send') {
-      // Clean expired OTPs
-      await supabase.from('otp_codes').delete().lt('expires_at', new Date().toISOString());
+      // Clean expired OTPs (non-blocking — don’t delay the user)
+      supabase.from('otp_codes').delete().lt('expires_at', new Date().toISOString()).then(() => {}, () => {});
 
       // Demo reviewer account — use fixed OTP, skip real email
       const DEMO_EMAIL = 'demo@mitrai.study';
@@ -183,9 +189,8 @@ export async function POST(request: NextRequest) {
         }, { status: 400 });
       }
 
-      // OTP verified — remove it
-      await supabase.from('otp_codes').delete().eq('email', normalizedEmail);
-
+      // OTP verified — keep the row alive so frontend can retry login if it fails
+      // The row expires naturally and gets cleaned up on next OTP send
       return NextResponse.json({ success: true, message: 'Email verified successfully' });
     }
 
