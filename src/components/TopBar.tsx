@@ -42,9 +42,9 @@ export default function TopBar() {
             <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white font-extrabold text-sm shadow-lg group-hover:scale-105 transition-transform">
               M
             </div>
-            <div className="hidden sm:flex flex-col">
+            <div className="flex flex-col">
               <span className="text-sm font-bold text-[var(--foreground)] leading-none">MitrAI</span>
-              <span className="text-[9px] text-[var(--muted)] leading-none mt-0.5">SVNIT</span>
+              <span className="text-[9px] text-[var(--muted)] leading-none mt-0.5 hidden sm:block">SVNIT</span>
             </div>
           </Link>
 

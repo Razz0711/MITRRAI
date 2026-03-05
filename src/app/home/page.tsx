@@ -158,23 +158,13 @@ export default function HomePage() {
 
       {/* ─── Greeting Hero ─── */}
       <div className="slide-up">
-        <div className="flex items-center justify-between mb-1">
-          <div>
-            <h1 className="text-2xl font-extrabold tracking-tight">
-              {getGreetingEmoji()} {getGreeting()},
-            </h1>
-            <h2 className="text-2xl font-extrabold tracking-tight">
-              <span className="gradient-text">{firstName}</span>
-            </h2>
-          </div>
-          <Link href="/me" className="relative">
-            <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-[var(--primary)] via-[var(--accent)] to-[var(--secondary)] p-[2px]">
-              <div className="w-full h-full rounded-2xl bg-[var(--background)] flex items-center justify-center text-lg font-bold text-[var(--foreground)]">
-                {firstName[0]?.toUpperCase()}
-              </div>
-            </div>
-            <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[var(--success)] rounded-full border-2 border-[var(--background)]" />
-          </Link>
+        <div className="mb-1">
+          <h1 className="text-2xl font-extrabold tracking-tight">
+            {getGreetingEmoji()} {getGreeting()},
+          </h1>
+          <h2 className="text-2xl font-extrabold tracking-tight">
+            <span className="gradient-text">{firstName}</span>
+          </h2>
         </div>
         <p className="text-sm text-[var(--muted)]">
           {student?.department || 'SVNIT Surat'} · {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
