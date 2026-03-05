@@ -69,7 +69,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       }}>
         <div className="flex items-center justify-between h-14 px-4 max-w-7xl mx-auto">
           <Link href="/" className="flex items-center gap-2.5 group">
-            <img src="/logo.jpg" alt="MitrAI" className="w-8 h-8 rounded-xl shadow-lg group-hover:scale-105 transition-transform object-cover" />
+            <img src="/logo.jpg" alt="MitrAI" className="h-9 w-auto rounded-xl shadow-lg group-hover:scale-105 transition-transform" />
             <div className="flex flex-col">
               <span className="text-sm font-bold text-[var(--foreground)] leading-none">MitrAI</span>
               <span className="text-[9px] text-[var(--muted)] leading-none mt-0.5 hidden sm:block">SVNIT Surat</span>

@@ -6,6 +6,20 @@
 
 import { useState } from 'react';
 
+const TYPES = [
+  { value: 'feedback' as const, label: 'Feedback', emoji: '💬', desc: 'Share your thoughts' },
+  { value: 'bug' as const, label: 'Bug Report', emoji: '🐛', desc: 'Something broken?' },
+  { value: 'feature' as const, label: 'Feature Idea', emoji: '💡', desc: 'Suggest something new' },
+  { value: 'contact' as const, label: 'Contact Us', emoji: '📬', desc: 'Reach out directly' },
+];
+
+const FAQS = [
+  { q: 'Is MitrAI free to use?', a: 'Yes! MitrAI is completely free for all SVNIT students.' },
+  { q: 'How does the matching work?', a: 'Our AI analyzes 5 dimensions — subjects, schedule, study style, goals, and personality — to find your ideal study buddy with a 100-point scoring system.' },
+  { q: 'Are voice/video calls recorded?', a: 'No. Calls are powered by Jitsi Meet and are completely private. Nothing is recorded or stored.' },
+  { q: 'Can I suggest new features?', a: 'Absolutely! Use the Feature Idea option above to share your ideas. We love hearing from our users.' },
+];
+
 export default function FeedbackPage() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -14,6 +28,7 @@ export default function FeedbackPage() {
   const [rating, setRating] = useState(0);
   const [submitted, setSubmitted] = useState(false);
   const [sending, setSending] = useState(false);
+  const [openFaq, setOpenFaq] = useState<number | null>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -43,15 +58,18 @@ export default function FeedbackPage() {
 
   if (submitted) {
     return (
-      <div className="max-w-2xl mx-auto px-4 py-12 text-center">
+      <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <div className="card p-8">
+          <div className="w-16 h-16 rounded-2xl bg-green-500/15 flex items-center justify-center mx-auto mb-4">
+            <span className="text-3xl">✅</span>
+          </div>
           <h2 className="text-xl font-bold mb-2">
-            <span className="gradient-text">Thank You</span>
+            <span className="gradient-text">Thank You!</span>
           </h2>
-          <p className="text-xs text-[var(--muted)] mb-4 max-w-sm mx-auto">
-            Your {type} has been received. We appreciate your help improving MitrAI.
+          <p className="text-sm text-[var(--muted)] mb-6 max-w-xs mx-auto">
+            Your {type === 'bug' ? 'bug report' : type === 'feature' ? 'feature idea' : type === 'contact' ? 'message' : 'feedback'} has been received. We appreciate your input!
           </p>
-          <div className="flex gap-2 justify-center">
+          <div className="flex gap-3 justify-center">
             <button
               onClick={() => {
                 setSubmitted(false);
@@ -59,11 +77,11 @@ export default function FeedbackPage() {
                 setRating(0);
                 setType('feedback');
               }}
-              className="btn-primary text-xs"
+              className="btn-secondary text-xs px-5 py-2.5"
             >
               Send Another
             </button>
-            <a href="/" className="btn-secondary text-xs inline-block">
+            <a href="/home" className="btn-primary text-xs px-5 py-2.5 inline-block">
               Back to Home
             </a>
           </div>
@@ -73,89 +91,84 @@ export default function FeedbackPage() {
   }
 
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6">
+    <div className="max-w-2xl mx-auto px-4 py-6 pb-12">
       {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-xl font-bold mb-1">
+      <div className="text-center mb-8">
+        <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center">
+          <span className="text-2xl">💌</span>
+        </div>
+        <h1 className="text-2xl font-extrabold mb-1">
           <span className="gradient-text">Contact & Feedback</span>
         </h1>
-        <p className="text-xs text-[var(--muted)]">Help us make MitrAI better</p>
+        <p className="text-sm text-[var(--muted)]">Help us make MitrAI better for everyone</p>
+      </div>
+
+      {/* Type Selection — Cards */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-6">
+        {TYPES.map((opt) => (
+          <button
+            key={opt.value}
+            type="button"
+            onClick={() => setType(opt.value)}
+            className={`p-3 rounded-xl text-center transition-all duration-200 ${
+              type === opt.value
+                ? 'bg-[var(--primary)]/15 border-2 border-[var(--primary)] shadow-md shadow-[var(--primary)]/10 scale-[1.02]'
+                : 'bg-[var(--surface)] border-2 border-transparent hover:border-[var(--border)] hover:bg-[var(--surface-light)]'
+            }`}
+          >
+            <span className="text-xl block mb-1">{opt.emoji}</span>
+            <span className={`text-xs font-semibold block ${type === opt.value ? 'text-[var(--primary-light)]' : 'text-[var(--foreground)]'}`}>
+              {opt.label}
+            </span>
+            <span className="text-[9px] text-[var(--muted)] block mt-0.5">{opt.desc}</span>
+          </button>
+        ))}
       </div>
 
       {/* Feedback Form */}
-      <form onSubmit={handleSubmit} className="card p-4 space-y-4">
-        {/* Type Selection */}
-        <div>
-          <label className="label">What would you like to share?</label>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5">
-            {([
-              { value: 'feedback', label: 'Feedback' },
-              { value: 'bug', label: 'Bug Report' },
-              { value: 'feature', label: 'Feature Idea' },
-              { value: 'contact', label: 'Contact' },
-            ] as const).map((opt) => (
-              <button
-                key={opt.value}
-                type="button"
-                onClick={() => setType(opt.value)}
-                className={`p-2 rounded-lg text-xs font-medium transition-all ${
-                  type === opt.value
-                    ? 'bg-[var(--primary)]/20 border border-[var(--primary)] text-[var(--primary-light)]'
-                    : 'bg-white/5 border border-[var(--border)] text-[var(--muted)] hover:bg-white/10'
-                }`}
-              >
-                {opt.label}
-              </button>
-            ))}
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {/* Name & Email row */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label className="text-xs font-semibold text-[var(--muted)] mb-1.5 block">Your Name</label>
+            <input
+              type="text"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="Optional"
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="text-xs font-semibold text-[var(--muted)] mb-1.5 block">Email</label>
+            <input
+              type="email"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="Optional, for us to reply"
+              className="input-field"
+            />
           </div>
         </div>
 
-        {/* Name */}
-        <div>
-          <label className="label">Your Name</label>
-          <input
-            type="text"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Enter your name (optional)"
-            className="input-field"
-          />
-        </div>
-
-        {/* Email */}
-        <div>
-          <label className="label">Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            placeholder="your@email.com (optional, for us to reply)"
-            className="input-field"
-          />
-        </div>
-
-        {/* Rating */}
+        {/* Star Rating */}
         {type === 'feedback' && (
           <div>
-            <label className="label">Rating</label>
-            <div className="flex gap-1.5">
+            <label className="text-xs font-semibold text-[var(--muted)] mb-2 block">How would you rate MitrAI?</label>
+            <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
                   key={star}
                   type="button"
-                  onClick={() => setRating(star)}
-                  className={`w-9 h-9 rounded-lg text-sm transition-all ${
-                    star <= rating
-                      ? 'bg-yellow-500/20 border border-yellow-500/50 text-yellow-400 scale-105'
-                      : 'bg-white/5 border border-[var(--border)] text-[var(--muted)] hover:bg-white/10'
-                  }`}
+                  onClick={() => setRating(star === rating ? 0 : star)}
+                  className="text-2xl transition-transform hover:scale-125 focus:outline-none"
                 >
-                  {star}
+                  {star <= rating ? '⭐' : '☆'}
                 </button>
               ))}
               {rating > 0 && (
-                <span className="self-center text-xs text-[var(--muted)] ml-1">
-                  {['', 'Needs work', 'Fair', 'Good', 'Great', 'Excellent'][rating]}
+                <span className="text-xs text-[var(--muted)] ml-2 font-medium">
+                  {['', 'Needs work', 'Fair', 'Good', 'Great', 'Excellent!'][rating]}
                 </span>
               )}
             </div>
@@ -164,7 +177,7 @@ export default function FeedbackPage() {
 
         {/* Message */}
         <div>
-          <label className="label">
+          <label className="text-xs font-semibold text-[var(--muted)] mb-1.5 block">
             {type === 'bug' ? 'Describe the bug *' :
              type === 'feature' ? 'Describe your idea *' :
              type === 'contact' ? 'Your message *' :
@@ -179,7 +192,7 @@ export default function FeedbackPage() {
               type === 'contact' ? 'How can we help you?' :
               'Tell us what you think about MitrAI...'
             }
-            rows={5}
+            rows={4}
             className="input-field resize-none"
             required
           />
@@ -189,47 +202,61 @@ export default function FeedbackPage() {
         <button
           type="submit"
           disabled={!message.trim() || sending}
-          className="btn-primary w-full"
+          className="btn-primary w-full py-3 text-sm font-semibold"
         >
-          {sending ? 'Sending...' : 'Send Feedback'}
+          {sending ? (
+            <span className="flex items-center justify-center gap-2">
+              <span className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              Sending...
+            </span>
+          ) : (
+            `Send ${type === 'bug' ? 'Bug Report' : type === 'feature' ? 'Feature Idea' : type === 'contact' ? 'Message' : 'Feedback'}`
+          )}
         </button>
       </form>
 
-      {/* Contact for Queries */}
-      <div className="mt-6 card p-4">
-        <h3 className="text-sm font-semibold mb-3 text-center">Have a Query?</h3>
-        <p className="text-xs text-[var(--muted)] text-center mb-3">Reach out to us anytime</p>
+      {/* Quick Contact */}
+      <div className="mt-8 card p-5 text-center">
+        <h3 className="text-sm font-bold mb-1">Need Quick Help?</h3>
+        <p className="text-xs text-[var(--muted)] mb-4">Reach out to us directly anytime</p>
         <div className="flex flex-wrap gap-3 justify-center">
           <a
             href="https://wa.me/917061001946?text=Hi%2C%20I%20have%20a%20query%20about%20MitrAI"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-green-500/15 border border-green-500/30 text-xs font-medium text-green-400 hover:bg-green-500/25 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-500/15 border border-green-500/30 text-xs font-semibold text-green-400 hover:bg-green-500/25 transition-all"
           >
             💬 WhatsApp
           </a>
           <a
             href="mailto:rajkumaratsvnit@gmail.com?subject=MitrAI%20Query"
-            className="flex items-center gap-2 px-4 py-2 rounded-xl bg-blue-500/15 border border-blue-500/30 text-xs font-medium text-blue-400 hover:bg-blue-500/25 transition-all"
+            className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 transition-all"
           >
             ✉️ Email
           </a>
         </div>
       </div>
 
-      {/* FAQ */}
-      <div className="mt-4 card p-4">
-        <h3 className="text-sm font-semibold mb-3">Frequently Asked Questions</h3>
-        <div className="space-y-4">
-          {[
-            { q: 'Is MitrAI free to use?', a: 'Yes! MitrAI is completely free for all students.' },
-            { q: 'How does the matching work?', a: 'Our AI analyzes 5 dimensions — subjects, schedule, study style, goals, and personality — to find your ideal study buddy with a 100-point scoring system.' },
-            { q: 'Are voice/video calls recorded?', a: 'No. Calls are powered by Jitsi Meet and are completely private. Nothing is recorded or stored.' },
-            { q: 'Can I suggest new features?', a: 'Absolutely! Use the Feature Idea option above to share your ideas. We love hearing from our users.' },
-          ].map((faq, i) => (
-            <div key={i} className="p-3 rounded-xl bg-white/5">
-              <p className="text-sm font-semibold text-[var(--foreground)] mb-1">{faq.q}</p>
-              <p className="text-sm text-[var(--muted)]">{faq.a}</p>
+      {/* FAQ — Accordion */}
+      <div className="mt-6 card p-5">
+        <h3 className="text-sm font-bold mb-4">Frequently Asked Questions</h3>
+        <div className="space-y-1">
+          {FAQS.map((faq, i) => (
+            <div key={i} className="rounded-xl overflow-hidden">
+              <button
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+                className="w-full flex items-center justify-between px-3 py-3 text-left hover:bg-[var(--surface-light)] transition-colors rounded-xl"
+              >
+                <span className="text-sm font-semibold text-[var(--foreground)] pr-4">{faq.q}</span>
+                <span className={`text-[var(--muted)] text-xs transition-transform duration-200 shrink-0 ${openFaq === i ? 'rotate-180' : ''}`}>
+                  ▾
+                </span>
+              </button>
+              {openFaq === i && (
+                <div className="px-3 pb-3 text-sm text-[var(--muted)] leading-relaxed animate-in slide-in-from-top-1">
+                  {faq.a}
+                </div>
+              )}
             </div>
           ))}
         </div>
