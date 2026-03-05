@@ -103,7 +103,7 @@ export async function POST(req: NextRequest) {
 }
 
 // DELETE /api/radar — stop broadcasting
-export async function DELETE(req: NextRequest) {
+export async function DELETE(_req: NextRequest) {
   const authUser = await getAuthUser();
   if (!authUser) return unauthorized();
 
