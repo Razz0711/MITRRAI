@@ -16,11 +16,6 @@ export default function MePage() {
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
 
-  // Streak & Gamification
-  const [studyStreak, setStudyStreak] = useState(0);
-  const [xp, setXp] = useState<{ totalXp: number; level: string; currentStreak: number; longestStreak: number } | null>(null);
-  const [badges, setBadges] = useState<{ badgeId: string; badgeName: string; badgeEmoji: string; earnedAt: string }[]>([]);
-
   useEffect(() => {
     if (!user) return;
     loadData();
@@ -43,40 +38,6 @@ export default function MePage() {
     } catch (err) { console.error(err); }
     finally { setLoading(false); }
   };
-
-  // Calculate study streak from localStorage
-  useEffect(() => {
-    try {
-      const streakData = JSON.parse(localStorage.getItem('mitrai_study_streak') || '{"dates":[],"streak":0}');
-      const today = new Date().toISOString().slice(0, 10);
-      const dates: string[] = streakData.dates || [];
-      if (!dates.includes(today)) dates.push(today);
-      let streak = 0;
-      let checkDate = new Date();
-      // eslint-disable-next-line no-constant-condition
-      while (true) {
-        const dateStr = checkDate.toISOString().slice(0, 10);
-        if (dates.includes(dateStr)) { streak++; checkDate = new Date(checkDate.getTime() - 86400000); } else break;
-      }
-      setStudyStreak(streak);
-      localStorage.setItem('mitrai_study_streak', JSON.stringify({ dates: dates.slice(-30), streak }));
-    } catch { setStudyStreak(1); }
-  }, []);
-
-  // Load gamification data
-  useEffect(() => {
-    if (!user) return;
-    (async () => {
-      try {
-        const res = await fetch(`/api/gamification?userId=${user.id}`);
-        const data = await res.json();
-        if (data.success) {
-          setXp(data.data.xp);
-          setBadges(data.data.badges || []);
-        }
-      } catch (err) { console.error('loadGamification:', err); }
-    })();
-  }, [user]);
 
   if (loading) {
     return (
@@ -108,41 +69,7 @@ export default function MePage() {
         </div>
       </div>
 
-      {/* ── Streak & XP ── */}
-      <div className="card p-4 mb-4">
-        <div className="flex items-center gap-3 mb-3">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center text-white font-bold text-sm">
-            {xp?.level?.charAt(0) || '🔥'}
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-bold">{xp?.level || 'Beginner'}</p>
-            <p className="text-[10px] text-[var(--muted)]">{xp?.totalXp || 0} XP earned</p>
-          </div>
-          <div className="text-center px-3 py-1.5 rounded-lg bg-orange-500/10 border border-orange-500/20">
-            <p className="text-base font-bold text-orange-400">🔥 {studyStreak}</p>
-            <p className="text-[9px] text-[var(--muted)]">day streak</p>
-          </div>
-        </div>
-        {/* XP Progress Bar */}
-        <div className="w-full h-2 rounded-full bg-white/10 mb-3">
-          <div
-            className="h-full rounded-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-500"
-            style={{ width: `${Math.min(100, ((xp?.totalXp || 0) % 500) / 5)}%` }}
-          />
-        </div>
-        {/* Badges */}
-        {badges.length > 0 ? (
-          <div className="flex gap-2 flex-wrap">
-            {badges.map((b) => (
-              <span key={b.badgeId} title={b.badgeName} className="inline-flex items-center gap-1 text-xs bg-white/5 border border-[var(--border)] rounded-full px-2.5 py-1">
-                {b.badgeEmoji} {b.badgeName}
-              </span>
-            ))}
-          </div>
-        ) : (
-          <p className="text-[10px] text-[var(--muted)]">Complete actions to earn badges!</p>
-        )}
-      </div>
+
 
       {/* ── Menu Items ── */}
       <div className="card overflow-hidden mb-4">
@@ -184,16 +111,7 @@ export default function MePage() {
         </div>
       </div>
 
-      {/* Pro Banner */}
-      <Link href="/subscription" className="card p-4 mb-4 border-amber-500/20 block hover:border-amber-500/40 transition-colors">
-        <div className="flex items-center justify-between">
-          <div>
-            <p className="text-[13px] font-medium text-amber-400">✨ MitrAI Pro</p>
-            <p className="text-[11px] text-[var(--muted)]">Free during launch — unlock all features</p>
-          </div>
-          <span className="text-[11px] text-amber-400 font-medium">Explore →</span>
-        </div>
-      </Link>
+
 
       {/* Sign Out */}
       {user && (
