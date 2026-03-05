@@ -48,6 +48,7 @@ export const ROOM_TYPES = [
   { id: 'confession', label: 'Confession',       emoji: '🤫', description: 'Get it off your chest',     color: '#ec4899' },
   { id: 'career',     label: 'Career Anxiety',   emoji: '💼', description: 'Placements, internships, future', color: '#f59e0b' },
   { id: 'crush',      label: 'Crush Advice',     emoji: '💝', description: 'Anonymous love advice',     color: '#ef4444' },
+  { id: 'radar',      label: 'Radar Connect',    emoji: '📡', description: 'Anonymous broadcast chat',   color: '#10b981' },
 ] as const;
 
 export type AnonRoomType = typeof ROOM_TYPES[number]['id'];

@@ -88,14 +88,14 @@ export async function POST(req: NextRequest) {
         console.error('radar connect: add members error:', memberErr);
       }
 
-      // Send notification to broadcaster
+      // Send notification to broadcaster (embed roomId so deeplink goes directly to the room)
       const notifId = uuidv4();
       await addNotification({
         id: notifId,
         userId: broadcasterId,
         type: NOTIFICATION_TYPES.RADAR_CONNECT,
         title: '🤝 Anonymous Connect!',
-        message: `Someone wants to join you for ${actLabel}! Check your anonymous chats.`,
+        message: `Someone wants to join you for ${actLabel}! Tap to chat anonymously. {{room:${roomId}}}`,
         read: false,
         createdAt: new Date().toISOString(),
       });

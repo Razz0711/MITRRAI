@@ -56,7 +56,9 @@ export default function GlobalNotificationPoller() {
       if (fresh.length > 0 && permission === 'granted') {
         // Show native push for the most recent one
         const latest = fresh[0];
-        showNotification(latest.title, latest.message, {
+        // Strip embedded metadata tags from display text
+        const cleanMessage = latest.message.replace(/\s*\{\{room:[^}]+\}\}/g, '');
+        showNotification(latest.title, cleanMessage, {
           tag: `notif-${latest.id}`,
           url: getUrlForNotif(latest),
         });
@@ -96,7 +98,9 @@ function getUrlForNotif(n: NotifType): string {
   if (t === 'material_uploaded') return '/materials';
   if (t === 'birthday_wish') return '/home';
   if (t === 'radar_connect') {
-    // If the notification mentions anonymous chats, go to anon; otherwise go to radar
+    // Extract embedded roomId for direct deeplink to anon chat room
+    const roomMatch = n.message?.match(/\{\{room:([^}]+)\}\}/);
+    if (roomMatch) return `/anon/${roomMatch[1]}`;
     if (n.message?.includes('anonymous')) return '/anon';
     return '/chat';
   }
