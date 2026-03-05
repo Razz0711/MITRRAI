@@ -73,14 +73,13 @@ export default function MePage() {
 
       {/* ── Menu Items ── */}
       <div className="card overflow-hidden mb-4">
-        <MenuItem href="/subscription" icon="✨" label="Pro Subscription" accent />
-        <MenuItem href="/feedback" icon="💬" label="Feedback" border />
+        <MenuItem href="/subscription" icon="" label="Pro Subscription" accent />
+        <MenuItem href="/feedback" icon="" label="Feedback" border />
       </div>
 
       {/* Invite Batchmates */}
       <div className="card p-4 mb-4">
         <div className="flex items-center gap-2 mb-3">
-          <span className="text-base">📤</span>
           <span className="text-[13px] font-medium">Invite Batchmates</span>
         </div>
         <div className="flex flex-col sm:flex-row gap-2">
@@ -95,17 +94,17 @@ export default function MePage() {
               }}
               className="btn-secondary text-xs px-3 py-2 whitespace-nowrap"
             >
-              📋 Copy
+              Copy
             </button>
             <button
               onClick={() => {
                 const link = `${window.location.origin}/login?ref=${student?.admissionNumber || user?.id?.slice(0, 6) || 'svnit'}`;
-                const msg = encodeURIComponent(`Hey! Join MitrAI \u2014 find study buddies at SVNIT 🎓\n${link}`);
+                const msg = encodeURIComponent(`Hey! Join MitrAI \u2014 find study buddies at SVNIT\n${link}`);
                 window.open(`https://wa.me/?text=${msg}`, '_blank');
               }}
               className="text-xs px-3 py-2 rounded-lg bg-green-600 text-white font-medium hover:bg-green-700 transition-colors whitespace-nowrap"
             >
-              📱 WhatsApp
+              WhatsApp
             </button>
           </div>
         </div>

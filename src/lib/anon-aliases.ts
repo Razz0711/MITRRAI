@@ -43,12 +43,12 @@ export function generateAlias(): string {
  * Room type display config
  */
 export const ROOM_TYPES = [
-  { id: 'vent',       label: 'Vent & Support',  emoji: '💭', description: 'Share what\'s on your mind', color: '#6366f1' },
-  { id: 'night_owl',  label: 'Night Owl Chat',  emoji: '🦉', description: 'Late night talks (11PM-4AM)', color: '#8b5cf6' },
-  { id: 'confession', label: 'Confession',       emoji: '🤫', description: 'Get it off your chest',     color: '#ec4899' },
-  { id: 'career',     label: 'Career Anxiety',   emoji: '💼', description: 'Placements, internships, future', color: '#f59e0b' },
-  { id: 'crush',      label: 'Crush Advice',     emoji: '💝', description: 'Anonymous love advice',     color: '#ef4444' },
-  { id: 'radar',      label: 'Radar Connect',    emoji: '📡', description: 'Anonymous broadcast chat',   color: '#10b981' },
+  { id: 'vent',       label: 'Vent & Support',  emoji: '', description: 'Share what\'s on your mind', color: '#6366f1' },
+  { id: 'night_owl',  label: 'Night Owl Chat',  emoji: '', description: 'Late night talks (11PM-4AM)', color: '#8b5cf6' },
+  { id: 'confession', label: 'Confession',       emoji: '', description: 'Get it off your chest',     color: '#ec4899' },
+  { id: 'career',     label: 'Career Anxiety',   emoji: '', description: 'Placements, internships, future', color: '#f59e0b' },
+  { id: 'crush',      label: 'Crush Advice',     emoji: '', description: 'Anonymous love advice',     color: '#ef4444' },
+  { id: 'radar',      label: 'Radar Connect',    emoji: '', description: 'Anonymous broadcast chat',   color: '#10b981' },
 ] as const;
 
 export type AnonRoomType = typeof ROOM_TYPES[number]['id'];

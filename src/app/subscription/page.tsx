@@ -163,10 +163,10 @@ export default function SubscriptionPage() {
             ? 'bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/30'
             : 'bg-amber-500/15 text-amber-400 border border-amber-500/30'
         }`}>
-          {planStatus === 'pending' && '⏳ Payment Under Verification'}
-          {planStatus !== 'pending' && currentPlan === 'free' && '📦 Free Plan'}
-          {planStatus !== 'pending' && currentPlan === 'monthly' && '⚡ Monthly Pro'}
-          {planStatus !== 'pending' && currentPlan === 'yearly' && '👑 Yearly Pro'}
+          {planStatus === 'pending' && 'Payment Under Verification'}
+          {planStatus !== 'pending' && currentPlan === 'free' && 'Free Plan'}
+          {planStatus !== 'pending' && currentPlan === 'monthly' && 'Monthly Pro'}
+          {planStatus !== 'pending' && currentPlan === 'yearly' && 'Yearly Pro'}
           <span className="text-[10px] opacity-70">• {planStatus === 'pending' ? 'Pending' : 'Current'}</span>
         </span>
         {planStatus === 'pending' && (
@@ -186,7 +186,7 @@ export default function SubscriptionPage() {
             </div>
           )}
           <div className="text-center mb-5">
-            <span className="text-3xl mb-3 block">📦</span>
+            <span className="text-3xl mb-3 block font-bold text-[var(--muted)]">Free</span>
             <h3 className="text-lg font-bold">Free</h3>
             <div className="mt-2">
               <span className="text-3xl font-bold">₹0</span>
@@ -232,7 +232,7 @@ export default function SubscriptionPage() {
             POPULAR
           </div>
           <div className="text-center mb-5">
-            <span className="text-3xl mb-3 block">⚡</span>
+            <span className="text-3xl mb-3 block font-bold text-[var(--primary-light)]">Pro</span>
             <h3 className="text-lg font-bold">Monthly</h3>
             <div className="mt-2">
               <span className="text-3xl font-bold">₹99</span>
@@ -280,7 +280,7 @@ export default function SubscriptionPage() {
             SAVE 17%
           </div>
           <div className="text-center mb-5">
-            <span className="text-3xl mb-3 block">👑</span>
+            <span className="text-3xl mb-3 block font-bold text-amber-400">Pro+</span>
             <h3 className="text-lg font-bold">Yearly</h3>
             <div className="mt-2">
               <span className="text-3xl font-bold">₹999</span>
@@ -359,7 +359,7 @@ export default function SubscriptionPage() {
             {paymentStep === 'qr' && (
               <>
                 <div className="text-center mb-4">
-                  <span className="text-3xl">{paymentPlan === 'monthly' ? '⚡' : '👑'}</span>
+                  <span className="text-3xl">{paymentPlan === 'monthly' ? 'Pro' : 'Pro+'}</span>
                   <h3 className="text-lg font-bold mt-2">
                     {paymentPlan === 'monthly' ? 'Monthly Pro' : 'Yearly Pro'}
                   </h3>
@@ -388,7 +388,7 @@ export default function SubscriptionPage() {
                 <div className="text-center mb-4">
                   <p className="text-xs text-[var(--muted)] mb-1">Scan with any UPI app to pay</p>
                   <div className="flex items-center justify-center gap-2 flex-wrap">
-                    <span className="text-lg">📱</span>
+                  <span className="text-lg font-semibold">UPI</span>
                     <span className="text-[10px] text-[var(--muted)]">GPay • PhonePe • Paytm • BHIM • Any UPI app</span>
                   </div>
                   <div className="mt-2 px-3 py-1.5 rounded-lg bg-white/5 border border-[var(--border)] inline-block">
@@ -424,7 +424,7 @@ export default function SubscriptionPage() {
                       : 'bg-white/10 text-[var(--muted)] cursor-not-allowed'
                   }`}
                 >
-                  ✅ Submit Payment for Verification
+                  Submit Payment for Verification
                 </button>
 
                 <p className="text-[10px] text-[var(--muted)] text-center mt-3">
@@ -437,7 +437,7 @@ export default function SubscriptionPage() {
             {paymentStep === 'confirming' && (
               <div className="text-center py-8">
                 <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-[var(--primary)]/20 border border-[var(--primary)]/30 flex items-center justify-center animate-pulse">
-                  <span className="text-2xl">⏳</span>
+                  <span className="text-2xl">...</span>
                 </div>
                 <p className="text-sm font-semibold">Activating your plan...</p>
                 <p className="text-xs text-[var(--muted)] mt-1">This will take just a moment</p>
@@ -447,7 +447,7 @@ export default function SubscriptionPage() {
             {paymentStep === 'done' && (
               <div className="text-center py-8">
                 <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center">
-                  <span className="text-2xl">⏳</span>
+                  <span className="text-sm font-bold text-amber-400">Pending</span>
                 </div>
                 <p className="text-sm font-bold text-amber-400">Payment Submitted!</p>
                 <p className="text-xs text-[var(--muted)] mt-2">
@@ -472,7 +472,7 @@ export default function SubscriptionPage() {
         <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 slide-up">
           <div className="px-6 py-3 rounded-xl bg-green-500/20 border border-green-500/40 backdrop-blur-sm shadow-lg">
             <p className="text-sm font-semibold text-green-400">
-              ✅ Plan updated successfully!
+              Plan updated successfully!
             </p>
           </div>
         </div>

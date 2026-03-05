@@ -291,7 +291,7 @@ export default function AnonLobbyPage() {
         {/* Header — Premium */}
         <div className="text-center mb-6 slide-up">
           <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-violet-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            <span className="text-4xl">🎭</span>
+            <span className="text-lg font-bold gradient-text">Anon</span>
           </div>
           <h1 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">
             <span className="gradient-text">Anonymous Chat</span>
@@ -314,7 +314,6 @@ export default function AnonLobbyPage() {
               </span>
             </div>
             <div className="flex items-center gap-2 px-4 py-2 rounded-2xl" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', backdropFilter: 'blur(8px)' }}>
-              <span className="text-xs">⏳</span>
               <span className="text-xs font-semibold text-amber-400">
                 {stats.queueCount} waiting
               </span>
@@ -333,7 +332,7 @@ export default function AnonLobbyPage() {
         {/* Banned */}
         {status === 'banned' && (
           <div className="card p-8 text-center">
-            <div className="text-5xl mb-4">🚫</div>
+            <div className="w-16 h-16 mx-auto rounded-2xl bg-red-500/15 flex items-center justify-center text-sm font-bold text-[var(--error)] mb-4">Banned</div>
             <h2 className="text-xl font-bold text-[var(--error)] mb-2">You&apos;re Temporarily Banned</h2>
             <p className="text-[var(--muted)] text-sm mb-2">{banInfo.reason || 'Multiple reports received'}</p>
             {banInfo.expiresAt && (
@@ -352,7 +351,7 @@ export default function AnonLobbyPage() {
             {(status === 'pending-payment' || pendingPayment?.status === 'pending') && (
               <div className="card p-4 border-2 border-amber-500/30 bg-amber-500/5">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">⏳</span>
+                  <span className="text-sm font-bold text-amber-400">Pending</span>
                   <div>
                     <h3 className="text-sm font-semibold text-amber-400">Payment Under Review</h3>
                     <p className="text-xs text-[var(--muted)]">
@@ -367,7 +366,7 @@ export default function AnonLobbyPage() {
             {pendingPayment?.status === 'rejected' && (
               <div className="card p-4 border-2 border-red-500/30 bg-red-500/5">
                 <div className="flex items-center gap-3">
-                  <span className="text-2xl">❌</span>
+                  <span className="text-sm font-bold text-[var(--error)]">Rejected</span>
                   <div>
                     <h3 className="text-sm font-semibold text-[var(--error)]">Payment Rejected</h3>
                     <p className="text-xs text-[var(--muted)]">
@@ -380,7 +379,9 @@ export default function AnonLobbyPage() {
 
             {/* Teaser */}
             <div className="card p-8 text-center border-2 border-dashed border-[var(--primary)]/30">
-              <div className="text-5xl mb-4">{usedTrial ? '⏰' : '🔒'}</div>
+              <div className="w-16 h-16 mx-auto rounded-2xl bg-[var(--primary)]/15 flex items-center justify-center text-sm font-bold text-[var(--foreground)] mb-4">
+                {usedTrial ? 'Expired' : 'Locked'}
+              </div>
               <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">
                 {usedTrial ? 'Your Free Trial Has Ended' : 'Unlock Anonymous Chat'}
               </h2>
@@ -420,12 +421,12 @@ export default function AnonLobbyPage() {
 
               {/* Features */}
               <div className="grid grid-cols-2 gap-2 text-left text-xs text-[var(--muted)] mb-6">
-                <div className="flex items-center gap-2">✅ Random matching</div>
-                <div className="flex items-center gap-2">✅ 5 room types</div>
-                <div className="flex items-center gap-2">✅ Fun aliases</div>
-                <div className="flex items-center gap-2">✅ Mutual reveal option</div>
-                <div className="flex items-center gap-2">✅ Report & block</div>
-                <div className="flex items-center gap-2">✅ SVNIT-only safe space</div>
+                <div className="flex items-center gap-2">• Random matching</div>
+                <div className="flex items-center gap-2">• 5 room types</div>
+                <div className="flex items-center gap-2">• Fun aliases</div>
+                <div className="flex items-center gap-2">• Mutual reveal option</div>
+                <div className="flex items-center gap-2">• Report & block</div>
+                <div className="flex items-center gap-2">• SVNIT-only safe space</div>
               </div>
 
               {/* Divider */}
@@ -455,7 +456,7 @@ export default function AnonLobbyPage() {
               </div>
               {couponError && <p className="text-[var(--error)] text-xs mt-2">{couponError}</p>}
               <p className="text-[10px] text-[var(--muted)] mt-3">
-                Get coupon codes from campus events, club activities, or friends! 🎉
+                Get coupon codes from campus events, club activities, or friends!
               </p>
             </div>
           </div>
@@ -468,7 +469,7 @@ export default function AnonLobbyPage() {
               {!paySuccess ? (
                 <>
                   <div className="text-center">
-                    <div className="text-3xl mb-2">💳</div>
+                    <div className="w-14 h-14 mx-auto rounded-2xl bg-[var(--primary)]/15 flex items-center justify-center text-sm font-bold text-[var(--foreground)] mb-2">Pay</div>
                     <h3 className="text-lg font-bold text-[var(--foreground)]">
                       Pay ₹{selectedPlan.price} for {selectedPlan.label} Plan
                     </h3>
@@ -494,7 +495,7 @@ export default function AnonLobbyPage() {
                   <div className="text-center mb-4">
                     <p className="text-xs text-[var(--muted)] mb-1">Scan with any UPI app to pay</p>
                     <div className="flex items-center justify-center gap-2 flex-wrap">
-                      <span className="text-lg">📱</span>
+                      <span className="text-sm font-semibold">UPI</span>
                       <span className="text-[10px] text-[var(--muted)]">GPay • PhonePe • Paytm • BHIM • Any UPI app</span>
                     </div>
                     <div className="mt-2 px-3 py-1.5 rounded-lg bg-[var(--surface-light)] border border-[var(--border)] inline-flex items-center gap-2">
@@ -513,7 +514,7 @@ export default function AnonLobbyPage() {
                       href={generateUpiLink(selectedPlan.price)}
                       className="inline-flex items-center gap-1.5 mt-2 text-xs font-medium text-[var(--primary)] hover:underline"
                     >
-                      📱 Open UPI App Directly
+                      Open UPI App Directly
                     </a>
                   </div>
 
@@ -555,7 +556,7 @@ export default function AnonLobbyPage() {
               ) : (
                 /* Success state */
                 <div className="text-center py-4">
-                  <div className="text-5xl mb-4">✅</div>
+                  <div className="w-16 h-16 mx-auto rounded-2xl bg-green-500/15 flex items-center justify-center text-sm font-bold text-green-400 mb-4">Done</div>
                   <h3 className="text-lg font-bold text-[var(--success)]">Payment Submitted!</h3>
                   <p className="text-sm text-[var(--muted)] mt-2 mb-4">
                     Your payment is being verified. You&apos;ll get access once the admin approves it (usually within a few hours).
@@ -579,7 +580,7 @@ export default function AnonLobbyPage() {
             {isFreeTrial && passInfo.expiresAt && (
               <div className="card p-4 border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
                 <div className="flex items-start gap-3">
-                  <span className="text-3xl">🎉</span>
+                  <span className="text-sm font-bold text-emerald-400">Active</span>
                   <div className="flex-1">
                     <h3 className="text-sm font-bold text-emerald-400">
                       {trialGranted ? 'Free Trial Activated!' : 'Free Trial Active'}
@@ -602,8 +603,8 @@ export default function AnonLobbyPage() {
               <div className="card p-3 flex items-center justify-between">
                 <span className="text-xs text-[var(--muted)]">
                   {passInfo.isPro
-                    ? '✨ Pro Subscriber — Anonymous Chat included free!'
-                    : `✅ ${passInfo.plan.charAt(0).toUpperCase() + passInfo.plan.slice(1)} Pass Active`}
+                    ? 'Pro Subscriber — Anonymous Chat included free!'
+                    : `${passInfo.plan.charAt(0).toUpperCase() + passInfo.plan.slice(1)} Pass Active`}
                 </span>
                 <span className="text-xs text-[var(--muted)]">
                   {passInfo.isPro
@@ -667,7 +668,7 @@ export default function AnonLobbyPage() {
             {selectedType === 'night_owl' && (
               <div className="card p-3 bg-purple-500/10 border border-purple-500/20">
                 <p className="text-xs text-purple-400">
-                  🦉 Night Owl Chat is best between 11 PM – 4 AM. You can still queue anytime!
+                  Night Owl Chat is best between 11 PM – 4 AM. You can still queue anytime!
                 </p>
               </div>
             )}
@@ -683,7 +684,7 @@ export default function AnonLobbyPage() {
                 boxShadow: '0 4px 24px rgba(124, 58, 237, 0.4)',
               }}
             >
-              🎲 Find a Random Match
+              Find a Random Match
             </button>
 
             {/* Safety notice */}
@@ -778,7 +779,7 @@ export default function AnonLobbyPage() {
                 background: 'radial-gradient(circle, rgba(124,58,237,0.15), transparent)',
                 animation: 'pulseGlow 2s ease-in-out infinite',
               }} />
-              <span className="absolute inset-0 flex items-center justify-center text-3xl">🔍</span>
+              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-[var(--primary-light)]">Searching</span>
             </div>
             <h2 className="text-xl font-extrabold text-[var(--foreground)] mb-2">Finding your match...</h2>
             <p className="text-[var(--muted)] text-sm mb-1">
@@ -804,7 +805,7 @@ export default function AnonLobbyPage() {
             border: '2px solid rgba(34,197,94,0.3)',
             boxShadow: '0 0 40px rgba(34,197,94,0.15)',
           }}>
-            <div className="text-6xl mb-4" style={{ animation: 'float 1s ease-in-out infinite' }}>🎉</div>
+            <div className="text-2xl font-extrabold text-[var(--success)] mb-4" style={{ animation: 'float 1s ease-in-out infinite' }}>Match Found!</div>
             <h2 className="text-2xl font-extrabold mb-2">
               <span className="gradient-text">Match Found!</span>
             </h2>

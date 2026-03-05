@@ -340,7 +340,7 @@ export default function ChatPage() {
           {/* Header */}
           <div className="p-4 border-b border-[var(--border)]">
             <div className="flex items-center justify-between">
-              <h1 className="text-lg font-semibold text-[var(--foreground)]">💬 Chats</h1>
+              <h1 className="text-lg font-semibold text-[var(--foreground)]">Chats</h1>
               <Link href="/friends" className="text-xs text-[var(--primary-light)] hover:underline">
                 Friends
               </Link>
@@ -356,7 +356,7 @@ export default function ChatPage() {
               </div>
             ) : threads.length === 0 ? (
               <div className="p-6 text-center">
-                <div className="text-3xl mb-3">🗨️</div>
+                <div className="text-sm font-bold text-[var(--muted)] mb-3">No chats</div>
                 <p className="text-sm text-[var(--muted)]">No chats yet</p>
                 <p className="text-xs text-[var(--muted)] mt-1">
                   Add friends from the <Link href="/friends" className="text-[var(--primary-light)] hover:underline">Friends</Link> page to start chatting!
@@ -449,7 +449,7 @@ export default function ChatPage() {
                       </div>
                       <div>
                         <div className="text-sm font-medium text-[var(--foreground)]">{name}</div>
-                        <div className="text-[10px] text-[var(--muted)]">{isOnline ? '🟢 Online' : 'Offline'}</div>
+                        <div className="text-[10px] text-[var(--muted)]">{isOnline ? 'Online' : 'Offline'}</div>
                       </div>
                     </>
                   );
@@ -461,8 +461,8 @@ export default function ChatPage() {
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <div className="text-3xl mb-2">💬</div>
-                      <p className="text-sm text-[var(--muted)]">No messages yet. Say hi!</p>
+                      <p className="text-sm font-semibold text-[var(--muted)] mb-2">No messages yet</p>
+                      <p className="text-sm text-[var(--muted)]">Say hi!</p>
                     </div>
                   </div>
                 ) : (
@@ -479,7 +479,7 @@ export default function ChatPage() {
                             className="opacity-0 group-hover:opacity-100 transition-opacity self-center mr-1 text-red-400 hover:text-red-500 text-xs px-1.5 py-0.5 rounded hover:bg-red-500/10"
                             title="Delete message"
                           >
-                            🗑️
+                            ✕
                           </button>
                         )}
                         <div
@@ -542,8 +542,7 @@ export default function ChatPage() {
             /* No chat selected */
             <div className="flex-1 flex items-center justify-center">
               <div className="text-center">
-                <div className="text-5xl mb-4">💬</div>
-                <h2 className="text-lg font-semibold text-[var(--foreground)]">MitrAI Chat</h2>
+                <h2 className="text-lg font-semibold text-[var(--foreground)] mb-2">MitrAI Chat</h2>
                 <p className="text-sm text-[var(--muted)] mt-1">Select a conversation or start a new one</p>
                 <Link href="/friends" className="btn-primary mt-4 inline-block text-sm py-2 px-4">
                   Find Friends

@@ -282,7 +282,7 @@ export default function AnonChatRoomPage() {
             <button onClick={() => router.push('/anon')} className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
               ← Back
             </button>
-            <span className="text-lg">{roomType?.emoji}</span>
+            <span className="text-xs font-semibold" style={{ color: roomType?.color || 'var(--primary)' }}>{roomType?.label?.charAt(0) || 'R'}</span>
             <div>
               <div className="text-xs font-semibold text-[var(--foreground)]">{roomType?.label}</div>
               <div className="text-[10px] text-[var(--muted)]">
@@ -300,7 +300,7 @@ export default function AnonChatRoomPage() {
                 onClick={() => setShowReveal(true)}
                 className="text-[10px] px-2 py-1 rounded-md bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
               >
-                {data.myRevealConsent ? '✓ Reveal sent' : '👁 Reveal'}
+                {data.myRevealConsent ? '✓ Reveal sent' : 'Reveal'}
               </button>
             )}
             {isRevealed && (
@@ -323,19 +323,19 @@ export default function AnonChatRoomPage() {
                     onClick={() => { setShowMenu(false); setShowReport(true); }}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--surface-light)] transition-colors flex items-center gap-2"
                   >
-                    🚩 Report User
+                    Report User
                   </button>
                   <button
                     onClick={() => { setShowMenu(false); setShowBlockConfirm(true); }}
                     className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 border-t border-[var(--border)]"
                   >
-                    🚫 Block & Leave
+                    Block & Leave
                   </button>
                   <button
                     onClick={() => { setShowMenu(false); handleClose(); }}
                     className="w-full px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-light)] transition-colors flex items-center gap-2 border-t border-[var(--border)]"
                   >
-                    ✕ Leave Chat
+                    Leave Chat
                   </button>
                 </div>
               )}
@@ -350,7 +350,7 @@ export default function AnonChatRoomPage() {
           {/* System message */}
           <div className="text-center py-4">
             <p className="text-xs text-[var(--muted)] bg-[var(--surface)] inline-block px-3 py-1 rounded-full">
-              {roomType?.emoji} {roomType?.label} — Chat started. Be kind & respectful.
+              {roomType?.label} — Chat started. Be kind & respectful.
             </p>
           </div>
 
@@ -380,7 +380,7 @@ export default function AnonChatRoomPage() {
           {closed && (
             <div className="text-center py-4">
               <p className="text-xs text-[var(--error)] bg-[var(--surface)] inline-block px-3 py-1 rounded-full">
-                🔒 This chat has ended
+                This chat has ended
               </p>
               <button
                 onClick={() => router.push('/anon')}
@@ -426,7 +426,7 @@ export default function AnonChatRoomPage() {
       {showBlockConfirm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">🚫 Block User</h3>
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Block User</h3>
             <p className="text-sm text-[var(--muted)] mb-4">
               Are you sure you want to block this user? This will close the chat and they won&apos;t be matched with you again.
             </p>
@@ -449,7 +449,7 @@ export default function AnonChatRoomPage() {
       {showReveal && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">👁 Reveal Identity</h3>
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Reveal Identity</h3>
             <p className="text-sm text-[var(--muted)] mb-4">
               Both of you must consent. Once both agree, your real names will be shown.
               You need at least 10 messages in this chat.
@@ -479,7 +479,7 @@ export default function AnonChatRoomPage() {
       {showReport && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
           <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">🚩 Report User</h3>
+            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Report User</h3>
             <p className="text-sm text-[var(--muted)] mb-4">
               Help keep the community safe. False reports may result in your own ban.
             </p>

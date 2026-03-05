@@ -7,16 +7,15 @@
 import { useState } from 'react';
 
 const TYPES = [
-  { value: 'feedback' as const, label: 'Feedback', emoji: '💬', desc: 'Share your thoughts' },
-  { value: 'bug' as const, label: 'Bug Report', emoji: '🐛', desc: 'Something broken?' },
-  { value: 'feature' as const, label: 'Feature Idea', emoji: '💡', desc: 'Suggest something new' },
-  { value: 'contact' as const, label: 'Contact Us', emoji: '📬', desc: 'Reach out directly' },
+  { value: 'feedback' as const, label: 'Feedback', desc: 'Share your thoughts' },
+  { value: 'bug' as const, label: 'Bug Report', desc: 'Something broken?' },
+  { value: 'feature' as const, label: 'Feature Idea', desc: 'Suggest something new' },
+  { value: 'contact' as const, label: 'Contact Us', desc: 'Reach out directly' },
 ];
 
 const FAQS = [
-  { q: 'Is MitrAI free to use?', a: 'Yes! MitrAI is completely free for all SVNIT students.' },
+  { q: 'Is MitrAI free to use?', a: 'MitrAI is currently free for all SVNIT students. Some premium features may be introduced in the future.' },
   { q: 'How does the matching work?', a: 'Our AI analyzes 5 dimensions — subjects, schedule, study style, goals, and personality — to find your ideal study buddy with a 100-point scoring system.' },
-  { q: 'Are voice/video calls recorded?', a: 'No. Calls are powered by Jitsi Meet and are completely private. Nothing is recorded or stored.' },
   { q: 'Can I suggest new features?', a: 'Absolutely! Use the Feature Idea option above to share your ideas. We love hearing from our users.' },
 ];
 
@@ -61,7 +60,7 @@ export default function FeedbackPage() {
       <div className="max-w-lg mx-auto px-4 py-16 text-center">
         <div className="card p-8">
           <div className="w-16 h-16 rounded-2xl bg-green-500/15 flex items-center justify-center mx-auto mb-4">
-            <span className="text-3xl">✅</span>
+            <span className="text-3xl text-green-400">✓</span>
           </div>
           <h2 className="text-xl font-bold mb-2">
             <span className="gradient-text">Thank You!</span>
@@ -95,7 +94,7 @@ export default function FeedbackPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-gradient-to-br from-violet-500/20 to-pink-500/20 flex items-center justify-center">
-          <span className="text-2xl">💌</span>
+          <span className="text-lg font-bold gradient-text">F</span>
         </div>
         <h1 className="text-2xl font-extrabold mb-1">
           <span className="gradient-text">Contact & Feedback</span>
@@ -116,7 +115,6 @@ export default function FeedbackPage() {
                 : 'bg-[var(--surface)] border-2 border-transparent hover:border-[var(--border)] hover:bg-[var(--surface-light)]'
             }`}
           >
-            <span className="text-xl block mb-1">{opt.emoji}</span>
             <span className={`text-xs font-semibold block ${type === opt.value ? 'text-[var(--primary-light)]' : 'text-[var(--foreground)]'}`}>
               {opt.label}
             </span>
@@ -163,7 +161,7 @@ export default function FeedbackPage() {
                   onClick={() => setRating(star === rating ? 0 : star)}
                   className="text-2xl transition-transform hover:scale-125 focus:outline-none"
                 >
-                  {star <= rating ? '⭐' : '☆'}
+                  {star <= rating ? '★' : '☆'}
                 </button>
               ))}
               {rating > 0 && (
@@ -226,13 +224,13 @@ export default function FeedbackPage() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-500/15 border border-green-500/30 text-xs font-semibold text-green-400 hover:bg-green-500/25 transition-all"
           >
-            💬 WhatsApp
+            WhatsApp
           </a>
           <a
             href="mailto:rajkumaratsvnit@gmail.com?subject=MitrAI%20Query"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 transition-all"
           >
-            ✉️ Email
+            Email
           </a>
         </div>
       </div>

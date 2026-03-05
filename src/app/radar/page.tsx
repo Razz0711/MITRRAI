@@ -14,18 +14,18 @@ import LoadingSkeleton from '@/components/LoadingSkeleton';
 import SubTabBar from '@/components/SubTabBar';
 
 const ACTIVITIES = [
-  { id: 'study-dsa', emoji: '💻', label: 'DSA Practice', color: '#7c3aed' },
-  { id: 'study-math', emoji: '📐', label: 'Math Study', color: '#06b6d4' },
-  { id: 'study-general', emoji: '📚', label: 'General Study', color: '#3b82f6' },
-  { id: 'music', emoji: '🎸', label: 'Music Jam', color: '#ec4899' },
-  { id: 'cricket', emoji: '🏏', label: 'Cricket', color: '#22c55e' },
-  { id: 'gym', emoji: '🏋️', label: 'Gym Buddy', color: '#f59e0b' },
-  { id: 'gaming', emoji: '🎮', label: 'Gaming', color: '#8b5cf6' },
-  { id: 'chai', emoji: '☕', label: 'Chai & Chat', color: '#f97316' },
-  { id: 'walk', emoji: '🚶', label: 'Evening Walk', color: '#14b8a6' },
-  { id: 'movie', emoji: '🎬', label: 'Watch Movie', color: '#e11d48' },
-  { id: 'food', emoji: '🍕', label: 'Food Run', color: '#ea580c' },
-  { id: 'hangout', emoji: '😎', label: 'Just Hangout', color: '#6366f1' },
+  { id: 'study-dsa', label: 'DSA Practice', color: '#7c3aed' },
+  { id: 'study-math', label: 'Math Study', color: '#06b6d4' },
+  { id: 'study-general', label: 'General Study', color: '#3b82f6' },
+  { id: 'music', label: 'Music Jam', color: '#ec4899' },
+  { id: 'cricket', label: 'Cricket', color: '#22c55e' },
+  { id: 'gym', label: 'Gym Buddy', color: '#f59e0b' },
+  { id: 'gaming', label: 'Gaming', color: '#8b5cf6' },
+  { id: 'chai', label: 'Chai & Chat', color: '#f97316' },
+  { id: 'walk', label: 'Evening Walk', color: '#14b8a6' },
+  { id: 'movie', label: 'Watch Movie', color: '#e11d48' },
+  { id: 'food', label: 'Food Run', color: '#ea580c' },
+  { id: 'hangout', label: 'Just Hangout', color: '#6366f1' },
 ];
 
 const ZONES = [
@@ -246,7 +246,7 @@ export default function RadarPage() {
             <div className="flex items-center gap-3">
               <div className="relative">
                 <div className="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl" style={{ backgroundColor: (getActivity(myPing.activityId)?.color || '#7c3aed') + '18' }}>
-                  {getActivity(myPing.activityId)?.emoji}
+                  {getActivity(myPing.activityId)?.label?.charAt(0) || 'A'}
                 </div>
                 <span className="absolute -top-1 -right-1 w-3.5 h-3.5 bg-[var(--success)] rounded-full border-2 border-[var(--background)] pulse-ring" />
               </div>
@@ -270,8 +270,8 @@ export default function RadarPage() {
           onClick={() => setShowBroadcast(true)}
           className="w-full card p-6 text-center transition-all duration-300 group glow-hover slide-up-stagger-1"
         >
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 flex items-center justify-center text-3xl mb-4 group-hover:scale-110 transition-transform duration-300" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            📡
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 flex items-center justify-center text-sm font-bold text-[var(--primary-light)] mb-4 group-hover:scale-110 transition-transform duration-300" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            Radar
           </div>
           <p className="text-sm font-bold">I&apos;m available for...</p>
           <p className="text-xs text-[var(--muted)] mt-1">Broadcast what you&apos;re looking for. Others nearby will see it.</p>
@@ -303,7 +303,7 @@ export default function RadarPage() {
                   : { background: 'var(--surface)', border: '1px solid var(--glass-border)' }
                 }
               >
-                <span className="text-xl block mb-1">{a.emoji}</span>
+                <span className="text-xl block mb-1">{a.label.charAt(0)}</span>
                 <span className="text-[10px] font-semibold block">{a.label}</span>
               </button>
             ))}
@@ -364,7 +364,7 @@ export default function RadarPage() {
               boxShadow: '0 4px 24px rgba(124, 58, 237, 0.4)',
             }}
           >
-            {broadcasting ? 'Broadcasting...' : '📡 Broadcast — I\'m Available!'}
+            {broadcasting ? 'Broadcasting...' : 'Broadcast — I\'m Available!'}
           </button>
           <p className="text-[10px] text-[var(--muted)] text-center">Expires in 2 hours automatically</p>
         </div>
@@ -398,7 +398,7 @@ export default function RadarPage() {
                       : 'bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]'
                   }`}
                 >
-                  {act.emoji} {act.label} ({count})
+                  {act.label} ({count})
                 </button>
               );
             })}
@@ -408,8 +408,8 @@ export default function RadarPage() {
       {/* Live Pings Feed */}
       {filteredPings.length === 0 ? (
         <div className="card p-10 text-center">
-          <div className="w-16 h-16 mx-auto rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            📡
+          <div className="w-16 h-16 mx-auto rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-sm font-bold text-[var(--primary-light)] mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            Radar
           </div>
           <p className="text-sm font-bold mb-1">Campus is quiet right now</p>
           <p className="text-xs text-[var(--muted)] mb-5">Be the first to broadcast — others will discover you!</p>
@@ -447,12 +447,12 @@ export default function RadarPage() {
                     className="w-11 h-11 rounded-2xl flex items-center justify-center text-xl shrink-0"
                     style={{ backgroundColor: (act?.color || '#7c3aed') + '18' }}
                   >
-                    {act?.emoji || '📡'}
+                    {act?.label?.charAt(0) || 'A'}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-0.5">
                       <span className="text-sm font-bold truncate">
-                        {isMe ? 'You' : (ping.isAnonymous ? '🕵️ Anonymous' : ping.userName)}
+                        {isMe ? 'You' : (ping.isAnonymous ? 'Anonymous' : ping.userName)}
                       </span>
                       <span className="text-[10px] px-2 py-0.5 rounded-full text-[var(--muted)]" style={{ background: 'var(--surface-light)' }}>
                         {ping.zone}
@@ -466,7 +466,7 @@ export default function RadarPage() {
                     )}
                     <div className="flex items-center gap-3 mt-2.5">
                       <span className="text-[10px] text-[var(--muted)]">{timeAgo(ping.createdAt)}</span>
-                      <span className="text-[10px] text-[var(--muted)]">⏱ {timeLeft(ping.expiresAt)}</span>
+                      <span className="text-[10px] text-[var(--muted)]">{timeLeft(ping.expiresAt)}</span>
                     </div>
                   </div>
                   {!isMe && !ping.isAnonymous && (
@@ -476,7 +476,7 @@ export default function RadarPage() {
                       className="shrink-0 px-4 py-2 rounded-xl text-[11px] font-bold text-white transition-all duration-300 hover:shadow-lg active:scale-[0.97] disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, var(--primary), #6d28d9)', boxShadow: '0 2px 12px rgba(124,58,237,0.3)' }}
                     >
-                      {connectingTo === ping.id ? '...' : '💬 Connect'}
+                      {connectingTo === ping.id ? '...' : 'Connect'}
                     </button>
                   )}
                   {!isMe && ping.isAnonymous && (
@@ -486,7 +486,7 @@ export default function RadarPage() {
                       className="shrink-0 px-4 py-2 rounded-xl text-[11px] font-bold text-white transition-all duration-300 hover:shadow-lg active:scale-[0.97] disabled:opacity-50"
                       style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)', boxShadow: '0 2px 12px rgba(99,102,241,0.3)' }}
                     >
-                      {connectingTo === ping.id ? '...' : '🕵️ Connect'}
+                      {connectingTo === ping.id ? '...' : 'Connect'}
                     </button>
                   )}
                 </div>

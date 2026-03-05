@@ -10,12 +10,12 @@ import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 
 const POST_TYPES = [
-  { id: 'all', emoji: '🔥', label: 'All' },
-  { id: 'doubt', emoji: '❓', label: 'Doubts' },
-  { id: 'confession', emoji: '🤫', label: 'Confessions' },
-  { id: 'spotted', emoji: '👀', label: 'Spotted' },
-  { id: 'hot-take', emoji: '🌶️', label: 'Hot Takes' },
-  { id: 'advice', emoji: '💡', label: 'Advice' },
+  { id: 'all', label: 'All' },
+  { id: 'doubt', label: 'Doubts' },
+  { id: 'confession', label: 'Confessions' },
+  { id: 'spotted', label: 'Spotted' },
+  { id: 'hot-take', label: 'Hot Takes' },
+  { id: 'advice', label: 'Advice' },
 ];
 
 interface Doubt {
@@ -199,7 +199,7 @@ export default function DoubtsPage() {
               : { background: 'var(--surface)', border: '1px solid var(--glass-border)' }
             }
           >
-            {pt.emoji} {pt.label}
+            {pt.label}
           </button>
         ))}
       </div>
@@ -211,8 +211,8 @@ export default function DoubtsPage() {
           className="w-full card p-4 mb-6 text-left transition-all duration-300 group glow-hover slide-up-stagger-2"
         >
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 flex items-center justify-center text-lg">
-              🕵️
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 flex items-center justify-center text-xs font-bold text-[var(--muted)]">
+              Anon
             </div>
             <span className="text-sm text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">
               What&apos;s on your mind? Post anonymously...
@@ -222,7 +222,6 @@ export default function DoubtsPage() {
       ) : (
         <div className="card p-5 mb-6 space-y-4 scale-in" style={{ border: '2px solid rgba(124,58,237,0.3)' }}>
           <div className="flex items-center gap-2 mb-1">
-            <span className="text-lg">🕵️</span>
             <span className="text-sm font-bold">New Post</span>
           </div>
           {/* Post type selector */}
@@ -237,7 +236,7 @@ export default function DoubtsPage() {
                     : 'bg-[var(--surface)] text-[var(--muted)] border border-[var(--border)]'
                 }`}
               >
-                {pt.emoji} {pt.label}
+                {pt.label}
               </button>
             ))}
           </div>
@@ -250,7 +249,9 @@ export default function DoubtsPage() {
             className="w-full px-4 py-3 border border-[var(--border)] rounded-xl bg-[var(--surface-light)] text-[var(--foreground)] placeholder:text-[var(--muted)] text-sm resize-none focus:ring-2 focus:ring-[var(--primary)]/30 focus:border-[var(--primary)]/50 outline-none transition-all"
           />
           <div className="flex items-center justify-between">
-            <span className="text-[10px] text-[var(--muted)]">🕵‍♂️ All posts are anonymous</span>
+            <span className="text-[10px] text-[var(--muted)]">
+              All posts are anonymous
+            </span>
             <div className="flex gap-2">
               <button
                 onClick={() => { setShowAsk(false); setAskQuestion(''); }}
@@ -276,15 +277,15 @@ export default function DoubtsPage() {
           {(activeFilter === 'all' ? doubts : doubts.filter(d => (d.postType || 'doubt') === activeFilter)).length} posts
         </span>
         <span className="text-[10px] text-[var(--muted)]">
-          🔓 Open campus feed
+          Open campus feed
         </span>
       </div>
 
       {/* Empty state */}
       {doubts.length === 0 ? (
         <div className="text-center py-16 scale-in">
-          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-orange-500/15 to-pink-500/15 flex items-center justify-center text-4xl mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            📝
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-orange-500/15 to-pink-500/15 flex items-center justify-center text-sm font-bold text-[var(--muted)] mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            Feed
           </div>
           <p className="text-sm font-bold text-[var(--foreground)] mb-1">Feed is empty</p>
           <p className="text-xs text-[var(--muted)] mb-5">Be the first to post — doubts, confessions, hot takes</p>
@@ -305,7 +306,7 @@ export default function DoubtsPage() {
               {/* Post type badge + Question */}
               {doubt.postType && doubt.postType !== 'doubt' && (
                 <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary-light)] border border-[var(--primary)]/15 mb-2.5 font-semibold">
-                  {POST_TYPES.find(pt => pt.id === doubt.postType)?.emoji} {POST_TYPES.find(pt => pt.id === doubt.postType)?.label}
+                  {POST_TYPES.find(pt => pt.id === doubt.postType)?.label}
                 </span>
               )}
               <p className="text-sm text-[var(--foreground)] leading-relaxed mb-4">{doubt.question}</p>
@@ -314,7 +315,6 @@ export default function DoubtsPage() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
                   <span className="flex items-center gap-1">
-                    {doubt.isAnonymous ? '🕵️' : '👤'}
                     <span className="text-[11px]">{doubt.isAnonymous ? 'Anonymous' : 'Named'}</span>
                   </span>
                   <span className="w-0.5 h-3 rounded-full bg-[var(--border)]" />
@@ -336,7 +336,7 @@ export default function DoubtsPage() {
                     onClick={() => loadReplies(doubt.id)}
                     className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--primary-light)] transition-all duration-200 px-2.5 py-1.5 rounded-xl hover:bg-[var(--primary)]/10"
                   >
-                    💬 {expandedDoubt === doubt.id ? 'Hide' : 'Reply'}
+                    {expandedDoubt === doubt.id ? 'Hide' : 'Reply'}
                   </button>
                 </div>
               </div>
@@ -358,7 +358,7 @@ export default function DoubtsPage() {
                       >
                         <p className="text-[var(--foreground)] text-xs leading-relaxed">{r.reply}</p>
                         <div className="flex items-center gap-2 mt-2 text-[10px] text-[var(--muted)]">
-                          <span>{r.isAnonymous ? '🕵️ Anonymous' : `👤 ${r.userName}`}</span>
+                          <span>{r.isAnonymous ? 'Anonymous' : `${r.userName}`}</span>
                           <span className="opacity-40">•</span>
                           <span>{timeAgo(r.createdAt)}</span>
                           {r.isAccepted && (

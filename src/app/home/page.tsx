@@ -30,19 +30,19 @@ interface RadarPing {
   expiresAt: string;
 }
 
-const ACTIVITIES: Record<string, { emoji: string; label: string; color: string }> = {
-  'study-dsa': { emoji: '💻', label: 'DSA Practice', color: '#7c3aed' },
-  'study-math': { emoji: '📐', label: 'Math Study', color: '#06b6d4' },
-  'study-general': { emoji: '📚', label: 'General Study', color: '#3b82f6' },
-  'music': { emoji: '🎸', label: 'Music Jam', color: '#ec4899' },
-  'cricket': { emoji: '🏏', label: 'Cricket', color: '#22c55e' },
-  'gym': { emoji: '🏋️', label: 'Gym Buddy', color: '#f59e0b' },
-  'gaming': { emoji: '🎮', label: 'Gaming', color: '#8b5cf6' },
-  'chai': { emoji: '☕', label: 'Chai & Chat', color: '#f97316' },
-  'walk': { emoji: '🚶', label: 'Evening Walk', color: '#14b8a6' },
-  'movie': { emoji: '🎬', label: 'Watch Movie', color: '#e11d48' },
-  'food': { emoji: '🍕', label: 'Food Run', color: '#ea580c' },
-  'hangout': { emoji: '😎', label: 'Just Hangout', color: '#6366f1' },
+const ACTIVITIES: Record<string, { label: string; color: string }> = {
+  'study-dsa': { label: 'DSA Practice', color: '#7c3aed' },
+  'study-math': { label: 'Math Study', color: '#06b6d4' },
+  'study-general': { label: 'General Study', color: '#3b82f6' },
+  'music': { label: 'Music Jam', color: '#ec4899' },
+  'cricket': { label: 'Cricket', color: '#22c55e' },
+  'gym': { label: 'Gym Buddy', color: '#f59e0b' },
+  'gaming': { label: 'Gaming', color: '#8b5cf6' },
+  'chai': { label: 'Chai & Chat', color: '#f97316' },
+  'walk': { label: 'Evening Walk', color: '#14b8a6' },
+  'movie': { label: 'Watch Movie', color: '#e11d48' },
+  'food': { label: 'Food Run', color: '#ea580c' },
+  'hangout': { label: 'Just Hangout', color: '#6366f1' },
 };
 
 export default function HomePage() {
@@ -64,10 +64,7 @@ export default function HomePage() {
   };
 
   const getGreetingEmoji = () => {
-    const hour = new Date().getHours();
-    if (hour < 12) return '☀️';
-    if (hour < 17) return '🌤️';
-    return '🌙';
+    return '';
   };
 
   useEffect(() => {
@@ -160,7 +157,7 @@ export default function HomePage() {
       <div className="slide-up">
         <div className="mb-1">
           <h1 className="text-2xl font-extrabold tracking-tight">
-            {getGreetingEmoji()} {getGreeting()},
+            {getGreeting()},
           </h1>
           <h2 className="text-2xl font-extrabold tracking-tight">
             <span className="gradient-text">{firstName}</span>
@@ -226,8 +223,8 @@ export default function HomePage() {
           </div>
         ) : pings.length === 0 ? (
           <div className="card-glass p-8 text-center">
-            <div className="w-16 h-16 mx-auto rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-3xl mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
-              📡
+            <div className="w-16 h-16 mx-auto rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-sm font-bold text-[var(--primary-light)] mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
+              Radar
             </div>
             <p className="text-sm font-semibold mb-1">Campus is quiet right now</p>
             <p className="text-xs text-[var(--muted)] mb-5">Be the first to broadcast what you&apos;re looking for!</p>
@@ -253,7 +250,7 @@ export default function HomePage() {
                         className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl"
                         style={{ backgroundColor: (act?.color || '#7c3aed') + '18' }}
                       >
-                        {act?.emoji || '📡'}
+                        {act?.label?.charAt(0) || 'A'}
                       </div>
                       <span className="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-[var(--success)] rounded-full border-2 border-[var(--surface-solid)]" />
                     </div>
@@ -262,7 +259,7 @@ export default function HomePage() {
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-bold truncate">
-                          {isMe ? 'You' : (ping.isAnonymous ? '🕵️ Someone' : ping.userName)}
+                          {isMe ? 'You' : (ping.isAnonymous ? 'Someone' : ping.userName)}
                         </span>
                         <span className="inline-flex items-center gap-1 text-[10px] px-2 py-0.5 rounded-full bg-[var(--surface-light)] text-[var(--muted)]">
                           <MapPin size={9} /> {ping.zone}
