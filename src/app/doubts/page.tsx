@@ -170,53 +170,60 @@ export default function DoubtsPage() {
 
   return (
     <div className="max-w-2xl mx-auto px-4 py-6">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold mb-1">
-          <span className="gradient-text">Campus Feed</span> 🔥
+      {/* Ambient */}
+      <div className="ambient-glow" />
+
+      {/* Header — Premium */}
+      <div className="text-center mb-6 slide-up">
+        <h1 className="text-2xl font-extrabold mb-1">
+          <span className="gradient-text">Campus Feed</span>
         </h1>
         <p className="text-xs text-[var(--muted)]">
           Doubts, confessions, hot takes — anonymous & open to all
         </p>
       </div>
 
-      {/* Post Type Filter */}
-      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-4 pb-0">
+      {/* Post Type Filter — Glass Pills */}
+      <div className="flex gap-2 overflow-x-auto no-scrollbar mb-5 pb-0 slide-up-stagger-1">
         {POST_TYPES.map(pt => (
           <button
             key={pt.id}
             onClick={() => setActiveFilter(pt.id)}
-            className={`shrink-0 flex items-center gap-1 px-3 py-1.5 rounded-full text-xs font-medium transition-all ${
+            className={`shrink-0 flex items-center gap-1.5 px-4 py-2 rounded-2xl text-xs font-semibold transition-all duration-300 ${
               activeFilter === pt.id
-                ? 'bg-[var(--primary)]/20 text-[var(--primary-light)]'
-                : 'bg-[var(--surface)] text-[var(--muted)]'
+                ? 'text-white shadow-lg'
+                : 'text-[var(--muted)] hover:text-[var(--foreground)]'
             }`}
+            style={activeFilter === pt.id
+              ? { background: 'linear-gradient(135deg, var(--primary), #6d28d9)', boxShadow: '0 2px 12px rgba(124,58,237,0.3)' }
+              : { background: 'var(--surface)', border: '1px solid var(--glass-border)' }
+            }
           >
             {pt.emoji} {pt.label}
           </button>
         ))}
       </div>
 
-      {/* Ask CTA */}
+      {/* Ask CTA — Glass Composer */}
       {!showAsk ? (
         <button
           onClick={() => setShowAsk(true)}
-          className="w-full card p-4 mb-6 text-left hover:border-[var(--primary)]/40 transition-all group"
+          className="w-full card p-4 mb-6 text-left transition-all duration-300 group glow-hover slide-up-stagger-2"
         >
           <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-full bg-[var(--primary)]/15 flex items-center justify-center text-lg">
+            <div className="w-10 h-10 rounded-2xl bg-gradient-to-br from-[var(--primary)]/15 to-[var(--accent)]/15 flex items-center justify-center text-lg">
               🕵️
             </div>
             <span className="text-sm text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">
-              What&apos;s on your mind? Ask anonymously...
+              What&apos;s on your mind? Post anonymously...
             </span>
           </div>
         </button>
       ) : (
-        <div className="card p-5 mb-6 border-[var(--primary)]/30 space-y-4">
+        <div className="card p-5 mb-6 space-y-4 scale-in" style={{ border: '2px solid rgba(124,58,237,0.3)' }}>
           <div className="flex items-center gap-2 mb-1">
             <span className="text-lg">🕵️</span>
-            <span className="text-sm font-semibold">New Post</span>
+            <span className="text-sm font-bold">New Post</span>
           </div>
           {/* Post type selector */}
           <div className="flex gap-2 flex-wrap">
@@ -275,13 +282,15 @@ export default function DoubtsPage() {
 
       {/* Empty state */}
       {doubts.length === 0 ? (
-        <div className="text-center py-16">
-          <p className="text-5xl mb-4">�</p>
-          <p className="text-sm font-semibold text-[var(--foreground)] mb-1">Feed is empty</p>
-          <p className="text-xs text-[var(--muted)] mb-4">Be the first to post — doubts, confessions, hot takes, anything</p>
+        <div className="text-center py-16 scale-in">
+          <div className="w-20 h-20 mx-auto rounded-3xl bg-gradient-to-br from-orange-500/15 to-pink-500/15 flex items-center justify-center text-4xl mb-4" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            📝
+          </div>
+          <p className="text-sm font-bold text-[var(--foreground)] mb-1">Feed is empty</p>
+          <p className="text-xs text-[var(--muted)] mb-5">Be the first to post — doubts, confessions, hot takes</p>
           <button
             onClick={() => setShowAsk(true)}
-            className="px-5 py-2 bg-[var(--primary)] text-white text-xs font-medium rounded-lg hover:bg-[#6d28d9] transition-all"
+            className="btn-primary text-xs inline-flex items-center gap-2"
           >
             Start the Feed
           </button>
@@ -291,39 +300,41 @@ export default function DoubtsPage() {
           {doubts.filter(d => activeFilter === 'all' || (d.postType || 'doubt') === activeFilter).map((doubt) => (
             <div
               key={doubt.id}
-              className="card p-4 hover:border-[var(--border-light)] transition-all"
+              className="card p-5 transition-all duration-300 glow-hover"
             >
               {/* Post type badge + Question */}
               {doubt.postType && doubt.postType !== 'doubt' && (
-                <span className="inline-block text-[10px] px-2 py-0.5 rounded-full bg-[var(--primary)]/10 text-[var(--primary-light)] border border-[var(--primary)]/20 mb-2">
+                <span className="inline-flex items-center gap-1 text-[10px] px-2.5 py-1 rounded-full bg-[var(--primary)]/10 text-[var(--primary-light)] border border-[var(--primary)]/15 mb-2.5 font-semibold">
                   {POST_TYPES.find(pt => pt.id === doubt.postType)?.emoji} {POST_TYPES.find(pt => pt.id === doubt.postType)?.label}
                 </span>
               )}
-              <p className="text-sm text-[var(--foreground)] leading-relaxed mb-3">{doubt.question}</p>
+              <p className="text-sm text-[var(--foreground)] leading-relaxed mb-4">{doubt.question}</p>
 
               {/* Meta + Actions row */}
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3 text-xs text-[var(--muted)]">
-                  <span>{doubt.isAnonymous ? '🕵️ Anonymous' : '👤 Named'}</span>
-                  <span className="opacity-40">•</span>
-                  <span>{timeAgo(doubt.createdAt)}</span>
+                  <span className="flex items-center gap-1">
+                    {doubt.isAnonymous ? '🕵️' : '👤'}
+                    <span className="text-[11px]">{doubt.isAnonymous ? 'Anonymous' : 'Named'}</span>
+                  </span>
+                  <span className="w-0.5 h-3 rounded-full bg-[var(--border)]" />
+                  <span className="text-[11px]">{timeAgo(doubt.createdAt)}</span>
                   {doubt.status === 'resolved' && (
-                    <>
-                      <span className="opacity-40">•</span>
-                      <span className="text-[var(--success)]">✓ Resolved</span>
-                    </>
+                    <span className="text-[var(--success)] font-semibold text-[11px] flex items-center gap-1">
+                      <span className="w-1.5 h-1.5 rounded-full bg-[var(--success)] inline-block" /> Resolved
+                    </span>
                   )}
                 </div>
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1">
                   <button
                     onClick={() => handleUpvote(doubt.id)}
-                    className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--primary-light)] transition-colors"
+                    className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--primary-light)] transition-all duration-200 px-2.5 py-1.5 rounded-xl hover:bg-[var(--primary)]/10"
                   >
-                    <span className="text-sm">▲</span> {doubt.upvotes}
+                    ▲ {doubt.upvotes}
                   </button>
                   <button
                     onClick={() => loadReplies(doubt.id)}
-                    className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--primary-light)] transition-colors"
+                    className="flex items-center gap-1 text-xs text-[var(--muted)] hover:text-[var(--primary-light)] transition-all duration-200 px-2.5 py-1.5 rounded-xl hover:bg-[var(--primary)]/10"
                   >
                     💬 {expandedDoubt === doubt.id ? 'Hide' : 'Reply'}
                   </button>

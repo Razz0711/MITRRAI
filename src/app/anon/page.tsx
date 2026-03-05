@@ -285,31 +285,37 @@ export default function AnonLobbyPage() {
     <div className="min-h-screen px-4">
       <SubTabBar group="chat" />
       <div className="max-w-2xl mx-auto">
-        {/* Header */}
-        <div className="text-center mb-4">
-          <h1 className="text-3xl font-bold text-[var(--foreground)] mb-2">
-            🎭 Anonymous Chat
+        {/* Ambient glow */}
+        <div className="ambient-glow" />
+
+        {/* Header — Premium */}
+        <div className="text-center mb-6 slide-up">
+          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-violet-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            <span className="text-4xl">🎭</span>
+          </div>
+          <h1 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">
+            <span className="gradient-text">Anonymous Chat</span>
           </h1>
-          <p className="text-[var(--muted)] text-sm">
-            Talk freely with another SVNITian. No names, no judgments.
+          <p className="text-[var(--muted)] text-sm max-w-xs mx-auto">
+            Talk freely with fellow SVNITians. No names, no judgments.
           </p>
         </div>
 
-        {/* Live Stats Bar */}
+        {/* Live Stats Bar — Glass */}
         {stats && (
-          <div className="flex items-center justify-center gap-4 mb-6">
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center justify-center gap-3 mb-6 slide-up-stagger-1">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', backdropFilter: 'blur(8px)' }}>
               <span className="relative flex h-2 w-2">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75" />
                 <span className="relative inline-flex rounded-full h-2 w-2 bg-green-500" />
               </span>
-              <span className="text-xs font-medium text-green-400">
+              <span className="text-xs font-semibold text-green-400">
                 {stats.activeRooms * 2} chatting
               </span>
             </div>
-            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+            <div className="flex items-center gap-2 px-4 py-2 rounded-2xl" style={{ background: 'var(--glass-bg)', border: '1px solid var(--glass-border)', backdropFilter: 'blur(8px)' }}>
               <span className="text-xs">⏳</span>
-              <span className="text-xs font-medium text-amber-400">
+              <span className="text-xs font-semibold text-amber-400">
                 {stats.queueCount} waiting
               </span>
             </div>
@@ -607,34 +613,48 @@ export default function AnonLobbyPage() {
               </div>
             )}
 
-            {/* Room Types */}
+            {/* Room Types — Cards */}
             <div>
-              <h2 className="text-lg font-semibold text-[var(--foreground)] mb-3">Choose a vibe</h2>
+              <h2 className="text-base font-bold text-[var(--foreground)] mb-3 flex items-center gap-2">
+                <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--accent)]"></span>
+                Choose your vibe
+              </h2>
               <div className="grid gap-3">
                 {ROOM_TYPES.map(rt => (
                   <button
                     key={rt.id}
                     onClick={() => setSelectedType(rt.id)}
-                    className={`p-4 rounded-xl border-2 text-left transition-all ${
+                    className={`p-4 rounded-2xl text-left transition-all duration-300 backdrop-blur-sm ${
                       selectedType === rt.id
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/10 shadow-lg'
-                        : 'border-[var(--border)] hover:border-[var(--primary)]/30'
+                        ? 'shadow-lg'
+                        : 'hover:border-[var(--primary)]/30'
                     }`}
+                    style={{
+                      background: selectedType === rt.id ? 'linear-gradient(135deg, rgba(124,58,237,0.12), rgba(244,114,182,0.08))' : 'var(--surface)',
+                      border: selectedType === rt.id ? '2px solid rgba(124,58,237,0.5)' : '1px solid var(--glass-border)',
+                      boxShadow: selectedType === rt.id ? '0 0 20px rgba(124,58,237,0.15)' : 'var(--shadow-card)',
+                    }}
                   >
-                    <div className="flex items-center gap-3">
-                      <span className="text-2xl">{rt.emoji}</span>
+                    <div className="flex items-center gap-3.5">
+                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-300 ${
+                        selectedType === rt.id ? 'scale-110' : ''
+                      }`} style={{ backgroundColor: 'rgba(124,58,237,0.1)' }}>
+                        {rt.emoji}
+                      </div>
                       <div className="flex-1">
-                        <div className="font-semibold text-[var(--foreground)] text-sm">{rt.label}</div>
-                        <div className="text-xs text-[var(--muted)]">{rt.description}</div>
+                        <div className="font-bold text-[var(--foreground)] text-sm">{rt.label}</div>
+                        <div className="text-xs text-[var(--muted)] mt-0.5">{rt.description}</div>
                       </div>
                       <div className="flex items-center gap-2">
                         {stats && (stats.queueByType[rt.id] || 0) > 0 && (
-                          <span className="px-2 py-0.5 rounded-full bg-amber-500/10 text-[10px] font-medium text-amber-400 border border-amber-500/20">
+                          <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
                             {stats.queueByType[rt.id]} waiting
                           </span>
                         )}
                         {selectedType === rt.id && (
-                          <span className="text-[var(--primary)] text-lg">●</span>
+                          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center">
+                            <span className="text-white text-xs">✓</span>
+                          </div>
                         )}
                       </div>
                     </div>
@@ -652,10 +672,16 @@ export default function AnonLobbyPage() {
               </div>
             )}
 
-            {/* Join button */}
+            {/* Join button — gradient premium */}
             <button
               onClick={handleJoinQueue}
-              className="w-full py-3 rounded-xl bg-[var(--primary)] text-white font-semibold text-sm hover:opacity-90 transition-opacity"
+              className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+              style={{
+                background: 'linear-gradient(135deg, var(--primary), #6d28d9, var(--accent))',
+                backgroundSize: '200% 200%',
+                animation: 'gradientShift 3s ease infinite',
+                boxShadow: '0 4px 24px rgba(124, 58, 237, 0.4)',
+              }}
             >
               🎲 Find a Random Match
             </button>
@@ -734,37 +760,58 @@ export default function AnonLobbyPage() {
           </div>
         )}
 
-        {/* Queuing */}
+        {/* Queuing — Premium animation */}
         {status === 'queuing' && (
-          <div className="card p-8 text-center">
-            <div className="relative w-20 h-20 mx-auto mb-6">
-              <div className="absolute inset-0 rounded-full border-4 border-[var(--primary)]/20" />
-              <div className="absolute inset-0 rounded-full border-4 border-[var(--primary)] border-t-transparent animate-spin" />
-              <span className="absolute inset-0 flex items-center justify-center text-2xl">🔍</span>
+          <div className="card p-10 text-center scale-in" style={{ background: 'var(--glass-bg)', backdropFilter: 'blur(20px)' }}>
+            <div className="relative w-24 h-24 mx-auto mb-8">
+              {/* Outer ring */}
+              <div className="absolute inset-0 rounded-full" style={{ border: '3px solid rgba(124,58,237,0.15)' }} />
+              {/* Spinning gradient ring */}
+              <div className="absolute inset-0 rounded-full animate-spin" style={{
+                border: '3px solid transparent',
+                borderTopColor: 'var(--primary)',
+                borderRightColor: 'var(--accent)',
+                animationDuration: '1.5s',
+              }} />
+              {/* Pulse glow */}
+              <div className="absolute inset-2 rounded-full" style={{
+                background: 'radial-gradient(circle, rgba(124,58,237,0.15), transparent)',
+                animation: 'pulseGlow 2s ease-in-out infinite',
+              }} />
+              <span className="absolute inset-0 flex items-center justify-center text-3xl">🔍</span>
             </div>
-            <h2 className="text-xl font-bold text-[var(--foreground)] mb-2">Finding your match...</h2>
+            <h2 className="text-xl font-extrabold text-[var(--foreground)] mb-2">Finding your match...</h2>
             <p className="text-[var(--muted)] text-sm mb-1">
-              You are <span className="font-mono text-[var(--primary)]">{alias}</span>
+              You are <span className="font-mono font-bold gradient-text">{alias}</span>
             </p>
-            <p className="text-[var(--muted)] text-xs mb-4">
-              Room: {ROOM_TYPES.find(r => r.id === selectedType)?.label} {ROOM_TYPES.find(r => r.id === selectedType)?.emoji}
+            <p className="text-[var(--muted)] text-xs mb-6">
+              {ROOM_TYPES.find(r => r.id === selectedType)?.emoji} {ROOM_TYPES.find(r => r.id === selectedType)?.label}
             </p>
-            <div className="text-3xl font-mono text-[var(--foreground)] mb-6">{formatTime(queueSeconds)}</div>
+            <div className="text-4xl font-mono font-bold text-[var(--foreground)] mb-8 tracking-wider">{formatTime(queueSeconds)}</div>
             <button
               onClick={handleLeaveQueue}
-              className="text-sm text-[var(--muted)] hover:text-[var(--error)] transition-colors"
+              className="text-sm text-[var(--muted)] hover:text-[var(--error)] transition-all duration-200 px-6 py-2 rounded-xl hover:bg-[var(--error)]/10"
             >
               Cancel & Leave Queue
             </button>
           </div>
         )}
 
-        {/* Matched */}
+        {/* Matched — Celebration */}
         {status === 'matched' && (
-          <div className="card p-8 text-center">
-            <div className="text-5xl mb-4 animate-bounce">🎉</div>
-            <h2 className="text-xl font-bold text-[var(--primary)] mb-2">Match Found!</h2>
-            <p className="text-[var(--muted)] text-sm">Entering chat room...</p>
+          <div className="card p-10 text-center scale-in" style={{
+            background: 'linear-gradient(135deg, rgba(124,58,237,0.08), rgba(34,197,94,0.08))',
+            border: '2px solid rgba(34,197,94,0.3)',
+            boxShadow: '0 0 40px rgba(34,197,94,0.15)',
+          }}>
+            <div className="text-6xl mb-4" style={{ animation: 'float 1s ease-in-out infinite' }}>🎉</div>
+            <h2 className="text-2xl font-extrabold mb-2">
+              <span className="gradient-text">Match Found!</span>
+            </h2>
+            <p className="text-[var(--muted)] text-sm">Entering your chat room...</p>
+            <div className="mt-4 w-16 h-1 mx-auto rounded-full overflow-hidden bg-[var(--surface-light)]">
+              <div className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--success)]" style={{ animation: 'shimmer 0.8s ease-in-out' }} />
+            </div>
           </div>
         )}
       </div>

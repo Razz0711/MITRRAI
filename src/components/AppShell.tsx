@@ -33,7 +33,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
         <TopBar />
         <GlobalNotificationPoller />
         <IncomingCallBanner />
-        <main className="pt-16 pb-4 min-h-screen">
+        <main className="pt-16 pb-20 md:pb-4 min-h-screen">
           {children}
         </main>
       </>
@@ -61,22 +61,31 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
   // ---- Landing page & static pages ----
   return (
     <>
-      <header className="fixed top-0 left-0 right-0 z-50 bg-[var(--background)]/80 backdrop-blur-md border-b border-[var(--border)]">
+      <header className="fixed top-0 left-0 right-0 z-50" style={{
+        background: 'var(--glass-bg)',
+        backdropFilter: 'blur(20px) saturate(1.5)',
+        WebkitBackdropFilter: 'blur(20px) saturate(1.5)',
+        borderBottom: '1px solid var(--glass-border)',
+      }}>
         <div className="flex items-center justify-between h-14 px-4 max-w-7xl mx-auto">
-          <Link href="/" className="flex items-center gap-2">
-            <img src="/logo.jpg" alt="MitrAI" className="h-8 w-auto" />
-            <span className="text-sm font-semibold text-[var(--foreground)]">MitrAI</span>
-            <span className="text-[10px] text-[var(--muted)] hidden sm:inline">SVNIT</span>
+          <Link href="/" className="flex items-center gap-2.5 group">
+            <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white font-extrabold text-sm shadow-lg group-hover:scale-105 transition-transform">
+              M
+            </div>
+            <div className="flex flex-col">
+              <span className="text-sm font-bold text-[var(--foreground)] leading-none">MitrAI</span>
+              <span className="text-[9px] text-[var(--muted)] leading-none mt-0.5 hidden sm:block">SVNIT Surat</span>
+            </div>
           </Link>
           <div className="flex items-center gap-2">
             <button
               onClick={toggleTheme}
-              className="p-1.5 rounded-lg hover:bg-[var(--surface-light)] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"
+              className="p-2 rounded-xl hover:bg-[var(--surface-light)] text-[var(--muted)] hover:text-[var(--foreground)] transition-all duration-200"
               title={theme === 'dark' ? 'Light mode' : 'Dark mode'}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
-            <Link href="/login" className="btn-primary text-xs py-1.5 px-4">
+            <Link href="/login" className="btn-primary text-xs py-2 px-5 font-semibold">
               Get Started
             </Link>
           </div>
@@ -85,11 +94,11 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
       <main className="pt-14 min-h-screen">
         {children}
       </main>
-      <footer className="border-t border-[var(--border)] py-4 px-4 text-center text-[10px] text-[var(--muted)] space-x-4">
+      <footer className="border-t border-[var(--glass-border)] py-5 px-4 text-center text-[10px] text-[var(--muted)] space-x-4">
         <Link href="/terms" className="hover:text-[var(--foreground)] transition-colors">Terms of Service</Link>
-        <span>·</span>
+        <span className="opacity-30">·</span>
         <Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors">Privacy Policy</Link>
-        <span>·</span>
+        <span className="opacity-30">·</span>
         <span>© {new Date().getFullYear()} MitrAI — SVNIT</span>
       </footer>
     </>
