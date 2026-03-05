@@ -12,11 +12,10 @@ import { StudentProfile, BirthdayInfo } from '@/lib/types';
 import BirthdayBanner from '@/components/BirthdayBanner';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import {
-  Radar, Flame, MessageCircleMore, CircleDot,
+  Flame, MessageCircleMore, CircleDot,
   GraduationCap, ArrowLeftRight, DoorOpen, Users,
-  Handshake, ChevronRight, Search, MapPin, Clock,
-  MessageCircle, Heart, Share2, Sparkles, Radio,
-  Plus, Zap, Send,
+  Handshake, ChevronRight, MapPin, Clock,
+  Radio, Send,
 } from 'lucide-react';
 
 interface RadarPing {
@@ -203,7 +202,7 @@ export default function HomePage() {
             { href: '/doubts', icon: Flame, label: 'Campus Feed', gradient: 'from-orange-500 to-red-600' },
             { href: '/circles', icon: CircleDot, label: 'Circles', gradient: 'from-cyan-500 to-blue-600' },
             { href: '/radar', icon: Radio, label: 'Broadcast', gradient: 'from-emerald-500 to-green-600' },
-          ] as const).map((item, i) => (
+          ] as const).map((item) => (
             <Link key={item.href} href={item.href} className="flex flex-col items-center gap-2 shrink-0 group">
               <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${item.gradient} flex items-center justify-center shadow-lg group-hover:scale-110 group-hover:shadow-xl transition-all duration-300`}>
                 <item.icon size={22} className="text-white" strokeWidth={2} />

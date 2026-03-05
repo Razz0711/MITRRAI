@@ -10,8 +10,8 @@ import { usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { useTheme } from '@/components/ThemeProvider';
 import {
-  Home, Radio, MessageCircle, Flame, Sun, Moon,
-  Search, Bell, Sparkles, User, Compass
+  Home, MessageCircle, Flame, Sun, Moon,
+  User, Compass
 } from 'lucide-react';
 import { getActiveTab } from './BottomTabs';
 
