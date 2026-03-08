@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">MitrAI</string>
+    <string name="title_activity_main">MitrAI</string>
+    <string name="package_name">com.mitrai.study</string>
+    <string name="custom_url_scheme">com.mitrai.study</string>
+</resources>

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "527304237690",
+    "project_id": "mitrai-9b4a8",
+    "storage_bucket": "mitrai-9b4a8.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:527304237690:android:e89f1ca65d349e539491c3",
+        "android_client_info": {
+          "package_name": "com.mitrai.study"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGnSIpkjrjOhml9ZiLGI4cOJ5hJuQxwDY"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
