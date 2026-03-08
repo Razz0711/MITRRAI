@@ -80,7 +80,7 @@ export function useUnifiedPush(userId?: string) {
         onNativePushAction((action) => {
           console.log('[UnifiedPush] Notification tapped:', action);
           const url = action.notification.data?.url;
-          if (url && typeof window !== 'undefined') {
+          if (url && typeof url === 'string' && typeof window !== 'undefined') {
             window.location.href = url;
           }
         });
