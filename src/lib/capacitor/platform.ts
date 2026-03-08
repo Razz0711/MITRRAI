@@ -6,12 +6,14 @@
 export function isNativePlatform(): boolean {
   if (typeof window === 'undefined') return false;
   // Capacitor injects this on native platforms
-  return !!(window as any).Capacitor?.isNativePlatform?.();
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return !!(window as Record<string, any>).Capacitor?.isNativePlatform?.();
 }
 
 export function getPlatform(): 'android' | 'ios' | 'web' {
   if (typeof window === 'undefined') return 'web';
-  const cap = (window as any).Capacitor;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const cap = (window as Record<string, any>).Capacitor;
   if (!cap) return 'web';
   const platform = cap.getPlatform?.();
   if (platform === 'android') return 'android';

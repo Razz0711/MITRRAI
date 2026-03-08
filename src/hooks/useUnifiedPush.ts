@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { usePushNotifications } from './usePushNotifications';
 
 type NativePushStatus = 'idle' | 'registering' | 'registered' | 'denied' | 'error';
@@ -35,7 +35,8 @@ export function useUnifiedPush(userId?: string) {
     if (nativeRegistered.current) return;
     
     // Check if running in Capacitor
-    const cap = (window as any).Capacitor;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const cap = (window as Record<string, any>).Capacitor;
     if (!cap?.isNativePlatform?.()) return; // Web browser — skip native push
 
     const platform = cap.getPlatform?.() as string | undefined;
@@ -97,6 +98,7 @@ export function useUnifiedPush(userId?: string) {
     // Native push extras
     nativeStatus,
     fcmToken,
-    isNative: typeof window !== 'undefined' && !!(window as any).Capacitor?.isNativePlatform?.(),
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    isNative: typeof window !== 'undefined' && !!(window as Record<string, any>).Capacitor?.isNativePlatform?.(),
   };
 }

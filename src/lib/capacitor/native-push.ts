@@ -18,7 +18,7 @@ interface NativePushToken {
 interface NativePushNotification {
   title?: string;
   body?: string;
-  data?: Record<string, any>;
+  data?: Record<string, unknown>;
   id: string;
 }
 
@@ -27,10 +27,10 @@ interface NativePushActionPerformed {
   notification: NativePushNotification;
 }
 
-type TokenHandler = (token: NativePushToken) => void;
 type NotificationHandler = (notification: NativePushNotification) => void;
 type ActionHandler = (action: NativePushActionPerformed) => void;
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 let pushPlugin: any = null;
 
 /**
@@ -87,7 +87,7 @@ export async function registerNativePush(): Promise<string | null> {
         resolve(token.value);
       });
 
-      PushNotifications.addListener('registrationError', (err: any) => {
+      PushNotifications.addListener('registrationError', (err: unknown) => {
         clearTimeout(timeout);
         console.error('[NativePush] Registration error:', err);
         resolve(null);
