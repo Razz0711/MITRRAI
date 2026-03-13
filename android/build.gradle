@@ -17,6 +17,23 @@ buildscript {
 
 apply from: "variables.gradle"
 
+def sharedBuildRoot = null
+def osName = System.getProperty('os.name', '').toLowerCase()
+if (osName.contains('windows')) {
+    def localAppData = System.getenv('LOCALAPPDATA')
+    if (localAppData) {
+        // Keep Gradle outputs out of OneDrive-backed folders to avoid Windows file-lock/delete failures.
+        sharedBuildRoot = new File(localAppData, 'MitrAI/android-build')
+    }
+}
+
+if (sharedBuildRoot != null) {
+    rootProject.buildDir = new File(sharedBuildRoot, 'root')
+    subprojects {
+        buildDir = new File(sharedBuildRoot, project.name)
+    }
+}
+
 allprojects {
     repositories {
         google()
