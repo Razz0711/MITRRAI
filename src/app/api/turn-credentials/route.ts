@@ -4,6 +4,8 @@ import { NextResponse } from 'next/server';
 const METERED_SECRET_KEY = process.env.METERED_SECRET_KEY || '';
 const METERED_DOMAIN = process.env.METERED_DOMAIN || 'mitrai.metered.live';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET() {
   // Always return Metered domain-based TURN + STUN servers
   // These use the standard Metered relay infrastructure tied to our domain
