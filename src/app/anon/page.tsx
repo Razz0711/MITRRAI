@@ -36,6 +36,8 @@ export default function AnonLobbyPage() {
   const [isFreeTrial, setIsFreeTrial] = useState(false);
   const [trialGranted, setTrialGranted] = useState(false);
   const [usedTrial, setUsedTrial] = useState(false);
+  const [isOpenAccess, setIsOpenAccess] = useState(false);
+  const [openAccessEndsAt, setOpenAccessEndsAt] = useState('');
 
   // Live stats
   const [stats, setStats] = useState<{ queueCount: number; activeRooms: number; queueByType: Record<string, number> } | null>(null);
@@ -101,6 +103,8 @@ export default function AnonLobbyPage() {
       if (d.trialGranted) setTrialGranted(true);
       if (d.isFreeTrial) setIsFreeTrial(true);
       if (d.usedTrial) setUsedTrial(true);
+      if (d.isOpenAccess) setIsOpenAccess(true);
+      if (d.openAccessEndsAt) setOpenAccessEndsAt(d.openAccessEndsAt);
 
       if (d.banned) {
         setStatus('banned');
@@ -579,7 +583,25 @@ export default function AnonLobbyPage() {
         {status === 'idle' && (
           <div className="space-y-6">
             {/* Free Trial Banner */}
-            {isFreeTrial && passInfo.expiresAt && (
+            {isOpenAccess && openAccessEndsAt && (
+              <div className="card p-4 border-2 border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
+                <div className="flex items-start gap-3">
+                  <span className="text-sm font-bold text-cyan-400">Open</span>
+                  <div className="flex-1">
+                    <h3 className="text-sm font-bold text-cyan-400">
+                      Anonymous Chat is free for everyone right now
+                    </h3>
+                    <p className="text-xs text-[var(--muted)] mt-0.5">
+                      Temporary open access is enabled for all users through <strong className="text-cyan-400">
+                        {new Date(openAccessEndsAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                      </strong>.
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {isFreeTrial && passInfo.expiresAt && !isOpenAccess && (
               <div className="card p-4 border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
                 <div className="flex items-start gap-3">
                   <span className="text-sm font-bold text-emerald-400">Active</span>
@@ -601,7 +623,7 @@ export default function AnonLobbyPage() {
             )}
 
             {/* Regular pass info (non-trial) */}
-            {passInfo.plan && !isFreeTrial && (
+            {passInfo.plan && !isFreeTrial && !isOpenAccess && (
               <div className="card p-3 flex items-center justify-between">
                 <span className="text-xs text-[var(--muted)]">
                   {passInfo.isPro
@@ -695,7 +717,7 @@ export default function AnonLobbyPage() {
             </p>
 
             {/* Upgrade Plans — shown during free trial */}
-            {isFreeTrial && (
+            {isFreeTrial && !isOpenAccess && (
               <div className="space-y-4 mt-4">
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-[var(--border)]" />

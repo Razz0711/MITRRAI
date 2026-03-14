@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
-import { StudentProfile, BirthdayInfo } from '@/lib/types';
+import { BirthdayInfo, StudentProfile } from '@/lib/types';
 import BirthdayBanner from '@/components/BirthdayBanner';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import {
@@ -18,7 +18,6 @@ import {
   Radio,
   Send,
   Sparkles,
-  Target,
   Users,
 } from 'lucide-react';
 
@@ -42,11 +41,11 @@ const ACTIVITIES: Record<string, { label: string; color: string }> = {
   'cricket': { label: 'Cricket', color: '#22c55e' },
   'gym': { label: 'Gym Buddy', color: '#f59e0b' },
   'gaming': { label: 'Gaming', color: '#8b5cf6' },
-  'chai': { label: 'Chai and Chat', color: '#f97316' },
-  'walk': { label: 'Evening Walk', color: '#14b8a6' },
-  'movie': { label: 'Watch Movie', color: '#e11d48' },
-  'food': { label: 'Food Run', color: '#ea580c' },
-  'hangout': { label: 'Just Hangout', color: '#6366f1' },
+  chai: { label: 'Chai and Chat', color: '#f97316' },
+  walk: { label: 'Evening Walk', color: '#14b8a6' },
+  movie: { label: 'Watch Movie', color: '#e11d48' },
+  food: { label: 'Food Run', color: '#ea580c' },
+  hangout: { label: 'Just Hangout', color: '#6366f1' },
 };
 
 export default function HomePage() {
@@ -55,7 +54,6 @@ export default function HomePage() {
   const [loading, setLoading] = useState(true);
   const [pings, setPings] = useState<RadarPing[]>([]);
   const [pingsLoading, setPingsLoading] = useState(true);
-
   const [birthdays, setBirthdays] = useState<BirthdayInfo[]>([]);
   const [wishedMap, setWishedMap] = useState<Record<string, boolean>>({});
 
@@ -141,27 +139,6 @@ export default function HomePage() {
     return `${Math.floor(mins / 60)}h ago`;
   };
 
-  const profileChecklist = [
-    { label: 'Goal added', done: Boolean(student?.targetExam) },
-    { label: 'Strengths listed', done: Boolean(student?.strongSubjects?.length) },
-    { label: 'Focus areas listed', done: Boolean(student?.weakSubjects?.length) },
-    { label: 'Availability added', done: Boolean(student?.availableDays?.length && student?.availableTimes) },
-    { label: 'Study style set', done: Boolean(student?.studyMethod?.length) },
-    { label: 'Weekly goal set', done: Boolean(student?.shortTermGoal || student?.weeklyGoals) },
-  ];
-
-  const completedChecklistItems = profileChecklist.filter((item) => item.done).length;
-  const profileProgress = Math.round((completedChecklistItems / profileChecklist.length) * 100);
-  const profileReady = Boolean(
-    student?.targetExam &&
-    student?.strongSubjects?.length &&
-    student?.weakSubjects?.length &&
-    student?.availableDays?.length &&
-    student?.availableTimes
-  );
-  const liveCampusCount = pings.filter((ping) => ping.userId !== user?.id).length;
-  const topPings = pings.slice(0, 4);
-
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
@@ -171,6 +148,10 @@ export default function HomePage() {
   }
 
   const firstName = (student?.name || user?.name || 'Student').split(' ')[0];
+  const branch = student?.department || user?.department || 'Not set';
+  const year = student?.yearLevel || user?.yearLevel || 'Not set';
+  const liveCampusCount = pings.filter((ping) => ping.userId !== user?.id).length;
+  const topPings = pings.slice(0, 4);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-5 space-y-5">
@@ -182,7 +163,7 @@ export default function HomePage() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
               <Sparkles size={12} className="text-[var(--accent)]" />
-              Study partner hub
+              Simple matching
             </div>
             <div className="mt-3 mb-1">
               <h1 className="text-2xl font-extrabold tracking-tight">
@@ -193,12 +174,14 @@ export default function HomePage() {
               </h2>
             </div>
             <p className="text-sm text-[var(--muted)]">
-              {student?.department || 'SVNIT Surat'} - {new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'short' })}
+              {branch} - {year}
             </p>
           </div>
-          <div className="grid grid-cols-2 gap-2 sm:min-w-[240px]">
-            <MetricCard label="Profile" value={`${profileProgress}%`} hint={profileReady ? 'Ready to match' : 'Keep going'} />
-            <MetricCard label="Live now" value={`${liveCampusCount}`} hint="Campus pings" />
+
+          <div className="grid grid-cols-3 gap-2 sm:min-w-[320px]">
+            <MetricCard label="Branch" value={branch} hint="Used for matching" />
+            <MetricCard label="Year" value={year} hint="Used for matching" />
+            <MetricCard label="Live" value={`${liveCampusCount}`} hint="Campus pings" />
           </div>
         </div>
       </div>
@@ -215,77 +198,43 @@ export default function HomePage() {
       )}
 
       <section className="card-glass p-5 sm:p-6 slide-up-stagger-2">
-        <div className="grid gap-5 lg:grid-cols-[1.35fr_1fr] lg:items-start">
-          <div>
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl">
             <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-light)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-              {profileReady ? <Handshake size={12} className="text-[var(--primary-light)]" /> : <Target size={12} className="text-[var(--warning)]" />}
-              {profileReady ? 'Ready for matching' : 'Complete your profile'}
+              <Handshake size={12} className="text-[var(--primary-light)]" />
+              Branch and year only
             </div>
             <h3 className="mt-3 text-xl font-bold text-[var(--foreground)]">
-              {profileReady ? 'You are ready to meet your best-fit study buddy' : 'Finish setup before we start matching'}
+              Matching now uses just your branch and college year
             </h3>
             <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-              {profileReady
-                ? 'Your profile has enough signal for matching across goals, subjects, and availability. Next up: review your top matches and start a real conversation.'
-                : `You have already covered ${completedChecklistItems} of ${profileChecklist.length} setup items. A few more answers will make your matches meaningfully better.`}
+              No profile setup, no long checklist, no extra study preferences. We use your registration details and show the closest students from the same academic lane.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
-              <Link
-                href={profileReady ? '/matches' : '/onboarding'}
-                className="btn-primary inline-flex items-center gap-2"
-              >
-                {profileReady ? 'See my matches' : 'Finish profile'}
+              <Link href="/matches" className="btn-primary inline-flex items-center gap-2">
+                See my matches
                 <ArrowRight size={15} />
               </Link>
-              <Link
-                href="/radar"
-                className="btn-secondary inline-flex items-center gap-2"
-              >
-                Check campus radar
+              <Link href="/chat" className="btn-secondary inline-flex items-center gap-2">
+                Open chats
               </Link>
             </div>
           </div>
 
-          <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Profile readiness</p>
-                <p className="mt-1 text-2xl font-bold text-[var(--foreground)]">{profileProgress}%</p>
-              </div>
-              <span className="badge badge-primary">{completedChecklistItems}/{profileChecklist.length} complete</span>
-            </div>
-            <div className="mt-4 h-2 rounded-full bg-[var(--surface-light)]">
-              <div
-                className="h-full rounded-full bg-gradient-to-r from-[var(--primary)] to-[var(--secondary)] transition-all duration-500"
-                style={{ width: `${profileProgress}%` }}
-              />
-            </div>
-            <div className="mt-4 grid gap-2">
-              {profileChecklist.slice(0, 4).map((item) => (
-                <div
-                  key={item.label}
-                  className={`flex items-center justify-between rounded-xl px-3 py-2 text-xs ${
-                    item.done ? 'bg-[var(--success)]/10 text-[var(--foreground)]' : 'bg-[var(--surface-light)] text-[var(--muted)]'
-                  }`}
-                >
-                  <span>{item.label}</span>
-                  <span className={item.done ? 'text-[var(--success)]' : 'text-[var(--muted)]'}>
-                    {item.done ? 'Done' : 'Pending'}
-                  </span>
-                </div>
-              ))}
-            </div>
+          <div className="grid gap-3 sm:grid-cols-2 lg:w-[320px]">
+            <InfoTile label="Matching basis" value={`${branch} - ${year}`} />
+            <InfoTile label="Campus activity" value={`${liveCampusCount} live`} />
           </div>
         </div>
       </section>
 
       <section className="grid gap-3 sm:grid-cols-3 slide-up-stagger-3">
         <ActionCard
-          href={profileReady ? '/matches' : '/onboarding'}
-          eyebrow={profileReady ? 'Primary path' : 'Finish setup'}
-          title={profileReady ? 'Review top matches' : 'Complete onboarding'}
-          description={profileReady ? 'See ranked study partners and connect quickly.' : 'Add your study style and availability to unlock better matches.'}
+          href="/matches"
+          eyebrow="Primary path"
+          title="Review matches"
+          description="See ranked students from your branch and year first."
           icon={<Handshake size={18} />}
         />
         <ActionCard
@@ -443,8 +392,17 @@ function MetricCard({ label, value, hint }: { label: string; value: string; hint
   return (
     <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-3">
       <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">{label}</p>
-      <p className="mt-1 text-lg font-bold text-[var(--foreground)]">{value}</p>
+      <p className="mt-1 text-sm font-bold text-[var(--foreground)]">{value}</p>
       <p className="text-[10px] text-[var(--muted)]">{hint}</p>
+    </div>
+  );
+}
+
+function InfoTile({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">{label}</p>
+      <p className="mt-2 text-sm font-semibold text-[var(--foreground)]">{value}</p>
     </div>
   );
 }

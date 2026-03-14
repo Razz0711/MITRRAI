@@ -7,7 +7,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser, unauthorized } from '@/lib/api-auth';
 import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
-import { submitPayment, getUserPaymentStatus } from '@/lib/store/anon';
+import {
+  submitPayment,
+  getUserPaymentStatus,
+  isAnonOpenAccessActive,
+  ANON_OPEN_ACCESS_ENDS_AT,
+} from '@/lib/store/anon';
 import { ANON_PRICING } from '@/lib/anon-aliases';
 import { normalizeOptionalPaymentReference, validatePaymentReference } from '@/lib/payment-validation';
 
@@ -19,7 +24,14 @@ export async function GET() {
   if (!authUser) return unauthorized();
 
   const payment = await getUserPaymentStatus(authUser.id);
-  return NextResponse.json({ success: true, data: { payment } });
+  return NextResponse.json({
+    success: true,
+    data: {
+      payment,
+      isOpenAccess: isAnonOpenAccessActive(),
+      openAccessEndsAt: ANON_OPEN_ACCESS_ENDS_AT,
+    },
+  });
 }
 
 // POST — submit a new payment
@@ -31,6 +43,13 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`anon-pay:${userId}`, 3, 300_000)) return rateLimitExceeded();
 
   try {
+    if (isAnonOpenAccessActive()) {
+      return NextResponse.json(
+        { success: false, error: 'Anonymous chat is free for everyone until April 14, 2026.' },
+        { status: 400 }
+      );
+    }
+
     const body = await req.json();
     const { plan, transactionId, upiRef } = body;
 

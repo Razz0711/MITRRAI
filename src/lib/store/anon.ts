@@ -82,12 +82,35 @@ export interface AnonCoupon {
   expiresAt: string | null;
 }
 
+export const ANON_OPEN_ACCESS_ENDS_AT = '2026-04-14T23:59:59+05:30';
+
+export function isAnonOpenAccessActive(now: Date = new Date()): boolean {
+  return now.getTime() <= new Date(ANON_OPEN_ACCESS_ENDS_AT).getTime();
+}
+
+export function getOpenAccessPass(userId: string): AnonPass {
+  const now = new Date().toISOString();
+  return {
+    id: 'anon-open-access',
+    userId,
+    plan: 'open_access',
+    price: 0,
+    source: 'open_access',
+    couponCode: '',
+    activatedAt: now,
+    expiresAt: ANON_OPEN_ACCESS_ENDS_AT,
+    createdAt: now,
+  };
+}
+
 // ═══════════════════════════════════════════
 // PASS / ACCESS CHECK
 // ═══════════════════════════════════════════
 
 /** Check if user has an active (non-expired) pass OR an active Pro subscription */
 export async function hasActivePass(userId: string): Promise<boolean> {
+  if (isAnonOpenAccessActive()) return true;
+
   // Check Pro subscription first
   const sub = await getUserSubscription(userId);
   if (sub && sub.status === 'active' && sub.plan !== 'free') return true;
@@ -111,6 +134,10 @@ export async function isProSubscriber(userId: string): Promise<boolean> {
 
 /** Get user's active pass details (returns a virtual pass for Pro subscribers) */
 export async function getActivePass(userId: string): Promise<AnonPass | null> {
+  if (isAnonOpenAccessActive()) {
+    return getOpenAccessPass(userId);
+  }
+
   // Pro subscribers get a virtual "pro" pass
   const sub = await getUserSubscription(userId);
   if (sub && sub.status === 'active' && sub.plan !== 'free') {
@@ -160,6 +187,8 @@ export async function hasUsedFreeTrial(userId: string): Promise<boolean> {
 
 /** Grant a one-time 7-day free trial. Returns the pass if granted, null if already used. */
 export async function grantFreeTrial(userId: string): Promise<AnonPass | null> {
+  if (isAnonOpenAccessActive()) return null;
+
   // Already has an active pass? Don't grant.
   const existing = await hasActivePass(userId);
   if (existing) return null;
@@ -616,6 +645,10 @@ export interface AnonPayment {
 
 /** Submit a UPI payment for verification */
 export async function submitPayment(userId: string, plan: string, amount: number, transactionId: string, upiRef?: string): Promise<{ success: boolean; error?: string }> {
+  if (isAnonOpenAccessActive()) {
+    return { success: false, error: 'Anonymous chat is free for everyone until April 14, 2026.' };
+  }
+
   // Check if user already has active pass
   const active = await hasActivePass(userId);
   if (active) return { success: false, error: 'You already have an active pass!' };

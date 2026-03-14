@@ -19,6 +19,8 @@ import {
   hasUsedFreeTrial,
   grantFreeTrial,
   getAnonLiveStats,
+  isAnonOpenAccessActive,
+  ANON_OPEN_ACCESS_ENDS_AT,
 } from '@/lib/store/anon';
 import { broadcastNotification } from '@/lib/store/broadcast';
 import { NOTIFICATION_TYPES } from '@/lib/constants';
@@ -42,10 +44,12 @@ export async function GET(req: NextRequest) {
         isProSubscriber(userId),
       ]);
 
+      const isOpenAccess = isAnonOpenAccessActive();
+
       // Auto-grant free 7-day trial if user has no pass and never had one
       let pass = initialPass;
       let trialGranted = false;
-      if (!pass && !ban.banned) {
+      if (!pass && !ban.banned && !isOpenAccess) {
         const trialPass = await grantFreeTrial(userId);
         if (trialPass) {
           pass = trialPass;
@@ -68,6 +72,8 @@ export async function GET(req: NextRequest) {
           trialGranted,
           isFreeTrial: pass?.source === 'free_trial',
           usedTrial,
+          isOpenAccess,
+          openAccessEndsAt: ANON_OPEN_ACCESS_ENDS_AT,
         },
       });
     }

@@ -3,18 +3,17 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ChevronDown, ChevronUp, MessageCircleMore, Sparkles, Target, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, MessageCircleMore, Sparkles, X } from 'lucide-react';
 import MatchCard from '@/components/MatchCard';
 import {
+  BirthdayInfo,
+  FriendRequest,
+  Friendship,
   MatchResult,
   StudentProfile,
   UserStatus,
-  BirthdayInfo,
-  Friendship,
-  FriendRequest,
 } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
-import { TYPE_MAP, DEPT_MAP } from '@/lib/email-parser';
 
 export default function MatchesPage() {
   const router = useRouter();
@@ -32,7 +31,6 @@ export default function MatchesPage() {
 
   const [statusMap, setStatusMap] = useState<Record<string, UserStatus>>({});
   const [birthdayUserIds, setBirthdayUserIds] = useState<Set<string>>(new Set());
-
   const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
   const [pendingSentIds, setPendingSentIds] = useState<Set<string>>(new Set());
 
@@ -179,7 +177,6 @@ export default function MatchesPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ studentId }),
       });
-
       const data = await res.json();
 
       if (data.success) {
@@ -199,18 +196,18 @@ export default function MatchesPage() {
   };
 
   const activeStudent = student || allStudents.find((candidate) => candidate.id === selectedStudentId) || null;
-  const activeStudentReady = Boolean(
-    activeStudent?.targetExam &&
-    activeStudent?.strongSubjects?.length &&
-    activeStudent?.weakSubjects?.length &&
-    activeStudent?.availableDays?.length &&
-    activeStudent?.availableTimes
+  const activeBranch = activeStudent?.department || user?.department || 'Not set';
+  const activeYear = activeStudent?.yearLevel || user?.yearLevel || 'Not set';
+  const exactCandidates = allStudents.filter((candidate) =>
+    candidate.id !== selectedStudentId &&
+    candidate.id !== user?.id &&
+    candidate.department === activeBranch &&
+    candidate.yearLevel === activeYear
   );
   const browseStudents = allStudents.filter((candidate) => {
     if (candidate.id === selectedStudentId) return false;
     if (candidate.id === user?.id) return false;
-    if (user?.matchKey) return candidate.matchKey === user.matchKey;
-    return true;
+    return candidate.department === activeBranch || candidate.yearLevel === activeYear;
   });
 
   return (
@@ -218,13 +215,13 @@ export default function MatchesPage() {
       <div className="text-center mb-6">
         <div className="inline-flex items-center gap-2 rounded-full border border-[var(--glass-border)] bg-[var(--surface)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">
           <Sparkles size={12} className="text-[var(--accent)]" />
-          Best-fit matching
+          Branch + year matching
         </div>
         <h1 className="mt-3 text-2xl font-bold mb-1">
           Find Your <span className="gradient-text">Study Buddy</span>
         </h1>
         <p className="text-sm text-[var(--muted)]">
-          Matching now defaults to your own profile, keeps the main next step obvious, and uses in-app actions instead of browser alerts.
+          Matches are now ranked only by branch and college year.
         </p>
       </div>
 
@@ -237,66 +234,37 @@ export default function MatchesPage() {
       <div className="card-glass p-5 sm:p-6 mb-6">
         {activeStudent ? (
           <>
-            <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
+            <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
               <div className="max-w-2xl">
                 <div className="inline-flex items-center gap-2 rounded-full bg-[var(--surface-light)] px-3 py-1 text-[10px] font-semibold uppercase tracking-[0.18em] text-[var(--muted)]">
-                  <Target size={12} className="text-[var(--primary-light)]" />
                   Matching as {activeStudent.name}
                 </div>
                 <h2 className="mt-3 text-xl font-bold text-[var(--foreground)]">
-                  {activeStudentReady ? 'Your profile is ready for ranked matches' : 'Your profile needs a little more detail before matching shines'}
+                  We only use your branch and year now
                 </h2>
                 <p className="mt-2 text-sm leading-relaxed text-[var(--muted)]">
-                  {activeStudentReady
-                    ? `We are matching for ${activeStudent.targetExam || 'your current focus'} using subject overlap, schedule fit, study style, goals, and personality.`
-                    : 'Add your goal, strengths, weaknesses, and availability so the ranking feels trustworthy instead of generic.'}
+                  No setup wizard and no study-preference scoring. We compare your registration details and show students from the same branch and year first, then nearby academic matches if needed.
                 </p>
-
                 <div className="mt-4 flex flex-wrap gap-2">
                   <button
                     onClick={() => findMatches()}
-                    disabled={!selectedStudentId || loading || !activeStudentReady}
+                    disabled={!selectedStudentId || loading}
                     className="btn-primary inline-flex items-center gap-2 text-xs"
                   >
                     {loading ? 'Refreshing matches...' : matches.length > 0 ? 'Refresh matches' : 'Find matches'}
                   </button>
-                  <Link href={activeStudentReady ? '/home' : '/onboarding'} className="btn-secondary inline-flex items-center gap-2 text-xs">
-                    {activeStudentReady ? 'Back to home' : 'Finish profile'}
+                  <Link href="/home" className="btn-secondary text-xs">
+                    Back to home
                   </Link>
                 </div>
               </div>
 
-              <div className="grid gap-3 sm:grid-cols-3 lg:w-[360px]">
-                <SummaryTile label="Target" value={activeStudent.targetExam || 'Add on onboarding'} />
-                <SummaryTile label="Availability" value={activeStudent.availableTimes || 'Not set yet'} />
-                <SummaryTile label="Strongest area" value={activeStudent.strongSubjects?.[0] || 'Not set yet'} />
+              <div className="grid gap-3 sm:grid-cols-3 lg:w-[380px]">
+                <SummaryTile label="Branch" value={activeBranch} />
+                <SummaryTile label="Year" value={activeYear} />
+                <SummaryTile label="Exact matches" value={`${exactCandidates.length}`} />
               </div>
             </div>
-
-            <div className="mt-5 flex flex-wrap gap-2">
-              {activeStudent.department && (
-                <span className="badge badge-primary">{activeStudent.department}</span>
-              )}
-              {activeStudent.yearLevel && (
-                <span className="badge badge-warning">{activeStudent.yearLevel}</span>
-              )}
-              {activeStudent.targetExam && (
-                <span className="badge badge-success">{activeStudent.targetExam}</span>
-              )}
-            </div>
-
-            {user?.matchKey && (
-              <div className="mt-5 rounded-2xl border border-[var(--primary)]/20 bg-[var(--primary)]/10 p-4">
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-xs font-semibold text-[var(--primary-light)]">
-                    {TYPE_MAP[user.matchKey[0]] || 'Student'} - {DEPT_MAP[user.matchKey.slice(3)] || user.deptCode?.toUpperCase() || ''} - Batch &apos;{user.batchYear || user.matchKey.slice(1, 3)}
-                  </span>
-                </div>
-                <p className="text-[11px] text-[var(--muted)]">
-                  We prioritize your batch so your best matches feel more relevant and easier to act on quickly.
-                </p>
-              </div>
-            )}
 
             {allStudents.length > 1 && (
               <div className="mt-5 rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
@@ -305,8 +273,8 @@ export default function MatchesPage() {
                   className="flex w-full items-center justify-between text-left"
                 >
                   <div>
-                    <p className="text-sm font-semibold text-[var(--foreground)]">Match as another profile</p>
-                    <p className="text-xs text-[var(--muted)]">Useful for demos, testing, or admin-style verification.</p>
+                    <p className="text-sm font-semibold text-[var(--foreground)]">Switch profile</p>
+                    <p className="text-xs text-[var(--muted)]">Useful for testing the simplified branch and year logic.</p>
                   </div>
                   {showProfileSelector ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
                 </button>
@@ -320,13 +288,14 @@ export default function MatchesPage() {
                         setStudent(null);
                         setMatches([]);
                         setError('');
+                        setHasAutoRun(false);
                       }}
                       className="input-field flex-1 text-xs"
                     >
                       <option value="">Choose a student...</option>
                       {allStudents.map((candidate) => (
                         <option key={candidate.id} value={candidate.id}>
-                          {candidate.name} - {candidate.targetExam || 'No goal yet'} ({candidate.city || 'Campus'})
+                          {candidate.name} - {candidate.department || 'Branch not set'} ({candidate.yearLevel || 'Year not set'})
                         </option>
                       ))}
                     </select>
@@ -344,11 +313,8 @@ export default function MatchesPage() {
           </>
         ) : (
           <div className="text-center py-8">
-            <h2 className="text-lg font-bold text-[var(--foreground)]">We need your profile first</h2>
-            <p className="mt-2 text-sm text-[var(--muted)]">Complete onboarding so matching has real study data to work with.</p>
-            <Link href="/onboarding" className="btn-primary mt-4 inline-flex items-center gap-2 text-xs">
-              Finish profile
-            </Link>
+            <h2 className="text-lg font-bold text-[var(--foreground)]">Student record not found</h2>
+            <p className="mt-2 text-sm text-[var(--muted)]">We need your saved branch and year to run matching.</p>
           </div>
         )}
       </div>
@@ -364,8 +330,8 @@ export default function MatchesPage() {
           <div className="w-10 h-10 mx-auto mb-3 rounded-xl bg-[var(--primary)]/20 flex items-center justify-center animate-pulse">
             <span className="w-3 h-3 rounded-full bg-[var(--primary)]" />
           </div>
-          <p className="text-xs text-[var(--muted)]">Analyzing compatibility...</p>
-          <p className="text-[10px] text-[var(--muted)] mt-1">Scoring across subjects, schedule, study style, goals, and personality.</p>
+          <p className="text-xs text-[var(--muted)]">Finding branch and year matches...</p>
+          <p className="text-[10px] text-[var(--muted)] mt-1">Ranking same branch and same year first.</p>
         </div>
       )}
 
@@ -374,7 +340,7 @@ export default function MatchesPage() {
           <div className="flex items-center justify-between mb-4">
             <div>
               <h2 className="text-lg font-bold">Top matches for you</h2>
-              <p className="text-xs text-[var(--muted)]">Start with the top recommendation, then compare the rest.</p>
+              <p className="text-xs text-[var(--muted)]">Students from the same branch and year are shown first.</p>
             </div>
             <span className="text-xs text-[var(--muted)]">{matches.length} found</span>
           </div>
@@ -433,22 +399,16 @@ export default function MatchesPage() {
         <div className="mt-6">
           <div className="flex items-center justify-between mb-4">
             <div>
-              <h2 className="text-lg font-bold">
-                {user?.matchKey ? 'More students in your batch' : 'Browse more students'}
-              </h2>
-              <p className="text-xs text-[var(--muted)]">Useful if you want to explore manually before starting a match conversation.</p>
+              <h2 className="text-lg font-bold">Students with related branch or year</h2>
+              <p className="text-xs text-[var(--muted)]">Useful if you want to browse manually before starting a chat.</p>
             </div>
-            <span className="text-xs text-[var(--muted)]">
-              {browseStudents.length} {user?.matchKey ? 'batchmates' : 'students'}
-            </span>
+            <span className="text-xs text-[var(--muted)]">{browseStudents.length} students</span>
           </div>
 
           {browseStudents.length === 0 ? (
             <div className="text-center py-8 card">
               <p className="text-xs text-[var(--muted)]">
-                {user?.matchKey
-                  ? 'No batchmates registered yet. Invite your SVNIT batchmates to join MitrAI.'
-                  : 'No other students registered yet. Invite your SVNIT friends to join.'}
+                No students with the same branch or year are registered yet.
               </p>
             </div>
           ) : (
@@ -473,33 +433,20 @@ export default function MatchesPage() {
                         {birthdayUserIds.has(candidate.id) && <span className="text-[10px] text-[var(--warning)]">Birthday soon</span>}
                       </div>
                       <p className="text-[10px] text-[var(--muted)] truncate">
-                        {candidate.department || candidate.currentStudy || 'SVNIT Student'}
+                        {candidate.department || 'Branch not set'}
                         {candidate.yearLevel ? ` - ${candidate.yearLevel}` : ''}
                       </p>
-                      {statusMap[candidate.id]?.status === 'online' && (
-                        <p className="text-[10px] text-green-400">Online now</p>
-                      )}
-                      {statusMap[candidate.id]?.status === 'in-session' && (
-                        <p className="text-[10px] text-amber-400">
-                          {statusMap[candidate.id].currentSubject ? `Studying ${statusMap[candidate.id].currentSubject}` : 'In study session'}
-                        </p>
-                      )}
                     </div>
                   </div>
 
-                  {candidate.targetExam && (
-                    <p className="text-[10px] text-[var(--muted)] mb-2">
-                      Target: {candidate.targetExam}
-                    </p>
-                  )}
-
-                  {candidate.strongSubjects && candidate.strongSubjects.length > 0 && (
-                    <div className="flex flex-wrap gap-1 mb-3">
-                      {candidate.strongSubjects.slice(0, 3).map((subject) => (
-                        <span key={subject} className="badge-success text-[10px]">{subject}</span>
-                      ))}
-                    </div>
-                  )}
+                  <div className="flex flex-wrap gap-1 mb-3">
+                    {candidate.department === activeBranch && (
+                      <span className="badge badge-primary">Same branch</span>
+                    )}
+                    {candidate.yearLevel === activeYear && (
+                      <span className="badge badge-warning">Same year</span>
+                    )}
+                  </div>
 
                   <div className="flex gap-1.5">
                     <button
@@ -529,24 +476,12 @@ export default function MatchesPage() {
         </div>
       )}
 
-      {!loading && matches.length === 0 && !error && activeStudentReady && hasAutoRun && (
+      {!loading && matches.length === 0 && !error && activeStudent && hasAutoRun && (
         <div className="text-center py-12 card mt-6">
-          <h2 className="text-sm font-bold mb-1">No strong matches yet</h2>
+          <h2 className="text-sm font-bold mb-1">No branch or year matches yet</h2>
           <p className="text-xs text-[var(--muted)] max-w-sm mx-auto">
-            We could not find a close enough fit right now. Try refreshing later, broaden your profile details, or browse students manually below.
+            We could not find any students sharing your branch or year right now.
           </p>
-        </div>
-      )}
-
-      {!loading && matches.length === 0 && !error && !activeStudentReady && activeStudent && (
-        <div className="text-center py-12 card mt-6">
-          <h2 className="text-sm font-bold mb-1">Complete your profile to unlock better matches</h2>
-          <p className="text-xs text-[var(--muted)] max-w-sm mx-auto">
-            Goal, subject strengths, focus areas, and availability are the biggest signals for ranking.
-          </p>
-          <Link href="/onboarding" className="btn-primary mt-4 inline-flex items-center gap-2 text-xs">
-            Finish onboarding
-          </Link>
         </div>
       )}
 
@@ -558,9 +493,9 @@ export default function MatchesPage() {
                 <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Match profile</p>
                 <h3 className="mt-2 text-xl font-bold">{selectedMatch.student.name}</h3>
                 <p className="mt-1 text-sm text-[var(--muted)]">
-                  {selectedMatch.student.department || selectedMatch.student.currentStudy || 'SVNIT Student'}
+                  {selectedMatch.student.department || 'Branch not set'}
                   {selectedMatch.student.yearLevel ? ` - ${selectedMatch.student.yearLevel}` : ''}
-                  {selectedMatch.student.targetExam ? ` - ${selectedMatch.student.targetExam}` : ''}
+                  {selectedMatch.student.admissionNumber ? ` - ${selectedMatch.student.admissionNumber}` : ''}
                 </p>
               </div>
               <button
@@ -574,8 +509,8 @@ export default function MatchesPage() {
 
             <div className="mt-5 grid gap-3 sm:grid-cols-3">
               <SummaryTile label="Match score" value={`${selectedMatch.score.overall}%`} />
-              <SummaryTile label="Best format" value={selectedMatch.bestFormat || 'Flexible'} />
-              <SummaryTile label="First topic" value={selectedMatch.recommendedFirstTopic || 'Start simple'} />
+              <SummaryTile label="Branch fit" value={`${selectedMatch.score.subject}/60`} />
+              <SummaryTile label="Year fit" value={`${selectedMatch.score.schedule}/40`} />
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
@@ -584,36 +519,23 @@ export default function MatchesPage() {
                 <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]">{selectedMatch.whyItWorks}</p>
               </div>
               <div className="rounded-2xl border border-[var(--warning)]/20 bg-[var(--warning)]/10 p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--warning)]">Potential challenge</p>
-                <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]">{selectedMatch.potentialChallenges || 'No major risk surfaced.'}</p>
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--warning)]">Keep in mind</p>
+                <p className="mt-2 text-sm leading-relaxed text-[var(--foreground)]">{selectedMatch.potentialChallenges}</p>
               </div>
             </div>
 
             <div className="mt-5 grid gap-3 md:grid-cols-2">
               <DetailPanel
-                title="Strong subjects"
-                items={selectedMatch.student.strongSubjects || []}
-                emptyLabel="No strong subjects added yet."
+                title="Identity"
+                items={[
+                  `Branch: ${selectedMatch.student.department || 'Not shared'}`,
+                  `Year: ${selectedMatch.student.yearLevel || 'Not shared'}`,
+                  `Admission: ${selectedMatch.student.admissionNumber || 'Not shared'}`,
+                ]}
               />
               <DetailPanel
-                title="Needs help with"
-                items={selectedMatch.student.weakSubjects || []}
-                emptyLabel="No weak subjects added yet."
-              />
-            </div>
-
-            <div className="mt-5 grid gap-3 md:grid-cols-2">
-              <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
-                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">Availability</p>
-                <p className="mt-2 text-sm text-[var(--foreground)]">
-                  {(selectedMatch.student.availableDays || []).join(', ') || 'Not shared yet'}
-                </p>
-                <p className="mt-1 text-sm text-[var(--muted)]">{selectedMatch.student.availableTimes || 'Time not shared yet'}</p>
-              </div>
-              <DetailPanel
-                title="Complementary strengths"
-                items={selectedMatch.complementaryFactors || []}
-                emptyLabel="No complementary strengths highlighted yet."
+                title="Match basis"
+                items={selectedMatch.complementaryFactors || ['Closest academic match found']}
               />
             </div>
 
@@ -659,19 +581,15 @@ function SummaryTile({ label, value }: { label: string; value: string }) {
   );
 }
 
-function DetailPanel({ title, items, emptyLabel }: { title: string; items: string[]; emptyLabel: string }) {
+function DetailPanel({ title, items }: { title: string; items: string[] }) {
   return (
     <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4">
       <p className="text-xs font-semibold uppercase tracking-[0.16em] text-[var(--muted)]">{title}</p>
-      {items.length > 0 ? (
-        <div className="mt-3 flex flex-wrap gap-2">
-          {items.map((item) => (
-            <span key={item} className="badge badge-primary">{item}</span>
-          ))}
-        </div>
-      ) : (
-        <p className="mt-3 text-sm text-[var(--muted)]">{emptyLabel}</p>
-      )}
+      <div className="mt-3 flex flex-wrap gap-2">
+        {items.map((item) => (
+          <span key={item} className="badge badge-primary">{item}</span>
+        ))}
+      </div>
     </div>
   );
 }
