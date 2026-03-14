@@ -590,149 +590,251 @@ export default function AnonLobbyPage() {
           </div>
         )}
 
-        {/* Idle — Room Selection */}
+        {/* Idle — Vibe Card Selection */}
         {status === 'idle' && (
           <div className="space-y-6">
-            {/* Free Trial Banner */}
+            {/* Open Access Banner */}
             {isOpenAccess && openAccessEndsAt && (
-              <div className="card p-4 border-2 border-cyan-500/30 bg-gradient-to-r from-cyan-500/10 to-blue-500/10">
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-bold text-cyan-400">Open</span>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-cyan-400">
-                      Anonymous Chat is free for everyone right now
-                    </h3>
-                    <p className="text-xs text-[var(--muted)] mt-0.5">
-                      Temporary open access is enabled for all users through <strong className="text-cyan-400">
-                        {new Date(openAccessEndsAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
-                      </strong>.
-                    </p>
-                  </div>
+              <div className="rounded-2xl px-5 py-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(59,130,246,0.06))', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
+                  <span className="text-sm">
+                    <strong className="text-green-400">Free for everyone</strong>
+                    <span className="text-[var(--muted)]"> — Open for all SVNIT students</span>
+                  </span>
                 </div>
+                <span className="text-xs font-semibold text-green-400">
+                  Till {new Date(openAccessEndsAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                </span>
               </div>
             )}
 
             {isFreeTrial && passInfo.expiresAt && !isOpenAccess && (
-              <div className="card p-4 border-2 border-emerald-500/30 bg-gradient-to-r from-emerald-500/10 to-teal-500/10">
-                <div className="flex items-start gap-3">
-                  <span className="text-sm font-bold text-emerald-400">Active</span>
-                  <div className="flex-1">
-                    <h3 className="text-sm font-bold text-emerald-400">
-                      {trialGranted ? 'Free Trial Activated!' : 'Free Trial Active'}
-                    </h3>
-                    <p className="text-xs text-[var(--muted)] mt-0.5">
-                      You have <strong className="text-emerald-400">
-                        {Math.max(0, Math.ceil((new Date(passInfo.expiresAt).getTime() - Date.now()) / 86400000))} days
-                      </strong> left to try Anonymous Chat for free.
-                    </p>
-                    <p className="text-[10px] text-[var(--muted)] mt-1">
-                      Expires: {new Date(passInfo.expiresAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
-                    </p>
-                  </div>
+              <div className="rounded-2xl px-5 py-3 flex items-center justify-between" style={{ background: 'linear-gradient(135deg, rgba(16,185,129,0.08), rgba(20,184,166,0.06))', border: '1px solid rgba(16,185,129,0.2)' }}>
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="text-sm">
+                    <strong className="text-emerald-400">{trialGranted ? 'Free Trial Activated!' : 'Free Trial Active'}</strong>
+                    <span className="text-[var(--muted)]"> — {Math.max(0, Math.ceil((new Date(passInfo.expiresAt).getTime() - Date.now()) / 86400000))} days left</span>
+                  </span>
                 </div>
+                <span className="text-xs text-[var(--muted)]">
+                  Expires: {new Date(passInfo.expiresAt).toLocaleDateString('en-IN', { dateStyle: 'medium' })}
+                </span>
               </div>
             )}
 
-            {/* Regular pass info (non-trial) */}
             {passInfo.plan && !isFreeTrial && !isOpenAccess && (
               <div className="card p-3 flex items-center justify-between">
                 <span className="text-xs text-[var(--muted)]">
-                  {passInfo.isPro
-                    ? 'Pro Subscriber — Anonymous Chat included free!'
-                    : `${passInfo.plan.charAt(0).toUpperCase() + passInfo.plan.slice(1)} Pass Active`}
+                  {passInfo.isPro ? 'Pro Subscriber — Anonymous Chat included free!' : `${passInfo.plan.charAt(0).toUpperCase() + passInfo.plan.slice(1)} Pass Active`}
                 </span>
                 <span className="text-xs text-[var(--muted)]">
-                  {passInfo.isPro
-                    ? 'Unlimited Access'
-                    : `Expires: ${passInfo.expiresAt ? new Date(passInfo.expiresAt).toLocaleDateString('en-IN') : '—'}`}
+                  {passInfo.isPro ? 'Unlimited Access' : `Expires: ${passInfo.expiresAt ? new Date(passInfo.expiresAt).toLocaleDateString('en-IN') : '—'}`}
                 </span>
               </div>
             )}
 
-            {/* Room Types — Cards */}
-            <div>
-              <SectionLabel>Choose room type</SectionLabel>
-              <h2 className="text-base font-bold text-[var(--foreground)] mb-3 flex items-center gap-2">
-                <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--accent)]"></span>
-                Choose your vibe
+            {/* CHOOSE YOUR VIBE heading */}
+            <div className="flex items-center justify-between">
+              <h2 className="text-xs font-bold uppercase tracking-[0.16em] text-[var(--muted)] flex items-center gap-2">
+                <span className="w-1 h-5 rounded-full bg-gradient-to-b from-[var(--primary)] to-[var(--accent)]" />
+                CHOOSE YOUR VIBE
               </h2>
-              <div className="grid gap-3">
-                {ROOM_TYPES.map(rt => (
-                  <button
-                    key={rt.id}
-                    onClick={() => setSelectedType(rt.id)}
-                    className={`p-4 rounded-2xl text-left transition-all duration-300 backdrop-blur-sm ${
-                      selectedType === rt.id
-                        ? 'shadow-lg'
-                        : 'hover:border-[var(--primary)]/30'
-                    }`}
-                    style={{
-                      background: selectedType === rt.id ? 'linear-gradient(135deg, rgba(124,58,237,0.12), rgba(244,114,182,0.08))' : 'var(--surface)',
-                      border: selectedType === rt.id ? '2px solid rgba(124,58,237,0.5)' : '1px solid var(--glass-border)',
-                      boxShadow: selectedType === rt.id ? '0 0 20px rgba(124,58,237,0.15)' : 'var(--shadow-card)',
-                    }}
-                  >
-                    <div className="flex items-center gap-3.5">
-                      <div className={`w-12 h-12 rounded-2xl flex items-center justify-center text-2xl transition-transform duration-300 ${
-                        selectedType === rt.id ? 'scale-110' : ''
-                      }`} style={{ backgroundColor: 'rgba(124,58,237,0.1)' }}>
-                        {rt.emoji}
-                      </div>
-                      <div className="flex-1">
-                        <div className="font-bold text-[var(--foreground)] text-sm">{rt.label}</div>
-                        <div className="text-xs text-[var(--muted)] mt-0.5">{rt.description}</div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        {stats && (stats.queueByType[rt.id] || 0) > 0 && (
-                          <span className="px-2.5 py-1 rounded-full bg-amber-500/10 text-[10px] font-semibold text-amber-400 border border-amber-500/20">
-                            {stats.queueByType[rt.id]} waiting
-                          </span>
-                        )}
-                        {selectedType === rt.id && (
-                          <div className="w-6 h-6 rounded-full bg-[var(--primary)] flex items-center justify-center">
-                            <span className="text-white text-xs">✓</span>
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                ))}
-              </div>
+              <span className="text-[10px] text-[var(--muted)]">Tap to select · then find match</span>
             </div>
 
-            {/* Night Owl warning */}
-            {selectedType === 'night_owl' && (
-              <div className="card p-3 bg-purple-500/10 border border-purple-500/20">
-                <p className="text-xs text-purple-400">
-                  Night Owl Chat is best between 11 PM – 4 AM. You can still queue anytime!
-                </p>
-              </div>
-            )}
+            {/* 3x2 Vibe Cards Grid */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+              {/* Just Talk */}
+              <button
+                onClick={() => setSelectedType('vent')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'vent' ? 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))' : 'var(--surface)',
+                  border: selectedType === 'vent' ? '2px solid rgba(99,102,241,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'vent' ? '0 0 20px rgba(99,102,241,0.15)' : 'none',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-indigo-500/15 flex items-center justify-center text-lg">💬</div>
+                  {selectedType === 'vent' && (
+                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                  )}
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">Just Talk</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Need someone to listen? No reason needed.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.vent || 1} waiting</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-light)] text-[var(--muted)]">~1 min</span>
+                </div>
+              </button>
 
-            {/* Join button — gradient premium */}
+              {/* Placement Talk */}
+              <button
+                onClick={() => setSelectedType('career')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'career' ? 'linear-gradient(135deg, rgba(245,158,11,0.12), rgba(234,88,12,0.08))' : 'var(--surface)',
+                  border: selectedType === 'career' ? '2px solid rgba(245,158,11,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'career' ? '0 0 20px rgba(245,158,11,0.15)' : 'none',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-amber-500/15 flex items-center justify-center text-lg">📋</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-red-500/15 text-red-400 border border-red-500/25">🔥 Hot</span>
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">{stats?.queueByType?.career || 5} in</span>
+                    {selectedType === 'career' && (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">Placement Talk</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Offers, anxiety, intern struggles — all of it.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.career || 5} active</span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">Instant</span>
+                </div>
+              </button>
+
+              {/* College Gossip */}
+              <button
+                onClick={() => setSelectedType('confession')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'confession' ? 'linear-gradient(135deg, rgba(236,72,153,0.12), rgba(239,68,68,0.08))' : 'var(--surface)',
+                  border: selectedType === 'confession' ? '2px solid rgba(236,72,153,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'confession' ? '0 0 20px rgba(236,72,153,0.15)' : 'none',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-pink-500/15 flex items-center justify-center text-lg">📢</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-orange-500/15 text-orange-400 border border-orange-500/25">Trending</span>
+                    {selectedType === 'confession' && (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">College Gossip</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">What&apos;s happening on campus? Spill it.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.confession || 8} active</span>
+                  <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400">Instant</span>
+                </div>
+              </button>
+
+              {/* Dil Ki Baat */}
+              <button
+                onClick={() => setSelectedType('crush')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'crush' ? 'linear-gradient(135deg, rgba(239,68,68,0.12), rgba(236,72,153,0.08))' : 'var(--surface)',
+                  border: selectedType === 'crush' ? '2px solid rgba(239,68,68,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'crush' ? '0 0 20px rgba(239,68,68,0.15)' : 'none',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-red-500/15 flex items-center justify-center text-lg">💗</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 border border-amber-500/25">{stats?.queueByType?.crush || 2} waiting</span>
+                    {selectedType === 'crush' && (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">Dil Ki Baat</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Crush, feelings, advice — anonymous love corner.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.crush || 2} waiting</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-light)] text-[var(--muted)]">~1 min</span>
+                </div>
+              </button>
+
+              {/* No Filter */}
+              <button
+                onClick={() => setSelectedType('radar')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'radar' ? 'linear-gradient(135deg, rgba(16,185,129,0.12), rgba(59,130,246,0.08))' : 'var(--surface)',
+                  border: selectedType === 'radar' ? '2px solid rgba(16,185,129,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'radar' ? '0 0 20px rgba(16,185,129,0.15)' : 'none',
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-cyan-500/15 flex items-center justify-center text-lg">🎭</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/25">{stats?.queueByType?.radar || 3} in</span>
+                    {selectedType === 'radar' && (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">No Filter</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Say what you actually think. No judgement.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.radar || 3} active</span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-light)] text-[var(--muted)]">~2 min</span>
+                </div>
+              </button>
+
+              {/* 3 AM Thoughts */}
+              <button
+                onClick={() => setSelectedType('night_owl')}
+                className="relative p-5 rounded-2xl text-left transition-all duration-300"
+                style={{
+                  background: selectedType === 'night_owl' ? 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(99,102,241,0.08))' : 'var(--surface)',
+                  border: selectedType === 'night_owl' ? '2px solid rgba(139,92,246,0.5)' : '1px solid var(--glass-border)',
+                  boxShadow: selectedType === 'night_owl' ? '0 0 20px rgba(139,92,246,0.15)' : 'none',
+                  opacity: new Date().getHours() >= 23 || new Date().getHours() < 4 ? 1 : 0.7,
+                }}
+              >
+                <div className="flex items-start justify-between mb-3">
+                  <div className="w-11 h-11 rounded-2xl bg-violet-500/15 flex items-center justify-center text-lg">🌙</div>
+                  <div className="flex items-center gap-1.5">
+                    <span className="text-[9px] font-medium px-2 py-0.5 rounded-full bg-[var(--surface-light)] text-[var(--muted)] border border-[var(--border)]">
+                      {new Date().getHours() >= 23 || new Date().getHours() < 4 ? '● Live' : 'Opens 11PM'}
+                    </span>
+                    {selectedType === 'night_owl' && (
+                      <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
+                    )}
+                  </div>
+                </div>
+                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">3 AM Thoughts</h3>
+                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Can&apos;t sleep? Neither can they. Late night only.</p>
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] text-[var(--muted)]">
+                    {new Date().getHours() >= 23 || new Date().getHours() < 4 ? `♀ ${stats?.queueByType?.night_owl || 0} active` : 'Closed now'}
+                  </span>
+                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-light)] text-[var(--muted)] font-semibold">11PM-4AM</span>
+                </div>
+              </button>
+            </div>
+
+            {/* Find a Random Match CTA */}
             <button
               onClick={handleJoinQueue}
-              className="w-full py-4 rounded-2xl text-white font-bold text-sm transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
+              className="w-full py-4 rounded-2xl text-white font-bold text-base transition-all duration-300 hover:shadow-lg active:scale-[0.98]"
               style={{
-                background: 'linear-gradient(135deg, var(--primary), #6d28d9, var(--accent))',
+                background: 'linear-gradient(135deg, #7c3aed, #6d28d9, #a855f7)',
                 backgroundSize: '200% 200%',
                 animation: 'gradientShift 3s ease infinite',
-                boxShadow: '0 4px 24px rgba(124, 58, 237, 0.4)',
+                boxShadow: '0 4px 30px rgba(124, 58, 237, 0.5)',
               }}
             >
               Find a Random Match
             </button>
 
-            {queueEstimate !== null && (
-              <p className="text-center text-[10px] text-[var(--muted)] -mt-3">
-                Estimated wait: around {queueEstimate} minute{queueEstimate > 1 ? 's' : ''}
+            {/* Footer info */}
+            <div className="flex items-center justify-between">
+              <p className="text-[10px] text-[var(--muted)]">
+                Estimated wait: ~{queueEstimate || 1} min · Matching with a fellow SVNITian
               </p>
-            )}
-
-            {/* Safety notice */}
-            <p className="text-center text-[10px] text-[var(--muted)]">
-              Be respectful. Reports lead to temporary/permanent bans. Your SVNIT email is on file.
-            </p>
+              <p className="text-[10px] text-[var(--muted)]">
+                Be respectful · SVNIT email on file
+              </p>
+            </div>
 
             {/* Upgrade Plans — shown during free trial */}
             {isFreeTrial && !isOpenAccess && (
@@ -742,60 +844,29 @@ export default function AnonLobbyPage() {
                   <span className="text-xs text-[var(--muted)] font-medium">Upgrade for unlimited access</span>
                   <div className="flex-1 h-px bg-[var(--border)]" />
                 </div>
-
-                <p className="text-center text-xs text-[var(--muted)]">
-                  Loving anonymous chat? Get a paid plan so you never lose access after the trial ends.
-                </p>
-
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   {ANON_PRICING.map(tier => (
                     <div key={tier.plan} className={`p-4 rounded-xl border-2 transition-all flex flex-col ${
-                      tier.plan === 'monthly'
-                        ? 'border-[var(--primary)] bg-[var(--primary)]/5 sm:scale-105'
-                        : 'border-[var(--border)]'
+                      tier.plan === 'monthly' ? 'border-[var(--primary)] bg-[var(--primary)]/5 sm:scale-105' : 'border-[var(--border)]'
                     }`}>
-                      {tier.plan === 'monthly' && (
-                        <div className="text-[10px] font-bold text-[var(--primary)] mb-1">BEST VALUE</div>
-                      )}
+                      {tier.plan === 'monthly' && <div className="text-[10px] font-bold text-[var(--primary)] mb-1">BEST VALUE</div>}
                       <div className="text-sm font-semibold text-[var(--foreground)]">{tier.label}</div>
                       <div className="text-2xl font-bold text-[var(--primary)] mt-1">₹{tier.price}</div>
                       <div className="text-[10px] text-[var(--muted)] mb-3">{tier.durationDays} days</div>
-                      <button
-                        onClick={() => handleSubscribeClick(tier)}
-                        className={`mt-auto w-full py-2 rounded-lg text-xs font-semibold transition-all ${
-                          tier.plan === 'monthly'
-                            ? 'bg-[var(--primary)] text-white hover:opacity-90'
-                            : 'bg-[var(--surface-light)] text-[var(--foreground)] hover:bg-[var(--primary)] hover:text-white'
-                        }`}
-                      >
-                        Upgrade ₹{tier.price}
-                      </button>
+                      <button onClick={() => handleSubscribeClick(tier)} className={`mt-auto w-full py-2 rounded-lg text-xs font-semibold transition-all ${
+                        tier.plan === 'monthly' ? 'bg-[var(--primary)] text-white hover:opacity-90' : 'bg-[var(--surface-light)] text-[var(--foreground)] hover:bg-[var(--primary)] hover:text-white'
+                      }`}>Upgrade ₹{tier.price}</button>
                     </div>
                   ))}
                 </div>
-
-                {/* Coupon section */}
                 <div className="flex items-center gap-3">
                   <div className="flex-1 h-px bg-[var(--border)]" />
                   <span className="text-xs text-[var(--muted)]">or use a coupon</span>
                   <div className="flex-1 h-px bg-[var(--border)]" />
                 </div>
                 <div className="flex gap-2 max-w-sm mx-auto">
-                  <input
-                    type="text"
-                    value={couponCode}
-                    onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }}
-                    placeholder="Enter coupon code"
-                    className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)]"
-                    maxLength={30}
-                  />
-                  <button
-                    onClick={handleRedeemCoupon}
-                    disabled={couponLoading || !couponCode.trim()}
-                    className="btn-primary text-sm px-4 py-2 disabled:opacity-50"
-                  >
-                    {couponLoading ? '...' : 'Redeem'}
-                  </button>
+                  <input type="text" value={couponCode} onChange={e => { setCouponCode(e.target.value.toUpperCase()); setCouponError(''); }} placeholder="Enter coupon code" className="flex-1 px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)]" maxLength={30} />
+                  <button onClick={handleRedeemCoupon} disabled={couponLoading || !couponCode.trim()} className="btn-primary text-sm px-4 py-2 disabled:opacity-50">{couponLoading ? '...' : 'Redeem'}</button>
                 </div>
                 {couponError && <p className="text-[var(--error)] text-xs text-center">{couponError}</p>}
               </div>
