@@ -10,7 +10,7 @@ import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import ChatSideNav from '@/components/ChatSideNav';
-import { Search, Plus, Users, Clock, MessageSquare, ChevronDown } from 'lucide-react';
+import { Search, Plus } from 'lucide-react';
 
 interface Circle {
   id: string;
@@ -37,8 +37,7 @@ interface StudyRoom {
   createdAt: string;
 }
 
-// Simulated status data for circles
-const circleStatusMap: Record<string, { status: string; detail: string }> = {};
+
 
 export default function CirclesPage() {
   const { user } = useAuth();
@@ -111,14 +110,12 @@ export default function CirclesPage() {
     return `${days}d ago`;
   };
 
-  // Determine circle "status" for visual display
+  // Determine circle status based on real data
   const getCircleStatus = (circle: Circle) => {
-    if (circleStatusMap[circle.id]) return circleStatusMap[circle.id];
     const circleRooms = rooms.filter(r => r.circleId === circle.id && r.status === 'active');
-    if (circleRooms.length > 0) return { status: 'live', detail: `${circleRooms[0].topic || circleRooms[0].name}...` };
+    if (circleRooms.length > 0) return { status: 'live', detail: `${circleRooms.length} live room${circleRooms.length > 1 ? 's' : ''}` };
     const count = memberCounts[circle.id] || 0;
-    if (count > 3) return { status: 'active', detail: `Active ${timeAgo(new Date(Date.now() - Math.random() * 86400000 * 3).toISOString())}` };
-    return { status: 'quiet', detail: 'Quiet now' };
+    return { status: count > 0 ? 'active' : 'quiet', detail: `${count} member${count !== 1 ? 's' : ''}` };
   };
 
   if (loading) {
@@ -145,15 +142,7 @@ export default function CirclesPage() {
   const activeCircle = selectedCircle || (joined.length > 0 ? joined[0] : circles[0]);
   const circleRooms = activeCircle ? rooms.filter(r => r.circleId === activeCircle.id) : [];
 
-  // Avatar colors for member dots
-  const avatarColors = ['bg-red-500', 'bg-blue-500', 'bg-green-500', 'bg-amber-500', 'bg-pink-500', 'bg-cyan-500', 'bg-violet-500', 'bg-orange-500'];
 
-  // Simulated recent activity for the selected circle
-  const recentActivity = activeCircle ? [
-    { user: user?.email?.split('@')[0] || 'You', action: 'started a DSA session', detail: activeCircle.name, time: '20m ago', color: 'bg-red-500' },
-    { user: 'Himanshu', action: 'shared a note', detail: '"DP patterns cheatsheet"', time: '2h ago', color: 'bg-green-500' },
-    { user: 'Sangeetha', action: 'joined the circle', detail: '', time: '1d ago', color: 'bg-pink-500' },
-  ] : [];
 
   return (
     <div className="min-h-screen overflow-x-hidden">
@@ -270,14 +259,6 @@ export default function CirclesPage() {
                   <h2 className="text-xl font-bold text-[var(--foreground)]">{activeCircle.name}</h2>
                   <p className="text-xs text-[var(--muted)] mt-1">{activeCircle.description}</p>
                   <div className="flex items-center gap-2 mt-2">
-                    {/* Member avatars */}
-                    <div className="flex -space-x-1.5">
-                      {avatarColors.slice(0, Math.min(memberCounts[activeCircle.id] || 4, 4)).map((color, i) => (
-                        <div key={i} className={`w-6 h-6 rounded-full ${color} border-2 border-[var(--background)] flex items-center justify-center text-[8px] text-white font-bold`}>
-                          {String.fromCharCode(82 + i)}
-                        </div>
-                      ))}
-                    </div>
                     <span className="text-xs text-[var(--muted)]">{memberCounts[activeCircle.id] || 0} members</span>
                   </div>
                 </div>
@@ -325,8 +306,7 @@ export default function CirclesPage() {
                         <span className="text-[9px] font-bold px-2 py-1 rounded-full bg-green-500/15 text-green-400 border border-green-500/20">● Live</span>
                       </div>
                       <div className="flex items-center gap-2 flex-wrap">
-                        {room.topic && <span className="text-[9px] px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 font-semibold">DSA</span>}
-                        <span className="text-[9px] px-2 py-0.5 rounded-md bg-violet-500/15 text-violet-400 font-semibold">1hr session</span>
+                        {room.topic && <span className="text-[9px] px-2 py-0.5 rounded-md bg-blue-500/15 text-blue-400 font-semibold">{room.topic}</span>}
                         <span className="text-[10px] text-[var(--muted)]">👥 {room.maxMembers} max</span>
                         <span className="ml-auto text-[10px] font-bold text-white px-3 py-1 rounded-lg" style={{ background: 'linear-gradient(135deg, var(--primary), #6d28d9)' }}>Join</span>
                       </div>
@@ -356,26 +336,8 @@ export default function CirclesPage() {
                   <span className="w-1 h-4 rounded-full bg-gradient-to-b from-violet-500 to-purple-600" />
                   RECENT ACTIVITY
                 </h3>
-                <div className="space-y-3">
-                  {recentActivity.map((activity, idx) => (
-                    <div key={idx} className="flex items-start gap-3">
-                      <div className={`w-8 h-8 rounded-full ${activity.color} flex items-center justify-center text-white text-[10px] font-bold shrink-0`}>
-                        {activity.user.charAt(0).toUpperCase()}
-                      </div>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-xs text-[var(--foreground)]">
-                          <span className="font-bold">{activity.user}</span> {activity.action}
-                          {activity.detail && <span className="text-[var(--muted)]"> — {activity.detail}</span>}
-                        </p>
-                      </div>
-                      <span className="text-[10px] text-[var(--muted)] shrink-0">{activity.time}</span>
-                    </div>
-                  ))}
-                </div>
-
-                {/* Scroll indicator */}
-                <div className="flex justify-center mt-4">
-                  <ChevronDown size={20} className="text-[var(--muted)] animate-bounce" />
+                <div className="p-6 rounded-2xl text-center" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
+                  <p className="text-xs text-[var(--muted)]">No recent activity yet. Join a room or start a discussion!</p>
                 </div>
               </div>
             </div>
