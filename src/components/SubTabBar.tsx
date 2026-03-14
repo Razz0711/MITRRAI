@@ -7,7 +7,7 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { CircleDot, Users2, Ghost, Radio, Repeat2 } from 'lucide-react';
+import { CircleDot, Users2, Ghost } from 'lucide-react';
 import { LucideIcon } from 'lucide-react';
 
 export interface SubTab {
