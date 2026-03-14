@@ -297,11 +297,11 @@ export default function ChatPage() {
 
       <div className="h-[calc(100vh-4.5rem)] md:h-[calc(100vh-3.5rem)] flex">
 
-        {/* Vertical icon nav — desktop only */}
+        {/* Vertical icon nav */}
         <ChatSideNav />
 
         {/* ═══════ SIDEBAR ═══════ */}
-        <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 lg:w-80 md:border-r md:border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)] overflow-hidden`}>
+        <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col flex-1 md:flex-none md:w-72 lg:w-80 md:border-r md:border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)] overflow-hidden`}>
 
           {/* Search */}
           <div className="p-3 border-b border-[var(--border)]">

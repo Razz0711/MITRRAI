@@ -37,7 +37,7 @@ export default function ChatSideNav() {
   const activeId = getActiveId();
 
   return (
-    <nav className="hidden md:flex flex-col items-center py-4 gap-1 w-[60px] shrink-0 border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_97%,transparent)]">
+    <nav className="flex flex-col items-center py-4 gap-1 w-[55px] md:w-[60px] shrink-0 border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_97%,transparent)] z-10">
       {navItems.map(item => {
         const isActive = item.id === activeId;
         const Icon = item.icon;
@@ -45,7 +45,7 @@ export default function ChatSideNav() {
           <Link
             key={item.id}
             href={item.href}
-            className={`flex flex-col items-center gap-0.5 w-12 py-2 rounded-xl transition-all duration-200 group ${
+            className={`flex flex-col items-center gap-0.5 w-11 md:w-12 py-2 rounded-xl transition-all duration-200 group ${
               isActive
                 ? 'bg-[var(--primary)]/15 text-[var(--primary-light)]'
                 : 'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'

@@ -150,7 +150,7 @@ export default function CirclesPage() {
         <ChatSideNav />
 
         {/* ═══════ CIRCLE LIST (left panel) ═══════ */}
-        <div className="flex flex-col w-full md:w-72 lg:w-80 md:border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]">
+        <div className="flex flex-col flex-1 md:flex-none md:w-72 lg:w-80 md:border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]">
 
           {/* Header */}
           <div className="p-4 pb-2">
