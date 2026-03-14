@@ -1,9 +1,0 @@
-﻿git : To https://github.com/Razz0711/MITRAI.git
-At line:1 char:93
-+ ...  (demo@mitrai.study, OTP: 123456)"; git push origin main 2>&1 | Out-F ...
-+                                         ~~~~~~~~~~~~~~~~~~~~~~~~~
-    + CategoryInfo          : NotSpecified: (To https://gith...0711/MITRAI.git 
-   :String) [], RemoteException
-    + FullyQualifiedErrorId : NativeCommandError
- 
-   1bde77b..e398d59  main -> main

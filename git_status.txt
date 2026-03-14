@@ -1,8 +1,0 @@
-﻿ D build_check.txt
- M src/app/api/auth/route.ts
- M src/app/api/otp/route.ts
- M src/app/login/page.tsx
- M src/lib/email-parser.ts
-?? build_demo.txt
-?? deploy_gemini_trim.txt
-?? git_status.txt

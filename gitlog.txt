@@ -1,5 +1,0 @@
-﻿ca06806 security: fix profile deletion (ownership check) + hide goals from other users
-8cc8795 fix: invite link uses correct domain (window.location.origin), auto-opens signup mode on ?ref=
-752ce88 feat: add message deletion in chat
-15546d9 feat: dedicated attendance page with bulk add, stats overview, 75% rule alerts
-3f073db fix: restore Call link in navbar
