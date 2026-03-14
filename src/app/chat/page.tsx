@@ -8,6 +8,7 @@
 
 import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useRouter, usePathname } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { DirectMessage, ChatThread, UserStatus, StudentProfile, MatchResult } from '@/lib/types';
@@ -315,7 +316,7 @@ export default function ChatPage() {
         <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 lg:w-80 border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]`}>
 
           {/* Sidebar tabs — hidden on mobile (bottom nav handles it) */}
-          <div className="hidden md:flex items-center gap-1 px-3 pt-3 pb-2">
+          <div className="flex items-center gap-1 px-3 pt-3 pb-2 overflow-x-auto no-scrollbar">
             {sidebarTabs.map(tab => {
               const isActive = tab.id === activeSidebarTab;
               const Icon = tab.icon;
@@ -351,15 +352,15 @@ export default function ChatPage() {
             </div>
           </div>
 
-          {/* Arya AI Banner — clickable avatar */}
+          {/* Aarya AI Banner — clickable avatar */}
           <div className="mx-3 mt-3 p-3 rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2.5">
-                <button onClick={showComingSoon} className="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-orange-600 flex items-center justify-center text-white text-sm font-bold overflow-hidden shrink-0" title="View Arya's profile">
-                  A
+                <button onClick={showComingSoon} className="w-10 h-10 rounded-xl overflow-hidden shrink-0" title="View Aarya's profile">
+                  <Image src="/aarya.jpeg" alt="Aarya" width={40} height={40} className="w-full h-full object-cover" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">Arya</p>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">Aarya</p>
                   <p className="text-[10px] text-[var(--muted)]">The most realistic AI</p>
                 </div>
               </div>
@@ -377,7 +378,7 @@ export default function ChatPage() {
             </div>
             <div className="flex gap-2">
               <button onClick={showComingSoon} className="flex-1 py-2 rounded-xl text-xs font-semibold text-white text-center" style={{background:'linear-gradient(135deg, var(--primary), #6d28d9)'}}>
-                Chat with Arya
+                Chat with Aarya
               </button>
               <button onClick={showComingSoon} className="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-400 hover:bg-violet-500/25 transition-colors shrink-0">
                 <Phone size={14} />
