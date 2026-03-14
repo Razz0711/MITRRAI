@@ -119,10 +119,10 @@ export default function MatchCard({ match, rank, userStatus, isBirthday, onViewP
       {/* Actions */}
       <div className="flex gap-1.5 flex-wrap">
         <button onClick={onConnect} className="btn-primary flex-1 text-xs">
-          Connect
+          Start Chat
         </button>
         <button onClick={onViewProfile} className="btn-secondary flex-1 text-xs">
-          Profile
+          View Profile
         </button>
         {onAddFriend && (
           <button

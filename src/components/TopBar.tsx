@@ -10,17 +10,18 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/components/ThemeProvider';
 import {
-  Home, MessageCircle, Flame, Sun, Moon,
+  Home, MessageCircle, Sun, Moon,
+  Handshake,
   User, Compass
 } from 'lucide-react';
 import { getActiveTab } from './BottomTabs';
 
 const tabs = [
   { id: 'home', label: 'Home', icon: Home, href: '/home' },
-  { id: 'radar', label: 'Discover', icon: Compass, href: '/radar' },
-  { id: 'chat', label: 'Chat', icon: MessageCircle, href: '/anon' },
-  { id: 'feed', label: 'Feed', icon: Flame, href: '/doubts' },
-  { id: 'me', label: 'Profile', icon: User, href: '/me' },
+  { id: 'matches', label: 'Matches', icon: Handshake, href: '/matches' },
+  { id: 'radar', label: 'Radar', icon: Compass, href: '/radar' },
+  { id: 'chat', label: 'Chats', icon: MessageCircle, href: '/chat' },
+  { id: 'me', label: 'Me', icon: User, href: '/me' },
 ];
 
 export default function TopBar() {
