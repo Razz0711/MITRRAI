@@ -41,40 +41,41 @@ function ProfilePopup({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" />
-      <div className="relative w-72 rounded-2xl p-6 text-center" onClick={e => e.stopPropagation()}
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-md" />
+      <div className="relative w-80 rounded-3xl p-8 text-center profile-popup-enter" onClick={e => e.stopPropagation()}
         style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
-        <button onClick={onClose} className="absolute top-3 right-3 text-[var(--muted)] hover:text-[var(--foreground)]"><X size={16}/></button>
-        <div className={`w-16 h-16 rounded-2xl ${getColor(name)} flex items-center justify-center text-white text-2xl font-bold mx-auto mb-3`}>
+        <button onClick={onClose} className="absolute top-4 right-4 text-[var(--muted)] hover:text-[var(--foreground)] transition-colors"><X size={18}/></button>
+        {/* Large zoomed avatar */}
+        <div className={`w-24 h-24 rounded-3xl ${getColor(name)} flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4 shadow-xl avatar-zoom`}>
           {name.charAt(0).toUpperCase()}
         </div>
-        <h3 className="text-base font-bold text-[var(--foreground)]">{name}</h3>
-        <div className="flex items-center justify-center gap-1.5 mt-1.5">
-          <span className={`w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`} />
-          <span className="text-[11px] text-[var(--muted)]">
+        <h3 className="text-lg font-bold text-[var(--foreground)]">{name}</h3>
+        <div className="flex items-center justify-center gap-1.5 mt-2">
+          <span className={`w-2.5 h-2.5 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-500'}`} />
+          <span className="text-xs text-[var(--muted)]">
             {isOnline ? 'Online' : (lastSeen || 'Offline')}
           </span>
         </div>
-        <div className="flex items-center justify-center gap-2 mt-3">
+        <div className="flex items-center justify-center flex-wrap gap-2 mt-4">
           {department && (
-            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
               {department} · {yearLevel || '?'}
             </span>
           )}
           {matchScore && matchScore > 0 && (
-            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/20">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/20">
               {matchScore}% match
             </span>
           )}
           {isFriend && (
-            <span className="px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20">
+            <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20">
               Friend
             </span>
           )}
         </div>
-        <button onClick={onMessage} className="mt-4 w-full py-2.5 rounded-xl text-xs font-semibold text-white"
+        <button onClick={onMessage} className="mt-5 w-full py-3 rounded-xl text-sm font-semibold text-white"
           style={{ background: 'linear-gradient(135deg, var(--primary), #6d28d9)' }}>
-          <MessageSquare size={14} className="inline mr-1.5 -mt-0.5" />Message
+          <MessageSquare size={15} className="inline mr-2 -mt-0.5" />Message
         </button>
       </div>
     </div>
@@ -313,7 +314,7 @@ export default function ChatPage() {
       <div className="h-[calc(100vh-4.5rem)] md:h-[calc(100vh-3.5rem)] flex">
 
         {/* ═══════ SIDEBAR ═══════ */}
-        <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 lg:w-80 border-r border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]`}>
+        <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col w-full md:w-72 lg:w-80 md:border-r md:border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]`}>
 
           {/* Sidebar tabs — hidden on mobile (bottom nav handles it) */}
           <div className="flex items-center gap-1 px-3 pt-3 pb-2 overflow-x-auto no-scrollbar">
@@ -624,6 +625,17 @@ export default function ChatPage() {
           100% { opacity: 1; transform: translate(-50%, 0) scale(1); }
         }
         .animate-bounce-in { animation: bounce-in 0.35s ease-out; }
+        @keyframes popup-enter {
+          0% { opacity: 0; transform: scale(0.85); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        .profile-popup-enter { animation: popup-enter 0.25s ease-out; }
+        @keyframes avatar-pop {
+          0% { transform: scale(0.5); opacity: 0; }
+          60% { transform: scale(1.08); }
+          100% { transform: scale(1); opacity: 1; }
+        }
+        .avatar-zoom { animation: avatar-pop 0.4s ease-out; }
         .chat-aura { position: absolute; pointer-events: none; border-radius: 999px; filter: blur(52px); opacity: 0.12; z-index: 0; }
         .chat-aura-1 { width: 260px; height: 180px; top: 70px; left: -90px; background: rgba(99, 102, 241, 0.35); }
         .chat-aura-2 { width: 240px; height: 170px; top: 260px; right: -70px; background: rgba(236, 72, 153, 0.2); }
