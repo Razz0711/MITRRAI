@@ -13,34 +13,26 @@ import {
 } from '@/lib/types';
 import { useAuth } from '@/lib/auth';
 
-/* ─── Circle data (same as circles page) ─── */
-const ALL_CIRCLES = [
-  { id: 'coding', name: 'Coding', emoji: '💻' },
-  { id: 'dsa', name: 'DSA', emoji: '🏗️' },
-  { id: 'startup', name: 'Startup', emoji: '🚀' },
-  { id: 'gaming', name: 'Gaming', emoji: '🎮' },
-  { id: 'music', name: 'Music', emoji: '🎵' },
-  { id: 'fitness', name: 'Fitness', emoji: '💪' },
-  { id: 'art', name: 'Art', emoji: '🎨' },
-  { id: 'movies', name: 'Movies', emoji: '🎬' },
-  { id: 'reading', name: 'Reading', emoji: '📚' },
-  { id: 'photography', name: 'Photography', emoji: '📷' },
-  { id: 'travel', name: 'Travel', emoji: '✈️' },
-  { id: 'food', name: 'Food', emoji: '🍕' },
-];
+/* ─── Circle type from API ─── */
+interface Circle {
+  id: string;
+  name: string;
+  emoji: string;
+  color: string;
+}
 
 /* helper: avatar colour from name */
 const AVATAR_COLORS = [
-  'bg-violet-600','bg-emerald-600','bg-blue-600','bg-pink-600',
-  'bg-amber-600','bg-cyan-600','bg-indigo-600','bg-rose-600',
+  'from-violet-600 to-purple-700','from-emerald-600 to-teal-700','from-blue-600 to-indigo-700','from-pink-600 to-rose-700',
+  'from-amber-600 to-orange-700','from-cyan-600 to-sky-700','from-indigo-600 to-violet-700','from-rose-600 to-pink-700',
 ];
-function avatarColor(name: string) {
+function avatarGradient(name: string) {
   let h = 0;
   for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
   return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
 }
 
-/* helper: generate deterministic "chips" for a match */
+/* helper: generate chips for a match */
 function getMatchChips(match: MatchResult, myStudent: StudentProfile | null): string[] {
   const chips: string[] = [];
   if (myStudent && match.student.department === myStudent.department && match.student.yearLevel === myStudent.yearLevel) {
@@ -50,18 +42,10 @@ function getMatchChips(match: MatchResult, myStudent: StudentProfile | null): st
   } else if (myStudent && match.student.yearLevel === myStudent.yearLevel) {
     chips.push('Same year');
   }
-  // night owl / early bird based on schedule
   if (match.student.availableTimes?.toLowerCase().includes('pm') || match.student.availableTimes?.toLowerCase().includes('night')) {
     chips.push('Night owl');
   }
   return chips;
-}
-
-/* helper: determine online/active status label */
-function getStatusLabel(status?: UserStatus): string | null {
-  if (!status) return null;
-  if (status.status === 'online' || status.status === 'in-session') return 'Active today';
-  return null;
 }
 
 export default function MatchesPage() {
@@ -81,7 +65,8 @@ export default function MatchesPage() {
   const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
   const [pendingSentIds, setPendingSentIds] = useState<Set<string>>(new Set());
 
-  // Circle memberships
+  // Circle data
+  const [allCircles, setAllCircles] = useState<Circle[]>([]);
   const [myCircleIds, setMyCircleIds] = useState<string[]>([]);
   const [matchCircleIds, setMatchCircleIds] = useState<Record<string, string[]>>({});
 
@@ -163,6 +148,7 @@ export default function MatchesPage() {
       const data = await res.json();
       if (data.success) {
         setMyCircleIds((data.data.memberships || []).map((m: { circleId: string }) => m.circleId));
+        setAllCircles(data.data.circles || []);
       }
     } catch (err) { console.error('loadMyCircles:', err); }
   };
@@ -223,7 +209,6 @@ export default function MatchesPage() {
       if (data.success) {
         setStudent(data.data.student);
         setMatches(data.data.matches);
-        // load circles for each match
         for (const m of data.data.matches) {
           loadMatchCircles(m.student.id);
         }
@@ -243,26 +228,28 @@ export default function MatchesPage() {
   const deptCount = allStudents.filter(s => s.department === activeBranch && s.id !== selectedStudentId).length;
   const activeInDept = allStudents.filter(s => s.department === activeBranch && s.id !== selectedStudentId && statusMap[s.id]?.status === 'online').length;
 
-  const sharedCircleCount = (matchId: string) => {
+  const getSharedCircles = (matchId: string) => {
     const theirs = matchCircleIds[matchId] || [];
-    return theirs.filter(c => myCircleIds.includes(c)).length;
+    return theirs.filter(c => myCircleIds.includes(c));
   };
 
-  /* ─── PROFILE OVERLAY ─── */
+  const getCircleInfo = (circleId: string) => {
+    return allCircles.find(c => c.id === circleId) || { name: circleId, emoji: '⭕', color: '#8b5cf6' };
+  };
+
   const openProfile = (match: MatchResult) => {
     setSelectedMatch(match);
     loadMatchCircles(match.student.id);
   };
 
+  // Suppress unused lint
+  void birthdayUserIds;
+
   return (
-    <div className="max-w-2xl mx-auto px-4 py-6 pb-28">
+    <div className="max-w-lg mx-auto px-4 py-6 pb-28">
       {/* ─── Header ─── */}
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-lg font-bold text-[var(--foreground)] flex items-center gap-2">
-          <span className="text-[var(--primary)]">MitrAI</span>
-          <span className="text-[var(--muted)]">·</span>
-          <span>Matches</span>
-        </h1>
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-xl font-bold text-[var(--foreground)]">Find Your Study Buddy</h1>
         {matches.length > 0 && (
           <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
             {matches.length} found
@@ -276,11 +263,11 @@ export default function MatchesPage() {
         </div>
       )}
 
-      {/* ─── Department Stats ─── */}
+      {/* ─── Department Card ─── */}
       {activeBranch && (
-        <div className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4 mb-6">
-          <p className="text-xs font-bold text-yellow-400 mb-3 flex items-center gap-1.5">
-            <span className="w-1 h-4 rounded-full bg-yellow-400" />
+        <div className="rounded-2xl mb-5 p-4" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.08), rgba(109,40,217,0.12))', border: '1px solid rgba(139,92,246,0.2)' }}>
+          <p className="text-xs font-bold text-[var(--foreground)] mb-3 flex items-center gap-1.5">
+            <span className="w-1 h-4 rounded-full bg-violet-500" />
             Your Department — {activeBranch}
           </p>
           <div className="grid grid-cols-2 gap-3">
@@ -290,7 +277,7 @@ export default function MatchesPage() {
             </div>
             <div className="rounded-xl bg-white/5 border border-white/10 p-3 text-center">
               <p className="text-2xl font-bold text-emerald-400">{activeInDept}</p>
-              <p className="text-[10px] text-[var(--muted)] mt-0.5">Active</p>
+              <p className="text-[10px] text-[var(--muted)] mt-0.5">Active now</p>
             </div>
           </div>
         </div>
@@ -314,39 +301,49 @@ export default function MatchesPage() {
             TOP MATCHES
           </p>
 
-          <div className="space-y-3 mb-6">
+          <div className="space-y-4 mb-6">
             {matches.map((match, i) => {
               const chips = getMatchChips(match, activeStudent);
-              const sc = sharedCircleCount(match.student.id);
-              if (sc > 0) chips.push(`${sc} shared circle${sc > 1 ? 's' : ''}`);
-              const statusLabel = getStatusLabel(statusMap[match.student.id]);
+              const sharedCircles = getSharedCircles(match.student.id);
+              const allMatchCircles = matchCircleIds[match.student.id] || [];
+              if (sharedCircles.length > 0) chips.push(`${sharedCircles.length} shared circle${sharedCircles.length > 1 ? 's' : ''}`);
               const isFriend = friendIds.has(match.student.id);
               const isPending = pendingSentIds.has(match.student.id);
+              const statusLabel = statusMap[match.student.id]?.status === 'online' ? 'Active today' : null;
+
+              // Circles to display — shared first, then unshared, max 5 visible + overflow
+              const displayCircles: { id: string; shared: boolean }[] = [
+                ...sharedCircles.map(id => ({ id, shared: true })),
+                ...allMatchCircles.filter(id => !sharedCircles.includes(id)).map(id => ({ id, shared: false })),
+              ];
+              const visibleCircles = displayCircles.slice(0, 5);
+              const overflowCount = displayCircles.length - 5;
 
               return (
                 <div key={match.student.id}
                   className="rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] p-4 transition-all hover:border-[var(--primary)]/30"
-                  style={{ animationDelay: `${i * 80}ms` }}
                 >
                   {/* Top row: rank, avatar, name, score */}
                   <div className="flex items-center gap-3 mb-3">
                     <span className="text-xs font-bold text-[var(--muted)] w-5 shrink-0">#{i + 1}</span>
-                    <div className={`w-10 h-10 rounded-full ${avatarColor(match.student.name)} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                    <div className={`w-11 h-11 rounded-full bg-gradient-to-br ${avatarGradient(match.student.name)} flex items-center justify-center text-white text-base font-bold shrink-0 shadow-lg`}>
                       {match.student.name.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-[var(--foreground)] truncate">{match.student.name}</p>
                       <p className="text-[10px] text-[var(--muted)] truncate">
-                        {match.student.department || 'Branch not set'} · {match.student.yearLevel || ''}
+                        {match.student.department || 'Branch not set'}
                       </p>
                     </div>
-                    <span className="text-lg font-bold text-emerald-400 shrink-0">{match.score.overall}%</span>
+                    <span className="text-xl font-bold text-emerald-400 shrink-0">{match.score.overall}%</span>
                   </div>
 
                   {/* Chips */}
                   <div className="flex flex-wrap gap-1.5 mb-3">
                     {chips.map(chip => (
-                      <span key={chip} className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                      <span key={chip} className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${
+                        chip.includes('shared') ? 'bg-violet-500/10 text-violet-400 border-violet-500/20' : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                      }`}>
                         {chip}
                       </span>
                     ))}
@@ -355,14 +352,48 @@ export default function MatchesPage() {
                         {statusLabel}
                       </span>
                     )}
-                    {birthdayUserIds.has(match.student.id) && (
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-                        🎂 Birthday soon
-                      </span>
-                    )}
                   </div>
 
-                  {/* Action buttons */}
+                  {/* SHARED CIRCLES grid */}
+                  {displayCircles.length > 0 && (
+                    <div className="mb-3">
+                      <p className="text-[9px] font-bold uppercase tracking-[0.16em] text-[var(--muted)] mb-2">SHARED CIRCLES</p>
+                      <div className="grid grid-cols-3 gap-2">
+                        {visibleCircles.map(({ id, shared }) => {
+                          const circle = getCircleInfo(id);
+                          return (
+                            <div
+                              key={id}
+                              className={`relative rounded-xl p-2.5 text-center border transition-all ${
+                                shared
+                                  ? 'border-violet-500/40 bg-violet-500/10'
+                                  : 'border-[var(--glass-border)] bg-white/3'
+                              }`}
+                            >
+                              {shared && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500" />}
+                              <span className="text-lg">{circle.emoji}</span>
+                              <p className={`text-[9px] font-semibold mt-0.5 ${shared ? 'text-[var(--foreground)]' : 'text-[var(--muted)]'}`}>{circle.name}</p>
+                            </div>
+                          );
+                        })}
+                        {overflowCount > 0 && (
+                          <div className="rounded-xl p-2.5 text-center border border-dashed border-[var(--glass-border)] flex items-center justify-center">
+                            <span className="text-[10px] text-[var(--muted)] font-semibold">+{overflowCount} more</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Why section */}
+                  {match.whyItWorks && (
+                    <div className="rounded-xl bg-emerald-500/5 border border-emerald-500/15 p-2.5 mb-3">
+                      <p className="text-[9px] font-bold uppercase tracking-wider text-emerald-400 mb-0.5">WHY</p>
+                      <p className="text-[11px] text-[var(--foreground)] leading-relaxed">{match.whyItWorks}</p>
+                    </div>
+                  )}
+
+                  {/* 3 Action buttons */}
                   <div className="flex gap-2">
                     <button
                       onClick={() => {
@@ -375,7 +406,7 @@ export default function MatchesPage() {
                       disabled={isPending}
                       className="flex-1 px-3 py-2 rounded-xl text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 transition-all disabled:opacity-50"
                     >
-                      {isFriend ? 'Chat' : isPending ? 'Sent' : 'Connect'}
+                      {isFriend ? '✓ Friends' : isPending ? '✓ Sent' : 'Connect'}
                     </button>
                     <button
                       onClick={() => router.push(`/chat?friendId=${encodeURIComponent(match.student.id)}&friendName=${encodeURIComponent(match.student.name)}`)}
@@ -394,10 +425,6 @@ export default function MatchesPage() {
               );
             })}
           </div>
-
-          <p className="text-center text-[10px] text-[var(--muted)] mb-6">
-            Click <span className="px-1.5 py-0.5 rounded bg-white/5 border border-white/10 text-[var(--foreground)] font-semibold">Profile →</span> to see full details
-          </p>
         </>
       )}
 
@@ -429,7 +456,7 @@ export default function MatchesPage() {
 
             {/* Large avatar */}
             <div className="flex flex-col items-center text-center mb-6">
-              <div className={`w-20 h-20 rounded-full ${avatarColor(selectedMatch.student.name)} flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-xl`}>
+              <div className={`w-20 h-20 rounded-full bg-gradient-to-br ${avatarGradient(selectedMatch.student.name)} flex items-center justify-center text-white text-3xl font-bold mb-3 shadow-xl`}>
                 {selectedMatch.student.name.charAt(0).toUpperCase()}
               </div>
               <h2 className="text-xl font-bold text-[var(--foreground)]">{selectedMatch.student.name}</h2>
@@ -437,17 +464,10 @@ export default function MatchesPage() {
                 {selectedMatch.student.department || 'Branch not set'} · {selectedMatch.student.yearLevel || ''} · SVNIT
               </p>
 
-              {/* Status chips */}
-              <div className="flex flex-wrap justify-center gap-1.5 mt-3">
-                {activeStudent && selectedMatch.student.department === activeStudent.department && (
-                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/20">Same branch</span>
-                )}
-                {(selectedMatch.student.availableTimes?.toLowerCase().includes('pm') || selectedMatch.student.availableTimes?.toLowerCase().includes('night')) && (
-                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">Night owl</span>
-                )}
-                {statusMap[selectedMatch.student.id]?.status === 'online' && (
-                  <span className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-green-500/15 text-green-400 border border-green-500/20">Active today</span>
-                )}
+              {/* Score badge */}
+              <div className="mt-3 px-4 py-1.5 rounded-full bg-emerald-500/15 border border-emerald-500/20">
+                <span className="text-lg font-bold text-emerald-400">{selectedMatch.score.overall}%</span>
+                <span className="text-xs text-[var(--muted)] ml-1">match</span>
               </div>
             </div>
 
@@ -462,10 +482,12 @@ export default function MatchesPage() {
             )}
 
             {/* Why it works */}
-            <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 mb-5">
-              <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-400 mb-1">Why this works</p>
-              <p className="text-xs text-[var(--foreground)]">{selectedMatch.whyItWorks}</p>
-            </div>
+            {selectedMatch.whyItWorks && (
+              <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/10 p-3 mb-5">
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-emerald-400 mb-1">Why this works</p>
+                <p className="text-xs text-[var(--foreground)]">{selectedMatch.whyItWorks}</p>
+              </div>
+            )}
 
             {/* Circles grid */}
             <div className="mb-5">
@@ -473,35 +495,30 @@ export default function MatchesPage() {
                 CIRCLES — SHARED ONES HIGHLIGHTED
               </p>
               <div className="grid grid-cols-3 gap-2">
-                {ALL_CIRCLES.map(circle => {
+                {allCircles.map(circle => {
                   const theirCircles = matchCircleIds[selectedMatch.student.id] || [];
                   const theyHave = theirCircles.includes(circle.id);
                   const iHave = myCircleIds.includes(circle.id);
                   const isShared = theyHave && iHave;
 
-                  if (!theyHave && !iHave) return null; // only show relevant circles
+                  if (!theyHave && !iHave) return null;
 
                   return (
                     <div
                       key={circle.id}
-                      className={`rounded-xl p-3 text-center border transition-all ${
+                      className={`relative rounded-xl p-3 text-center border transition-all ${
                         isShared
                           ? 'border-violet-500/40 bg-violet-500/10'
                           : 'border-[var(--glass-border)] bg-white/5'
                       }`}
                     >
-                      {isShared && <span className="block w-2 h-2 rounded-full bg-violet-500 mx-auto mb-1" />}
+                      {isShared && <span className="absolute top-1.5 right-1.5 w-2 h-2 rounded-full bg-violet-500" />}
                       <span className="text-xl">{circle.emoji}</span>
                       <p className="text-[10px] font-semibold text-[var(--foreground)] mt-1">{circle.name}</p>
                     </div>
                   );
                 })}
               </div>
-              {sharedCircleCount(selectedMatch.student.id) > 0 && (
-                <p className="text-[10px] text-violet-400 mt-2 text-center">
-                  Purple = shared with you · {sharedCircleCount(selectedMatch.student.id)} circle{sharedCircleCount(selectedMatch.student.id) > 1 ? 's' : ''} in common
-                </p>
-              )}
             </div>
 
             {/* Action buttons */}
@@ -529,8 +546,6 @@ export default function MatchesPage() {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }
