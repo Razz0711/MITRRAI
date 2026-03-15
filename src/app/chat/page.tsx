@@ -303,24 +303,32 @@ export default function ChatPage() {
         {/* ═══════ SIDEBAR ═══════ */}
         <div className={`${showSidebar ? 'flex' : 'hidden'} md:flex flex-col flex-1 md:flex-none md:w-72 lg:w-80 md:border-r md:border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)] overflow-hidden`}>
 
+          {/* Header */}
+          <div className="p-4 pb-2 flex items-center justify-between">
+            <h1 className="text-lg font-bold text-[var(--foreground)]">Chats</h1>
+            <button onClick={() => document.getElementById('chat-search')?.focus()} className="w-9 h-9 rounded-full bg-[var(--surface)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+              <Search size={16} />
+            </button>
+          </div>
+
           {/* Search */}
-          <div className="p-3 border-b border-[var(--border)]">
+          <div className="px-3 pb-3">
             <div className="relative">
               <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
-              <input type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search chats..."
-                className="w-full pl-9 pr-3 py-2 rounded-xl text-xs border border-[var(--glass-border)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:ring-1 focus:ring-[var(--primary)]/30" />
+              <input id="chat-search" type="text" value={searchQuery} onChange={e=>setSearchQuery(e.target.value)} placeholder="Search chats..."
+                className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs border border-[var(--glass-border)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:ring-1 focus:ring-[var(--primary)]/30" />
             </div>
           </div>
 
           {/* Aarya AI Banner — clickable avatar */}
-          <div className="mx-3 mt-3 p-3 rounded-2xl" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
+          <div className="mx-3 mt-2 p-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(109,40,217,0.18))', border: '1px solid rgba(139,92,246,0.25)' }}>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2.5">
                 <button onClick={showComingSoon} className="w-10 h-10 rounded-xl overflow-hidden shrink-0" title="View Aarya's profile">
                   <Image src="/aarya.jpeg" alt="Aarya" width={40} height={40} className="w-full h-full object-cover" />
                 </button>
                 <div>
-                  <p className="text-sm font-semibold text-[var(--foreground)]">Aarya</p>
+                  <p className="text-sm font-semibold text-[var(--foreground)]">Arya</p>
                   <p className="text-[10px] text-[var(--muted)]">The most realistic AI</p>
                 </div>
               </div>
@@ -330,7 +338,7 @@ export default function ChatPage() {
             </div>
             <div className="flex gap-1.5 mb-2.5">
               {[{icon:'💜',label:'Feels your emotions'},{icon:'💬',label:'Talks like a friend'},{icon:'✨',label:'Personal growth'}].map(f=>(
-                <div key={f.label} className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl" style={{background:'var(--surface-light)'}}>
+                <div key={f.label} className="flex-1 flex flex-col items-center gap-1 py-1.5 rounded-xl" style={{background:'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)'}}>
                   <span className="text-xs">{f.icon}</span>
                   <span className="text-[8px] text-[var(--muted)] text-center leading-tight">{f.label}</span>
                 </div>
@@ -338,25 +346,28 @@ export default function ChatPage() {
             </div>
             <div className="flex gap-2">
               <button onClick={showComingSoon} className="flex-1 py-2 rounded-xl text-xs font-semibold text-white text-center" style={{background:'linear-gradient(135deg, var(--primary), #6d28d9)'}}>
-                Chat with Aarya
+                Chat with Arya
               </button>
-              <button onClick={showComingSoon} className="w-9 h-9 rounded-xl bg-violet-500/15 border border-violet-500/20 flex items-center justify-center text-violet-400 hover:bg-violet-500/25 transition-colors shrink-0">
+              <button onClick={showComingSoon} className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/25 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/30 transition-colors shrink-0">
                 <Phone size={14} />
               </button>
             </div>
           </div>
 
-          {/* PEOPLE + Filters */}
           <div className="px-3 pt-3 pb-2">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)] mb-2">People</p>
             <div className="flex gap-1.5">
               {(['all','unread','friends'] as const).map(f=>(
                 <button key={f} onClick={()=>setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter===f?'bg-white text-[var(--background)]':'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'}`}>
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter===f?'bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/30':'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'}`}>
                   {f==='all'?'All':f==='unread'?'Unread':'Friends'}
                 </button>
               ))}
             </div>
+          </div>
+
+          {/* PEOPLE label */}
+          <div className="px-4 pt-2 pb-1">
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)]">People</p>
           </div>
 
           {/* Thread List */}
@@ -385,9 +396,10 @@ export default function ChatPage() {
                 const score = matchScores[otherId]||0;
 
                 return (
-                  <div key={thread.chatId} className={`mx-2 my-1 rounded-xl flex items-center gap-2.5 transition-colors border ${
-                    isActive ? 'bg-[var(--surface-light)] border-[var(--primary)]/35' : 'bg-transparent border-transparent hover:bg-[var(--surface)] hover:border-[var(--border)]'}`}>
-                    {/* Clickable Avatar */}
+                  <div key={thread.chatId} className={`flex items-center gap-2.5 transition-colors border-l-3 ${
+                    isActive ? 'bg-[var(--surface)] border-l-[var(--primary)]' : 'border-l-transparent hover:bg-[var(--surface)]/50'}`}
+                    style={{ borderLeftWidth: isActive ? '3px' : '3px' }}
+                  >  {/* Clickable Avatar */}
                     <button
                       onClick={() => setProfilePopup(otherId)}
                       className="shrink-0 ml-3 my-2.5"
