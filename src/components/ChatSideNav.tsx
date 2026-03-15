@@ -11,14 +11,12 @@ import {
   MessageSquare,
   Ghost,
   CircleDot,
-  Users2,
 } from 'lucide-react';
 
 const navItems = [
   { id: 'chats', label: 'Chats', icon: MessageSquare, href: '/chat' },
   { id: 'anon', label: 'Anon', icon: Ghost, href: '/anon' },
   { id: 'circles', label: 'Circles', icon: CircleDot, href: '/circles' },
-  { id: 'rooms', label: 'Rooms', icon: Users2, href: '/rooms' },
 ];
 
 export default function ChatSideNav() {
