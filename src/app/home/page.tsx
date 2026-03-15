@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth';
 import { BirthdayInfo, ChatThread, UserStatus } from '@/lib/types';
 import BirthdayBanner from '@/components/BirthdayBanner';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import { Bell, MessageSquare, Phone } from 'lucide-react';
+import { Bell } from 'lucide-react';
 
 /* ─── types ─── */
 interface RadarPing {
@@ -43,8 +43,7 @@ export default function HomePage() {
   const [matchCount, setMatchCount] = useState(0);
   const [onlineStatuses, setOnlineStatuses] = useState<Record<string, UserStatus>>({});
 
-  // Arya FAB
-  const [fabOpen, setFabOpen] = useState(false);
+
 
   /* ─── helpers ─── */
   const getGreeting = () => {
@@ -256,157 +255,107 @@ export default function HomePage() {
         />
       )}
 
-      {/* ═══ 4 CARDS — 2×2 GRID ═══ */}
+      {/* ═══ 6 CARDS — 3×2 GRID ═══ */}
       <div className="grid grid-cols-2 gap-3">
-        {/* Radar */}
-        <Link href="/radar" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[140px] transition-all hover:scale-[1.02] group"
+        {/* 1. Radar */}
+        <Link href="/radar" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
           style={{ background: 'linear-gradient(135deg, rgba(34,197,94,0.08), rgba(22,163,74,0.12))', border: '1px solid rgba(34,197,94,0.18)' }}
         >
           <div>
-            <span className="text-3xl">📡</span>
+            <span className="text-2xl">📡</span>
             {!isCampusQuiet && (
               <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-green-500/20 text-green-400 border border-green-500/25">
-                Go Live
+                {liveOthers.length} live
               </span>
             )}
           </div>
-          <div className="mt-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Radar</h3>
-            <p className="text-[10px] text-[var(--muted)] mt-0.5">Who&apos;s active on campus now</p>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Radar</h3>
+            <p className="text-[10px] text-[var(--muted)] mt-0.5">Who&apos;s active on campus</p>
           </div>
-          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">→</span>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
         </Link>
 
-        {/* Anon Chat */}
-        <Link href="/anon" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[140px] transition-all hover:scale-[1.02] group"
+        {/* 2. Anon Chat */}
+        <Link href="/anon" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
           style={{ background: 'linear-gradient(135deg, rgba(168,85,247,0.08), rgba(126,34,206,0.12))', border: '1px solid rgba(168,85,247,0.18)' }}
         >
           <div>
-            <span className="text-3xl">🎭</span>
+            <span className="text-2xl">🎭</span>
             {anonLiveTotal > 0 && (
               <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-purple-500/20 text-purple-400 border border-purple-500/25">
                 {anonLiveTotal} live
               </span>
             )}
           </div>
-          <div className="mt-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Anon Chat</h3>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Anon Chat</h3>
             <p className="text-[10px] text-[var(--muted)] mt-0.5">No names, talk freely</p>
           </div>
-          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">→</span>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
         </Link>
 
-        {/* Matches */}
-        <Link href="/matches" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[140px] transition-all hover:scale-[1.02] group"
+        {/* 3. Campus Feed */}
+        <Link href="/anon" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
+          style={{ background: 'linear-gradient(135deg, rgba(20,184,166,0.08), rgba(13,148,136,0.12))', border: '1px solid rgba(20,184,166,0.18)' }}
+        >
+          <div>
+            <span className="text-2xl">💬</span>
+          </div>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Campus Feed</h3>
+            <p className="text-[10px] text-[var(--muted)] mt-0.5">Public discussion board</p>
+          </div>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
+        </Link>
+
+        {/* 4. Circles */}
+        <Link href="/circles" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
+          style={{ background: 'linear-gradient(135deg, rgba(59,130,246,0.08), rgba(37,99,235,0.12))', border: '1px solid rgba(59,130,246,0.18)' }}
+        >
+          <div>
+            <span className="text-2xl">⭕</span>
+          </div>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Circles</h3>
+            <p className="text-[10px] text-[var(--muted)] mt-0.5">Join study communities</p>
+          </div>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
+        </Link>
+
+        {/* 5. Matches */}
+        <Link href="/matches" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
           style={{ background: 'linear-gradient(135deg, rgba(245,158,11,0.08), rgba(217,119,6,0.12))', border: '1px solid rgba(245,158,11,0.18)' }}
         >
           <div>
-            <span className="text-3xl">🤝</span>
+            <span className="text-2xl">🤝</span>
             {matchCount > 0 && (
               <span className="absolute top-3 right-3 px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-400 border border-amber-500/25">
                 {matchCount} found
               </span>
             )}
           </div>
-          <div className="mt-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Matches</h3>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Matches</h3>
             <p className="text-[10px] text-[var(--muted)] mt-0.5">Your study buddy picks</p>
           </div>
-          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">→</span>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
         </Link>
 
-        {/* Arya AI */}
-        <Link href="/chat" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[140px] transition-all hover:scale-[1.02] group"
+        {/* 6. Arya AI */}
+        <Link href="/chat" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
           style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(67,56,202,0.12))', border: '1px solid rgba(99,102,241,0.18)' }}
         >
           <div className="relative">
-            <span className="text-3xl">✨</span>
-            <span className="absolute top-0 right-0 w-2.5 h-2.5 rounded-full bg-violet-500 border-2 border-[var(--background)]" />
+            <span className="text-2xl">✨</span>
+            <span className="absolute top-0 left-8 w-2 h-2 rounded-full bg-green-500 border border-[var(--background)]" />
           </div>
-          <div className="mt-3">
-            <h3 className="text-base font-bold text-[var(--foreground)]">Arya AI</h3>
+          <div className="mt-2">
+            <h3 className="text-sm font-bold text-[var(--foreground)]">Arya AI</h3>
             <p className="text-[10px] text-[var(--muted)] mt-0.5">Always here for you</p>
           </div>
-          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors">→</span>
+          <span className="absolute bottom-3 right-3 text-[var(--muted)] group-hover:text-[var(--foreground)] transition-colors text-xs">→</span>
         </Link>
-      </div>
-
-      {/* ═══ MY SHORTCUTS ═══ */}
-      <div>
-        <p className="text-[10px] font-bold tracking-[0.16em] uppercase text-[var(--muted)] px-1 mb-2">MY SHORTCUTS</p>
-        <div className="grid grid-cols-4 gap-3">
-          <Link href="/anon" className="flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:bg-[var(--surface)] transition-all" style={{ border: '1px solid var(--glass-border)' }}>
-            <span className="text-2xl">💬</span>
-            <span className="text-[10px] font-semibold text-[var(--foreground)] text-center leading-tight">Just Talk</span>
-          </Link>
-          <Link href="/circles" className="flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:bg-[var(--surface)] transition-all" style={{ border: '1px solid var(--glass-border)' }}>
-            <span className="text-2xl">📊</span>
-            <span className="text-[10px] font-semibold text-[var(--foreground)] text-center leading-tight">DSA Circle</span>
-          </Link>
-          <Link href="/matches" className="flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:bg-[var(--surface)] transition-all" style={{ border: '1px solid var(--glass-border)' }}>
-            <span className="text-2xl">🤝</span>
-            <span className="text-[10px] font-semibold text-[var(--foreground)] text-center leading-tight">Matches</span>
-          </Link>
-          <Link href="/radar" className="flex flex-col items-center gap-1.5 p-3 rounded-2xl hover:bg-[var(--surface)] transition-all" style={{ border: '1px solid var(--glass-border)' }}>
-            <span className="text-2xl">📡</span>
-            <span className="text-[10px] font-semibold text-[var(--foreground)] text-center leading-tight">Go Live</span>
-          </Link>
-        </div>
-      </div>
-
-      {/* ═══ GROW YOUR CAMPUS ═══ */}
-      <div className="rounded-2xl p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{
-        background: 'linear-gradient(135deg, rgba(234,179,8,0.06), rgba(249,115,22,0.06))',
-        border: '1px solid rgba(234,179,8,0.15)',
-      }}>
-        <div>
-          <span className="text-[10px] font-bold uppercase tracking-wider text-amber-400">🌱 Grow your campus</span>
-          <h3 className="text-sm font-bold text-[var(--foreground)] mt-1">Invite your batchmates</h3>
-          <p className="text-[11px] text-[var(--muted)] mt-0.5">More students = better matches for you</p>
-        </div>
-        <a
-          href={`https://wa.me/?text=${encodeURIComponent('Hey! Join MitrAI — the study buddy matching platform for SVNIT students 🎓\n\nhttps://mitrai.vercel.app')}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="shrink-0 px-5 py-2.5 rounded-xl text-xs font-semibold text-white transition-all hover:opacity-90"
-          style={{ background: 'linear-gradient(135deg, #22c55e, #16a34a)', boxShadow: '0 2px 12px rgba(34,197,94,0.3)' }}
-        >
-          Share on WhatsApp
-        </a>
-      </div>
-
-      {/* ═══ ARYA FAB — Expandable ═══ */}
-      <div className="fixed bottom-24 right-5 z-50 flex flex-col items-end gap-2">
-        {fabOpen && (
-          <div className="flex flex-col gap-2 animate-in slide-in-from-bottom-2 duration-200">
-            <Link href="/chat" className="flex items-center gap-2 group">
-              <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] border border-[var(--glass-border)] text-[var(--foreground)] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                Chat with Arya
-              </span>
-              <div className="w-12 h-12 rounded-full bg-violet-600 flex items-center justify-center text-white shadow-lg shadow-violet-600/30 hover:bg-violet-500 transition-colors">
-                <MessageSquare size={20} />
-              </div>
-            </Link>
-            <Link href="/chat" className="flex items-center gap-2 group">
-              <span className="px-3 py-1.5 rounded-full text-xs font-semibold bg-[var(--surface)] border border-[var(--glass-border)] text-[var(--foreground)] shadow-lg opacity-0 group-hover:opacity-100 transition-opacity">
-                Call Arya
-              </span>
-              <div className="w-12 h-12 rounded-full bg-emerald-600 flex items-center justify-center text-white shadow-lg shadow-emerald-600/30 hover:bg-emerald-500 transition-colors">
-                <Phone size={20} />
-              </div>
-            </Link>
-          </div>
-        )}
-        <button
-          onClick={() => setFabOpen(!fabOpen)}
-          className={`w-14 h-14 rounded-full flex items-center justify-center text-white text-2xl shadow-xl transition-all duration-300 ${
-            fabOpen
-              ? 'bg-violet-700 rotate-45 shadow-violet-600/40'
-              : 'bg-gradient-to-br from-violet-600 to-purple-700 shadow-violet-600/30 hover:scale-105'
-          }`}
-        >
-          {fabOpen ? '✕' : '✨'}
-        </button>
       </div>
     </div>
   );
