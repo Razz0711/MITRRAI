@@ -343,7 +343,7 @@ export default function HomePage() {
         </Link>
 
         {/* 6. Arya AI */}
-        <Link href="/chat" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
+        <Link href="/arya" className="relative rounded-2xl p-4 flex flex-col justify-between min-h-[130px] transition-all hover:scale-[1.02] group"
           style={{ background: 'linear-gradient(135deg, rgba(99,102,241,0.08), rgba(67,56,202,0.12))', border: '1px solid rgba(99,102,241,0.18)' }}
         >
           <div className="relative">
