@@ -79,8 +79,9 @@ function timeLeft(dateStr: string) {
 /* ═══════════════════════════════════════════ */
 export default function RadarPage() {
   const { user } = useAuth();
-  const supabase = supabaseBrowser();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const supabase = supabaseBrowser;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const channelRef = useRef<any>(null);
 
   const [pings, setPings] = useState<Ping[]>([]);
   const [myPing, setMyPing] = useState<Ping | null>(null);
