@@ -288,6 +288,7 @@ export default function CirclesPage() {
               filtered.map((circle) => {
                 const cs = getCircleStatus(circle);
                 const isActive = activeCircle?.id === circle.id;
+                const deptInCircle = memberships.filter(m => m.circleId === circle.id && deptStudentIds.has(m.userId || '')).length;
                 return (
                   <button
                     key={circle.id}
@@ -314,7 +315,7 @@ export default function CirclesPage() {
                         )}
                       </div>
                       <p className="text-[10px] text-[var(--muted)] truncate">
-                        {cs.status === 'live' ? cs.detail : `${memberCounts[circle.id] || 0} members`}
+                        {memberCounts[circle.id] || 0} members{deptInCircle > 0 ? ` · ${deptInCircle} from your dept` : ''}
                       </p>
                     </div>
                   </button>
@@ -479,9 +480,10 @@ export default function CirclesPage() {
                         <select
                           value={roomMax}
                           onChange={e => setRoomMax(Number(e.target.value))}
-                          className="px-3 py-2 rounded-xl text-xs bg-white/5 border border-[var(--glass-border)] text-[var(--foreground)] outline-none"
+                          className="px-3 py-2 rounded-xl text-xs border border-[var(--glass-border)] text-[var(--foreground)] outline-none"
+                          style={{ backgroundColor: 'var(--surface)', colorScheme: 'dark' }}
                         >
-                          {[2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n}>{n} people</option>)}
+                          {[2, 3, 4, 5, 6, 8, 10].map(n => <option key={n} value={n} style={{ backgroundColor: 'var(--surface)', color: 'var(--foreground)' }}>{n} people</option>)}
                         </select>
                         <button
                           onClick={handleCreateRoom}
