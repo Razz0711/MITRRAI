@@ -47,7 +47,7 @@ export default function CampusFeedPage() {
   const [sending, setSending] = useState(false);
   const [loading, setLoading] = useState(true);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const supabase = supabaseBrowser();
+  const supabase = supabaseBrowser;
 
   const myAlias = user ? getAnonymousAlias(user.id) : 'Anonymous';
 
@@ -71,7 +71,7 @@ export default function CampusFeedPage() {
     // Real-time subscription
     const channel = supabase
       .channel('campus-feed')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campus_feed' }, (payload) => {
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'campus_feed' }, (payload: { new: FeedMessage }) => {
         const newMsg = payload.new as FeedMessage;
         setMessages(prev => [...prev, newMsg]);
       })
