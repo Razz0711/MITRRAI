@@ -208,11 +208,12 @@ export default function RadarPage() {
     <div className="max-w-2xl mx-auto px-4 py-6 pb-28">
 
       {/* ─── Header ─── */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl font-bold">
-          <span className="bg-gradient-to-r from-violet-400 to-purple-500 bg-clip-text text-transparent">Campus Radar</span>
-        </h1>
-        <p className="text-xs text-[var(--muted)] mt-1">Who&apos;s active right now · Only SVNIT can see this</p>
+      <div className="flex items-center justify-between mb-5">
+        <h1 className="text-xl font-bold text-[var(--foreground)]">Campus Radar</h1>
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25">
+          <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+          {totalActive} active
+        </span>
       </div>
 
       {/* ─── Status Bar ─── */}
@@ -221,9 +222,11 @@ export default function RadarPage() {
           <div className="flex items-center gap-2">
             <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
             <div>
-              <p className="text-sm font-bold text-[var(--foreground)]">You&apos;re live on Radar</p>
+              <p className="text-sm font-bold text-[var(--foreground)]">
+                You&apos;re live · {getActivity(myPing.activityId).label}
+              </p>
               <p className="text-[10px] text-[var(--muted)]">
-                {getActivity(myPing.activityId).label} · {getLocation(myPing.location).label} · expires in {timeLeft(myPing.createdAt)}
+                {getLocation(myPing.location).label} · expires in {timeLeft(myPing.createdAt)}
               </p>
             </div>
           </div>
