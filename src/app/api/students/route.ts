@@ -30,6 +30,7 @@ function buildStudentProfile(source: Record<string, unknown>, id: string): Stude
     timezone: (source.timezone as string) || 'IST',
     preferredLanguage: (source.preferredLanguage as string) || 'English',
     bio: (source.bio as string) || '',
+    photoUrl: (source.photoUrl as string) || '',
     schedulePreferences: (source.schedulePreferences as string[]) || [],
     currentStudy: (source.currentStudy as string) || '',
     institution: (source.institution as string) || 'SVNIT Surat',

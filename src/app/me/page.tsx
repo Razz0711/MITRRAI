@@ -7,6 +7,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
 import { StudentProfile } from '@/lib/types';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -106,12 +107,24 @@ export default function MePage() {
         <div className="flex items-center gap-4 mb-4">
           {/* Avatar with camera icon */}
           <div className="relative shrink-0">
-            <div
-              className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-2 ring-violet-500/30 cursor-pointer transition-transform active:scale-95"
-              onClick={() => setZoomPhoto(true)}
-            >
-              {fullName.charAt(0).toUpperCase()}
-            </div>
+            {student?.photoUrl ? (
+              <Image
+                src={student.photoUrl}
+                alt={fullName}
+                width={64}
+                height={64}
+                className="w-16 h-16 rounded-full object-cover shadow-lg ring-2 ring-violet-500/30 cursor-pointer transition-transform active:scale-95"
+                onClick={() => setZoomPhoto(true)}
+                unoptimized
+              />
+            ) : (
+              <div
+                className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-2 ring-violet-500/30 cursor-pointer transition-transform active:scale-95"
+                onClick={() => setZoomPhoto(true)}
+              >
+                {fullName.charAt(0).toUpperCase()}
+              </div>
+            )}
             <button
               onClick={() => setZoomPhoto(true)}
               className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-violet-600 border-2 border-[var(--background)] flex items-center justify-center text-white text-[10px]"
@@ -162,12 +175,24 @@ export default function MePage() {
           >
             <X size={24} />
           </button>
-          <div
-            className="w-64 h-64 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 border-4 border-white/20 flex items-center justify-center text-white font-bold text-6xl shadow-2xl"
-            onClick={(e) => e.stopPropagation()}
-          >
-            {fullName.charAt(0).toUpperCase()}
-          </div>
+          {student?.photoUrl ? (
+            <Image
+              src={student.photoUrl}
+              alt={fullName}
+              width={384}
+              height={384}
+              className="w-64 h-64 md:w-96 md:h-96 rounded-full border-4 border-white/20 object-cover shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+              unoptimized
+            />
+          ) : (
+            <div
+              className="w-64 h-64 md:w-96 md:h-96 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 border-4 border-white/20 flex items-center justify-center text-white font-bold text-6xl shadow-2xl"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {fullName.charAt(0).toUpperCase()}
+            </div>
+          )}
         </div>
       )}
 

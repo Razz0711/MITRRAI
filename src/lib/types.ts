@@ -16,6 +16,7 @@ export interface StudentProfile {
   timezone: string;
   preferredLanguage: string;
   bio?: string;
+  photoUrl?: string;
   schedulePreferences?: string[];
 
   // Academic Info
