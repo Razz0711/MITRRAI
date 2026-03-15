@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth';
 import { useRouter } from 'next/navigation';
 import { ROOM_TYPES, ANON_PRICING, UPI_CONFIG } from '@/lib/anon-aliases';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
-import ChatSideNav from '@/components/ChatSideNav';
+
 
 type Status = 'loading' | 'no-pass' | 'pending-payment' | 'banned' | 'idle' | 'queuing' | 'matched';
 
@@ -23,7 +23,7 @@ export default function AnonLobbyPage() {
   const [status, setStatus] = useState<Status>('loading');
   const [banInfo, setBanInfo] = useState<{ reason?: string; expiresAt?: string }>({});
   const [passInfo, setPassInfo] = useState<{ plan?: string; expiresAt?: string; isPro?: boolean }>({});
-  const [selectedType, setSelectedType] = useState<string>('vent');
+  const [selectedType, setSelectedType] = useState<string>('career');
   const [alias, setAlias] = useState('');
   const [couponCode, setCouponCode] = useState('');
   const [couponError, setCouponError] = useState('');
@@ -291,9 +291,7 @@ export default function AnonLobbyPage() {
     <div className="min-h-screen anon-polish relative">
       <div className="anon-aura anon-aura-1" />
       <div className="anon-aura anon-aura-2" />
-      <div className="h-[calc(100vh-4.5rem)] md:h-[calc(100vh-3.5rem)] flex">
-        <ChatSideNav />
-        <div className="flex-1 overflow-y-auto px-4">
+      <div className="flex-1 overflow-y-auto px-4">
         <div className="max-w-2xl mx-auto">
         {/* Ambient glow */}
         <div className="ambient-glow" />
@@ -644,31 +642,8 @@ export default function AnonLobbyPage() {
               <span className="text-[10px] text-[var(--muted)]">Tap to select · then find match</span>
             </div>
 
-            {/* 3x2 Vibe Cards Grid */}
+            {/* Vibe Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-              {/* Just Talk */}
-              <button
-                onClick={() => setSelectedType('vent')}
-                className="relative p-5 rounded-2xl text-left transition-all duration-300"
-                style={{
-                  background: selectedType === 'vent' ? 'linear-gradient(135deg, rgba(99,102,241,0.12), rgba(139,92,246,0.08))' : 'var(--surface)',
-                  border: selectedType === 'vent' ? '2px solid rgba(99,102,241,0.5)' : '1px solid var(--glass-border)',
-                  boxShadow: selectedType === 'vent' ? '0 0 20px rgba(99,102,241,0.15)' : 'none',
-                }}
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="w-11 h-11 rounded-2xl bg-indigo-500/15 flex items-center justify-center text-lg">💬</div>
-                  {selectedType === 'vent' && (
-                    <div className="w-6 h-6 rounded-full bg-green-500 flex items-center justify-center"><span className="text-white text-xs">✓</span></div>
-                  )}
-                </div>
-                <h3 className="text-sm font-bold text-[var(--foreground)] mb-1">Just Talk</h3>
-                <p className="text-[11px] text-[var(--muted)] leading-relaxed mb-3">Need someone to listen? No reason needed.</p>
-                <div className="flex items-center justify-between">
-                  <span className="text-[10px] text-[var(--muted)]">♀ {stats?.queueByType?.vent || 1} waiting</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded-md bg-[var(--surface-light)] text-[var(--muted)]">~1 min</span>
-                </div>
-              </button>
 
               {/* Placement Talk */}
               <button
@@ -975,7 +950,6 @@ export default function AnonLobbyPage() {
           }
         }
       `}</style>
-      </div>
       </div>
     </div>
   );
