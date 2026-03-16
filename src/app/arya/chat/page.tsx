@@ -122,27 +122,33 @@ export default function AryaChatPage() {
       setMessages(prev => [...prev, userMsg]);
     }
 
-    // Simulate Arya's response
-    setTimeout(async () => {
-      const responses = [
-        "That's a great question! Let me think about it... 🤔",
-        "I totally understand how you feel. College can be intense sometimes 💜",
-        "Hmm, have you tried breaking it down into smaller steps? That usually helps!",
-        "You've got this! I believe in you 💪",
-        "That sounds really interesting! Tell me more about it 😊",
-        "I'm here for you, always. No judgements, just support 💜",
-        "Let's work through this together. First things first...",
-        "Ooh that's a tough one! But nothing we can't figure out 🧠",
-      ];
-      const responseText = responses[Math.floor(Math.random() * responses.length)];
+    try {
+      // Call Gemini API with conversation history + system prompt
+      const res = await fetch('/api/arya/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ conversation_id: conversationId, message: text }),
+      });
+      const data = await res.json();
 
-      // Persist Arya's response
-      const aryaMsg = await persistMessage('assistant', responseText);
-      if (aryaMsg) {
-        setMessages(prev => [...prev, aryaMsg]);
+      if (data.success && data.data?.response) {
+        // Persist Arya's response
+        const aryaMsg = await persistMessage('assistant', data.data.response);
+        if (aryaMsg) {
+          setMessages(prev => [...prev, aryaMsg]);
+        }
+      } else {
+        // Fallback if API fails
+        const fallback = await persistMessage('assistant', 'sorry yaar... network issue 🥺 ek min try karna phir se');
+        if (fallback) setMessages(prev => [...prev, fallback]);
       }
-      setSending(false);
-    }, 1000 + Math.random() * 1500);
+    } catch (err) {
+      console.error('Arya chat error:', err);
+      const fallback = await persistMessage('assistant', 'arre yaar kuch toh error aa gaya 😢 thodi der baad try kar na');
+      if (fallback) setMessages(prev => [...prev, fallback]);
+    }
+
+    setSending(false);
   };
 
   // Soft-delete single message (UI only — DB retains content)
