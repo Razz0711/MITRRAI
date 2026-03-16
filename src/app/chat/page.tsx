@@ -323,8 +323,8 @@ export default function ChatPage() {
           <div className="mx-3 mt-2 p-3 rounded-2xl" style={{ background: 'linear-gradient(135deg, rgba(139,92,246,0.12), rgba(109,40,217,0.18))', border: '1px solid rgba(139,92,246,0.25)' }}>
             <div className="flex items-center justify-between mb-2.5">
               <div className="flex items-center gap-2.5">
-                <button onClick={showComingSoon} className="w-10 h-10 rounded-xl overflow-hidden shrink-0" title="View Aarya's profile">
-                  <Image src="/aarya.jpeg" alt="Aarya" width={40} height={40} className="w-full h-full object-cover" />
+                <button onClick={() => window.location.href='/arya'} className="w-10 h-10 rounded-full overflow-hidden shrink-0" title="View Arya's profile">
+                  <Image src="/arya-avatar.png" alt="Arya" width={40} height={40} className="w-full h-full object-cover" />
                 </button>
                 <div>
                   <p className="text-sm font-semibold text-[var(--foreground)]">Arya</p>

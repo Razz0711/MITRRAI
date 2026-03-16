@@ -1,12 +1,13 @@
 // ============================================
-// MitrAI - Arya AI Profile (WhatsApp-style)
+// MitrAI - Arya AI Profile (Clean)
 // Profile view with pic, about, Chat + Call
 // ============================================
 
 'use client';
 
+import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, Phone, Sparkles, Shield, Clock, Brain } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Phone } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AryaProfilePage() {
@@ -39,10 +40,14 @@ export default function AryaProfilePage() {
 
       {/* ── Avatar (overlapping banner) ── */}
       <div className="flex justify-center -mt-14 mb-3 relative z-10">
-        <div className="w-28 h-28 rounded-full border-4 border-[var(--background)] shadow-2xl flex items-center justify-center"
-          style={{ background: 'linear-gradient(135deg, #7c3aed, #a855f7, #c084fc)' }}
-        >
-          <Sparkles size={40} className="text-white" />
+        <div className="w-28 h-28 rounded-full border-4 border-[var(--background)] shadow-2xl overflow-hidden">
+          <Image
+            src="/arya-avatar.png"
+            alt="Arya"
+            width={112}
+            height={112}
+            className="w-full h-full object-cover"
+          />
         </div>
       </div>
 
@@ -59,7 +64,7 @@ export default function AryaProfilePage() {
       {/* ── Action Buttons ── */}
       <div className="flex items-center justify-center gap-6 mb-6 px-4">
         <Link
-          href="/chat"
+          href="/arya/chat"
           className="flex flex-col items-center gap-1.5 group"
         >
           <div className="w-14 h-14 rounded-2xl bg-violet-600/15 border border-violet-500/25 flex items-center justify-center text-violet-400 group-hover:bg-violet-600/25 transition-colors">
@@ -68,7 +73,7 @@ export default function AryaProfilePage() {
           <span className="text-[10px] font-semibold text-violet-400">Chat</span>
         </Link>
         <Link
-          href="/chat"
+          href="/arya/call"
           className="flex flex-col items-center gap-1.5 group"
         >
           <div className="w-14 h-14 rounded-2xl bg-emerald-600/15 border border-emerald-500/25 flex items-center justify-center text-emerald-400 group-hover:bg-emerald-600/25 transition-colors">
@@ -86,52 +91,6 @@ export default function AryaProfilePage() {
             Hi! I&apos;m Arya, your personal AI study companion at MitrAI. I can help you with doubt clearing, study planning, exam prep, and just being someone to talk to when you need motivation. 💜
           </p>
         </div>
-
-        {/* ── Capabilities ── */}
-        <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
-          <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)] mb-3">What Arya can do</p>
-          <div className="space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-violet-500/15 flex items-center justify-center shrink-0">
-                <Brain size={16} className="text-violet-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">Doubt Clearing</p>
-                <p className="text-[10px] text-[var(--muted)]">Ask any academic question, from DSA to Physics</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-blue-500/15 flex items-center justify-center shrink-0">
-                <Clock size={16} className="text-blue-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">Study Planning</p>
-                <p className="text-[10px] text-[var(--muted)]">Get a personalized study schedule and daily targets</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-emerald-500/15 flex items-center justify-center shrink-0">
-                <Shield size={16} className="text-emerald-400" />
-              </div>
-              <div>
-                <p className="text-sm font-semibold text-[var(--foreground)]">Mental Support</p>
-                <p className="text-[10px] text-[var(--muted)]">Feeling stuck or stressed? Arya is always here to listen</p>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        {/* ── Chat Now CTA ── */}
-        <Link
-          href="/chat"
-          className="block w-full py-4 rounded-2xl text-center text-white font-bold text-sm transition-all hover:shadow-lg active:scale-[0.98]"
-          style={{
-            background: 'linear-gradient(135deg, #7c3aed, #6d28d9, #a855f7)',
-            boxShadow: '0 4px 20px rgba(124, 58, 237, 0.4)',
-          }}
-        >
-          💬 Start Chatting with Arya
-        </Link>
 
         {/* ── Info Badge ── */}
         <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'var(--surface)', border: '1px solid rgba(139,92,246,0.15)' }}>
