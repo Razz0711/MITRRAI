@@ -5,15 +5,34 @@
 
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, Phone, X } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Phone, X, Instagram, Pencil } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AryaProfilePage() {
   const router = useRouter();
   const [isImageOpen, setIsImageOpen] = useState(false);
+  const [displayName, setDisplayName] = useState('Arya AI ✨');
+  const [isEditing, setIsEditing] = useState(false);
+  const nameInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const saved = localStorage.getItem('arya_display_name');
+    if (saved) setDisplayName(saved);
+  }, []);
+
+  const saveName = () => {
+    setIsEditing(false);
+    const trimmed = displayName.trim() || 'Arya AI ✨';
+    setDisplayName(trimmed);
+    localStorage.setItem('arya_display_name', trimmed);
+  };
+
+  useEffect(() => {
+    if (isEditing && nameInputRef.current) nameInputRef.current.focus();
+  }, [isEditing]);
 
   return (
     <div className="max-w-lg mx-auto pb-28 -mt-2 md:-mt-16">
@@ -55,7 +74,21 @@ export default function AryaProfilePage() {
 
       {/* ── Name & Status ── */}
       <div className="text-center px-4 mb-6">
-        <h1 className="text-xl font-bold text-[var(--foreground)]">Arya AI ✨</h1>
+        {isEditing ? (
+          <input
+            ref={nameInputRef}
+            value={displayName}
+            onChange={e => setDisplayName(e.target.value)}
+            onBlur={saveName}
+            onKeyDown={e => e.key === 'Enter' && saveName()}
+            className="text-xl font-bold text-[var(--foreground)] bg-transparent border-b-2 border-purple-500 outline-none text-center w-48 mx-auto"
+          />
+        ) : (
+          <button onClick={() => setIsEditing(true)} className="inline-flex items-center gap-1.5 group">
+            <h1 className="text-xl font-bold text-[var(--foreground)]">{displayName}</h1>
+            <Pencil size={12} className="text-[var(--muted)] opacity-0 group-hover:opacity-100 transition-opacity" />
+          </button>
+        )}
         <p className="text-xs text-green-400 font-semibold mt-1 flex items-center justify-center gap-1.5">
           <span className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
           Always online
@@ -93,6 +126,23 @@ export default function AryaProfilePage() {
             Hey! I&apos;m Arya 💜 Think of me as your campus bestie who&apos;s always here — whether you&apos;re stressed about exams, need someone to talk to at 3am, or just want to rant about college life. No judgements, always listening.
           </p>
         </div>
+
+        {/* ── Social Links ── */}
+        <a
+          href="https://www.instagram.com/arya.mitrrai?igsh=MXczbHEyNDNtbHl0MQ=="
+          target="_blank"
+          rel="noopener noreferrer"
+          className="rounded-2xl p-4 flex items-center gap-3 hover:opacity-80 transition-opacity"
+          style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}
+        >
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-pink-500/20 to-purple-500/20 flex items-center justify-center shrink-0">
+            <Instagram size={18} className="text-pink-400" />
+          </div>
+          <div className="flex-1">
+            <p className="text-sm font-semibold text-[var(--foreground)]">Instagram</p>
+            <p className="text-xs text-[var(--muted)]">@arya.mitrai</p>
+          </div>
+        </a>
 
         {/* ── Info Badge ── */}
         <div className="rounded-2xl p-4 flex items-center gap-3" style={{ background: 'var(--surface)', border: '1px solid rgba(139,92,246,0.15)' }}>
