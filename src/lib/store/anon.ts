@@ -398,16 +398,7 @@ export async function pollForMatch(userId: string): Promise<{ matched: boolean; 
   const { data: candidates } = await query;
   if (!candidates || candidates.length === 0) return { matched: false };
 
-  // Get recently matched users (last 7 days) to avoid re-matching
-  const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString();
-  const { data: recentMatches } = await supabase
-    .from('anon_match_history')
-    .select('matched_user_id')
-    .eq('user_id', userId)
-    .gte('matched_at', sevenDaysAgo);
-  const recentMatchIds = (recentMatches || []).map(r => r.matched_user_id);
-
-  const partner = candidates.find(c => !blockedIds.includes(c.user_id) && !recentMatchIds.includes(c.user_id));
+  const partner = candidates.find(c => !blockedIds.includes(c.user_id));
   if (!partner) return { matched: false };
 
   // 3. Create room + add both members
@@ -427,13 +418,6 @@ export async function pollForMatch(userId: string): Promise<{ matched: boolean; 
 
   // Remove both from queue
   await supabase.from('anon_queue').delete().in('user_id', [userId, partner.user_id]);
-
-  // Log match history (for 7-day re-match prevention — survives ephemeral deletion)
-  const now = new Date().toISOString();
-  await supabase.from('anon_match_history').insert([
-    { user_id: userId, matched_user_id: partner.user_id, room_type: myEntry.room_type, matched_at: now },
-    { user_id: partner.user_id, matched_user_id: userId, room_type: myEntry.room_type, matched_at: now },
-  ]);
 
   return { matched: true, roomId };
 }
