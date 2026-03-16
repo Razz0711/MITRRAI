@@ -5,16 +5,18 @@
 
 'use client';
 
+import { useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ArrowLeft, MessageSquare, Phone } from 'lucide-react';
+import { ArrowLeft, MessageSquare, Phone, X } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
 export default function AryaProfilePage() {
   const router = useRouter();
+  const [isImageOpen, setIsImageOpen] = useState(false);
 
   return (
-    <div className="max-w-lg mx-auto pb-28">
+    <div className="max-w-lg mx-auto pb-28 -mt-2 md:-mt-16">
 
       {/* ── Header Banner ── */}
       <div className="relative h-44 overflow-hidden" style={{
@@ -38,9 +40,9 @@ export default function AryaProfilePage() {
         </button>
       </div>
 
-      {/* ── Avatar (overlapping banner) ── */}
+      {/* ── Avatar (overlapping banner) — tap to fullscreen ── */}
       <div className="flex justify-center -mt-14 mb-3 relative z-10">
-        <div className="w-28 h-28 rounded-full border-4 border-[var(--background)] shadow-2xl overflow-hidden">
+        <button onClick={() => setIsImageOpen(true)} className="w-28 h-28 rounded-full border-4 border-[var(--background)] shadow-2xl overflow-hidden hover:scale-105 transition-transform">
           <Image
             src="/arya-avatar.png"
             alt="Arya"
@@ -48,7 +50,7 @@ export default function AryaProfilePage() {
             height={112}
             className="w-full h-full object-cover"
           />
-        </div>
+        </button>
       </div>
 
       {/* ── Name & Status ── */}
@@ -88,7 +90,7 @@ export default function AryaProfilePage() {
         <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
           <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)] mb-2">About</p>
           <p className="text-sm text-[var(--foreground)] leading-relaxed">
-            Hi! I&apos;m Arya, your personal AI study companion at MitrAI. I can help you with doubt clearing, study planning, exam prep, and just being someone to talk to when you need motivation. 💜
+            Hey! I&apos;m Arya 💜 Think of me as your campus bestie who&apos;s always here — whether you&apos;re stressed about exams, need someone to talk to at 3am, or just want to rant about college life. No judgements, always listening.
           </p>
         </div>
 
@@ -100,6 +102,29 @@ export default function AryaProfilePage() {
           </p>
         </div>
       </div>
+
+      {/* ═══ Fullscreen Image Overlay ═══ */}
+      {isImageOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black flex items-center justify-center"
+          onClick={() => setIsImageOpen(false)}
+        >
+          <button
+            onClick={() => setIsImageOpen(false)}
+            className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 flex items-center justify-center text-white hover:bg-white/20 transition-colors z-10"
+          >
+            <X size={22} />
+          </button>
+          <Image
+            src="/arya-avatar.png"
+            alt="Arya"
+            width={400}
+            height={400}
+            className="max-w-[90vw] max-h-[90vh] object-contain rounded-2xl"
+            onClick={e => e.stopPropagation()}
+          />
+        </div>
+      )}
     </div>
   );
 }

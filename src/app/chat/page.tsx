@@ -344,10 +344,10 @@ export default function ChatPage() {
               ))}
             </div>
             <div className="flex gap-2">
-              <button onClick={showComingSoon} className="flex-1 py-2 rounded-xl text-xs font-semibold text-white text-center" style={{background:'linear-gradient(135deg, var(--primary), #6d28d9)'}}>
+              <button onClick={() => window.location.href='/arya/chat'} className="flex-1 py-2 rounded-xl text-xs font-semibold text-white text-center" style={{background:'linear-gradient(135deg, var(--primary), #6d28d9)'}}>
                 Chat with Arya
               </button>
-              <button onClick={showComingSoon} className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/25 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/30 transition-colors shrink-0">
+              <button onClick={() => window.location.href='/arya/call'} className="w-9 h-9 rounded-xl bg-emerald-500/20 border border-emerald-500/25 flex items-center justify-center text-emerald-400 hover:bg-emerald-500/30 transition-colors shrink-0">
                 <Phone size={14} />
               </button>
             </div>
