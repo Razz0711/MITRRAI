@@ -1,6 +1,6 @@
 // ============================================
 // MitrAI v2 - Clean Top Bar + Mobile Bottom Tabs
-// Glass header (no logo/theme toggle), smooth tabs
+// Tabs: Feed, Arya, Anon, Chat, Community
 // ============================================
 
 'use client';
@@ -8,18 +8,16 @@
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import {
-  Home, MessageCircle,
-  Handshake,
-  User, Compass
+  LayoutGrid, Sparkles, Ghost, MessageCircle, CircleDot,
 } from 'lucide-react';
 import { getActiveTab } from './BottomTabs';
 
 const tabs = [
-  { id: 'home', label: 'Home', icon: Home, href: '/home' },
-  { id: 'matches', label: 'Matches', icon: Handshake, href: '/matches' },
-  { id: 'radar', label: 'Radar', icon: Compass, href: '/radar' },
-  { id: 'chat', label: 'Chats', icon: MessageCircle, href: '/chat' },
-  { id: 'me', label: 'Me', icon: User, href: '/me' },
+  { id: 'home', label: 'Feed', icon: LayoutGrid, href: '/home' },
+  { id: 'arya', label: 'Arya', icon: Sparkles, href: '/arya' },
+  { id: 'anon', label: 'Anon', icon: Ghost, href: '/anon' },
+  { id: 'chat', label: 'Chat', icon: MessageCircle, href: '/chat' },
+  { id: 'circles', label: 'Community', icon: CircleDot, href: '/circles' },
 ];
 
 export default function TopBar() {
@@ -48,7 +46,7 @@ export default function TopBar() {
           {/* Desktop Center tabs */}
           <nav className="flex items-center justify-center gap-1 flex-1">
             {tabs.map(tab => {
-              const isActive = tab.id === activeTab;
+              const isActive = tab.id === activeTab || (tab.id === 'circles' && activeTab === 'circles');
               const Icon = tab.icon;
               return (
                 <Link
@@ -82,7 +80,7 @@ export default function TopBar() {
       }}>
         <div className="flex items-center justify-around h-16 px-2 max-w-lg mx-auto">
           {tabs.map(tab => {
-            const isActive = tab.id === activeTab;
+            const isActive = tab.id === activeTab || (tab.id === 'circles' && activeTab === 'circles');
             const Icon = tab.icon;
             return (
               <Link
