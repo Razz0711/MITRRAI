@@ -31,6 +31,24 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
+      <head>
+        {/* visualViewport --vh variable for mobile keyboard */}
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function(){
+            function setVh(){
+              var vh=(window.visualViewport?window.visualViewport.height:window.innerHeight)*0.01;
+              document.documentElement.style.setProperty('--vh',vh+'px');
+            }
+            setVh();
+            if(window.visualViewport){
+              window.visualViewport.addEventListener('resize',setVh);
+              window.visualViewport.addEventListener('scroll',setVh);
+            }
+            window.addEventListener('resize',setVh);
+            window.addEventListener('orientationchange',setVh);
+          })();
+        `}} />
+      </head>
       <body
         className={`${plusJakarta.variable} ${jetbrainsMono.variable} antialiased`}
       >

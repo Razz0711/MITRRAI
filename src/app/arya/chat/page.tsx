@@ -22,6 +22,7 @@ import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { ArrowLeft, Send, MoreVertical, Trash2, X } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { useChatStability } from '@/hooks/useChatStability';
 
 interface Message {
   id: string;
@@ -43,6 +44,7 @@ export default function AryaChatPage() {
   const [clearConfirm, setClearConfirm] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
   const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  useChatStability();
 
   // Scroll to bottom on new messages
   useEffect(() => {
@@ -199,7 +201,7 @@ export default function AryaChatPage() {
   if (!user) return null;
 
   return (
-    <div className="flex flex-col h-screen" style={{ background: 'var(--background)' }}>
+    <div className="chat-container" style={{ background: 'var(--background)' }}>
       {/* Header */}
       <div className="shrink-0 px-4 py-3 flex items-center gap-3" style={{
         background: 'var(--glass-bg)',
@@ -241,7 +243,7 @@ export default function AryaChatPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 overflow-y-auto px-4 py-4 space-y-3">
+      <div className="chat-messages px-4 py-4 space-y-3">
         {loading && (
           <div className="text-center py-12">
             <div className="w-8 h-8 mx-auto rounded-full border-2 border-purple-500 border-t-transparent animate-spin" />
@@ -323,7 +325,7 @@ export default function AryaChatPage() {
       </div>
 
       {/* Input */}
-      <div className="shrink-0 px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]" style={{
+      <div className="chat-input-bar px-4 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]" style={{
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(20px)',
         borderTop: '1px solid var(--glass-border)',

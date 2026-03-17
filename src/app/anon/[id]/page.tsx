@@ -11,6 +11,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { ROOM_TYPES } from '@/lib/anon-aliases';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
+import { useChatStability } from '@/hooks/useChatStability';
 
 interface AnonMsg {
   id: string;
@@ -38,6 +39,7 @@ export default function AnonChatRoomPage() {
   const params = useParams();
   const roomId = params.id as string;
   const { play: playSound } = useNotificationSound();
+  useChatStability();
 
   const [data, setData] = useState<RoomData | null>(null);
   const [messages, setMessages] = useState<AnonMsg[]>([]);
@@ -274,7 +276,7 @@ export default function AnonChatRoomPage() {
   const canReveal = messages.length >= 10 && !isRevealed;
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="chat-container">
       {/* Header */}
       <div className="fixed top-14 left-0 right-0 z-40 bg-[var(--background)]/90 backdrop-blur-md border-b border-[var(--border)]">
         <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between">
@@ -345,7 +347,7 @@ export default function AnonChatRoomPage() {
       </div>
 
       {/* Messages */}
-      <div className="flex-1 pt-28 pb-24 px-4 overflow-y-auto">
+      <div className="chat-messages pt-28 pb-24 px-4">
         <div className="max-w-2xl mx-auto space-y-3">
           {/* System message */}
           <div className="text-center py-4">

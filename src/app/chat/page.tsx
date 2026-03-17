@@ -13,6 +13,7 @@ import { useAuth } from '@/lib/auth';
 import { DirectMessage, ChatThread, UserStatus, StudentProfile, MatchResult } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
+import { useChatStability } from '@/hooks/useChatStability';
 
 import {
   Search,
@@ -83,6 +84,7 @@ function ProfilePopup({
 export default function ChatPage() {
   const { user } = useAuth();
   const { play: playSound } = useNotificationSound();
+  useChatStability();
   const [threads, setThreads] = useState<ChatThread[]>([]);
   const [selectedChatId, setSelectedChatId] = useState<string | null>(null);
   const [messages, setMessages] = useState<DirectMessage[]>([]);
