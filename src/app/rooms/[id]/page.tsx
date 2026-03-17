@@ -228,7 +228,7 @@ export default function RoomDetailPage() {
                       className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                     >
                       <div
-                        className={`max-w-[75%] px-4 py-2 rounded-2xl ${
+                        className={`w-fit inline-block max-w-[85%] px-3 py-1.5 rounded-2xl ${
                           isMe
                             ? 'bg-[var(--primary)] text-white rounded-br-md'
                             : 'bg-[var(--surface-light)] text-[var(--foreground)] rounded-bl-md'

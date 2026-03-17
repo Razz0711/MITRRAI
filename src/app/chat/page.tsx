@@ -502,7 +502,7 @@ export default function ChatPage() {
                               {isMine && (
                                 <button onClick={()=>handleDeleteMessage(msg.id)} className="opacity-40 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center mr-1 text-red-400 hover:text-red-500 text-xs px-1.5 py-0.5 rounded hover:bg-red-500/10" title="Delete">✕</button>
                               )}
-                              <div className={`max-w-[75%] px-3.5 py-2.5 rounded-2xl text-sm ${isMine?'bg-[var(--primary)] text-white rounded-br-md':'bg-[var(--surface-light)] text-[var(--foreground)] rounded-bl-md border border-[var(--glass-border)]'}`}>
+                              <div className={`w-fit inline-block max-w-[85%] px-3 py-1.5 rounded-2xl text-sm ${isMine?'bg-[var(--primary)] text-white rounded-br-md':'bg-[var(--surface-light)] text-[var(--foreground)] rounded-bl-md border border-[var(--glass-border)]'}`}>
                                 <p className="break-words whitespace-pre-wrap">{msg.text}</p>
                                 <div className={`flex items-center gap-1 mt-1 ${isMine?'justify-end':'justify-start'}`}>
                                   <span className={`text-[10px] ${isMine?'text-white/60':'text-[var(--muted)]'}`}>{formatMessageTime(msg.createdAt)}</span>
