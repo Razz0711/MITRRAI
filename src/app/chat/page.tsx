@@ -23,6 +23,7 @@ import {
   Phone,
   X,
   MessageSquare,
+  Plus,
 } from 'lucide-react';
 
 /* ─── Profile Popup ─── */
@@ -92,12 +93,14 @@ export default function ChatPage() {
   const [statuses, setStatuses] = useState<Record<string, UserStatus>>({});
   const [pendingFriend, setPendingFriend] = useState<{ id: string; name: string } | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'all' | 'unread' | 'friends' | 'discover'>('all');
+  const [filter, setFilter] = useState<'all' | 'unread' | 'friends'>('all');
   const [allStudents, setAllStudents] = useState<StudentProfile[]>([]);
   const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
   const [matchScores, setMatchScores] = useState<Record<string, number>>({});
   const [emojiOpen, setEmojiOpen] = useState(false);
-  const [profilePopup, setProfilePopup] = useState<string | null>(null); // userId
+  const [profilePopup, setProfilePopup] = useState<string | null>(null);
+  const [showDiscoverSheet, setShowDiscoverSheet] = useState(false);
+  const [discoverSearch, setDiscoverSearch] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
@@ -319,9 +322,14 @@ export default function ChatPage() {
           {/* Header */}
           <div className="p-4 pb-2 flex items-center justify-between">
             <h1 className="text-lg font-bold text-[var(--foreground)]">Chats</h1>
-            <button onClick={() => document.getElementById('chat-search')?.focus()} className="w-9 h-9 rounded-full bg-[var(--surface)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
-              <Search size={16} />
-            </button>
+            <div className="flex items-center gap-2">
+              <button onClick={() => document.getElementById('chat-search')?.focus()} className="w-9 h-9 rounded-full bg-[var(--surface)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+                <Search size={16} />
+              </button>
+              <button onClick={() => setShowDiscoverSheet(true)} className="w-9 h-9 rounded-full bg-gradient-to-r from-[var(--primary)] to-[#6d28d9] flex items-center justify-center text-white hover:shadow-lg hover:shadow-purple-500/20 active:scale-95 transition-all" title="Find SVNIT students">
+                <Plus size={18} />
+              </button>
+            </div>
           </div>
 
           {/* Search */}
@@ -335,72 +343,22 @@ export default function ChatPage() {
 
 
           <div className="px-3 pt-3 pb-2">
-            <div className="flex gap-1.5 overflow-x-auto no-scrollbar">
-              {(['all','unread','friends','discover'] as const).map(f=>(
+            <div className="flex gap-1.5">
+              {(['all','unread','friends'] as const).map(f=>(
                 <button key={f} onClick={()=>setFilter(f)}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all shrink-0 ${filter===f?'bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/30':'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'}`}>
-                  {f==='all'?'All':f==='unread'?'Unread':f==='friends'?'Friends':'Discover'}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${filter===f?'bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/30':'text-[var(--muted)] hover:text-[var(--foreground)] hover:bg-[var(--surface)]'}`}>
+                  {f==='all'?'All':f==='unread'?'Unread':'Friends'}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* PEOPLE / DISCOVER label */}
+          {/* PEOPLE label */}
           <div className="px-4 pt-2 pb-1">
-            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)]">{filter === 'discover' ? 'All SVNIT Students' : 'People'}</p>
+            <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)]">People</p>
           </div>
 
-          {/* Discover Tab: Browse all SVNIT users */}
-          {filter === 'discover' ? (
-            <div className="flex-1 overflow-y-auto">
-              {allStudents.filter(s => s.id !== studentId).length === 0 ? (
-                <div className="p-6 text-center">
-                  <p className="text-xs text-[var(--muted)]">No students found yet.</p>
-                </div>
-              ) : (
-                allStudents.filter(s => s.id !== studentId).map(student => {
-                  const isOnline = statuses[student.id]?.status === 'online' || statuses[student.id]?.status === 'in-session';
-                  const score = matchScores[student.id] || 0;
-                  return (
-                    <div key={student.id} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-[var(--surface)]/50 transition-colors">
-                      <button onClick={() => setProfilePopup(student.id)} className="shrink-0">
-                        <div className="relative">
-                          <div className={`w-10 h-10 rounded-xl ${getAvatarColor(student.name)} flex items-center justify-center text-white font-semibold text-sm`}>
-                            {getInitial(student.name)}
-                          </div>
-                          {isOnline && <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-[var(--background)]" />}
-                        </div>
-                      </button>
-                      <div className="flex-1 min-w-0">
-                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">{student.name}</p>
-                        <div className="flex items-center gap-1.5 mt-0.5">
-                          {student.department && (
-                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
-                              {student.department} · {student.yearLevel||'?'}
-                            </span>
-                          )}
-                          {score > 0 && <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-500/15 text-green-400 border border-green-500/20">{score}%</span>}
-                        </div>
-                      </div>
-                      <button
-                        onClick={() => {
-                          if (studentId) {
-                            const chatId = [studentId, student.id].sort().join('__');
-                            setSelectedChatId(chatId);
-                            setShowSidebar(false);
-                            setFilter('all');
-                          }
-                        }}
-                        className="shrink-0 px-3 py-1.5 rounded-xl text-[10px] font-bold text-white bg-gradient-to-r from-[var(--primary)] to-[#6d28d9] hover:shadow-md hover:shadow-purple-500/20 active:scale-95 transition-all"
-                      >
-                        Connect
-                      </button>
-                    </div>
-                  );
-                })
-              )}
-            </div>
-          ) : (
+          {/* Thread List */}
           <div className="flex-1 overflow-y-auto">
             {loading ? (
               <div className="flex flex-col items-center justify-center h-32 gap-2">
@@ -469,7 +427,6 @@ export default function ChatPage() {
               })
             )}
           </div>
-          )}
         </div>
         {/* ═══════ CHAT AREA ═══════ */}
         <div className={`${!showSidebar ? 'flex' : 'hidden'} md:flex flex-col flex-1 bg-[var(--surface)]/30`}>
@@ -620,6 +577,117 @@ export default function ChatPage() {
             }
           }}
         />
+      )}
+
+      {/* ═══ Discover Sheet (+ icon) ═══ */}
+      {showDiscoverSheet && (
+        <>
+          <div className="fixed inset-0 z-[55] bg-black/70 backdrop-blur-sm" onClick={() => { setShowDiscoverSheet(false); setDiscoverSearch(''); }} />
+          <div className="fixed inset-x-0 bottom-0 z-[56] rounded-t-3xl max-h-[85vh] flex flex-col" style={{ background: 'var(--background)', border: '1px solid var(--glass-border)' }}>
+            {/* Handle */}
+            <div className="w-10 h-1 rounded-full bg-[var(--muted)]/30 mx-auto mt-3 mb-2" />
+            
+            {/* Header */}
+            <div className="px-4 pb-3 flex items-center justify-between">
+              <h2 className="text-base font-bold text-[var(--foreground)]">Find SVNIT Students</h2>
+              <button onClick={() => { setShowDiscoverSheet(false); setDiscoverSearch(''); }} className="w-8 h-8 rounded-full bg-[var(--surface)] flex items-center justify-center text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">
+                <X size={16} />
+              </button>
+            </div>
+
+            {/* Search */}
+            <div className="px-4 pb-3">
+              <div className="relative">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)]" />
+                <input
+                  type="text"
+                  value={discoverSearch}
+                  onChange={e => setDiscoverSearch(e.target.value)}
+                  placeholder="Search by name or branch..."
+                  className="w-full pl-9 pr-3 py-2.5 rounded-xl text-xs border border-[var(--glass-border)] bg-[var(--surface)] text-[var(--foreground)] placeholder:text-[var(--muted)] outline-none focus:ring-1 focus:ring-[var(--primary)]/30"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Student List */}
+            <div className="flex-1 overflow-y-auto px-2 pb-[env(safe-area-inset-bottom)]">
+              {(() => {
+                const filtered = allStudents
+                  .filter(s => s.id !== studentId)
+                  .filter(s => {
+                    if (!discoverSearch.trim()) return true;
+                    const q = discoverSearch.toLowerCase();
+                    return (
+                      s.name.toLowerCase().includes(q) ||
+                      (s.department || '').toLowerCase().includes(q) ||
+                      (s.yearLevel || '').toLowerCase().includes(q)
+                    );
+                  });
+
+                if (filtered.length === 0) {
+                  return (
+                    <div className="p-8 text-center">
+                      <p className="text-xs text-[var(--muted)]">{discoverSearch ? 'No students match your search.' : 'No students found.'}</p>
+                    </div>
+                  );
+                }
+
+                return filtered.map(student => {
+                  const isOnline = statuses[student.id]?.status === 'online' || statuses[student.id]?.status === 'in-session';
+                  const score = matchScores[student.id] || 0;
+                  // Check if already connected (has a thread)
+                  const hasThread = threads.some(t => {
+                    const otherId = t.chatId.split('__').find((id: string) => id !== studentId);
+                    return otherId === student.id;
+                  });
+
+                  return (
+                    <div key={student.id} className="flex items-center gap-2.5 px-2 py-2.5 rounded-xl hover:bg-[var(--surface)]/50 transition-colors">
+                      <button onClick={() => { setProfilePopup(student.id); }} className="shrink-0">
+                        <div className="relative">
+                          <div className={`w-10 h-10 rounded-xl ${getAvatarColor(student.name)} flex items-center justify-center text-white font-semibold text-sm`}>
+                            {getInitial(student.name)}
+                          </div>
+                          {isOnline && <span className="absolute -bottom-0.5 -left-0.5 w-3 h-3 rounded-full bg-green-500 border-2 border-[var(--background)]" />}
+                        </div>
+                      </button>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold text-[var(--foreground)] truncate">{student.name}</p>
+                        <div className="flex items-center gap-1.5 mt-0.5">
+                          {student.department && (
+                            <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-violet-500/15 text-violet-400 border border-violet-500/20">
+                              {student.department} · {student.yearLevel||'?'}
+                            </span>
+                          )}
+                          {score > 0 && <span className="px-1.5 py-0.5 rounded text-[8px] font-bold bg-green-500/15 text-green-400 border border-green-500/20">{score}%</span>}
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          if (studentId) {
+                            const chatId = [studentId, student.id].sort().join('__');
+                            setSelectedChatId(chatId);
+                            setShowSidebar(false);
+                            setShowDiscoverSheet(false);
+                            setDiscoverSearch('');
+                          }
+                        }}
+                        className={`shrink-0 px-3 py-1.5 rounded-xl text-[10px] font-bold transition-all active:scale-95 ${
+                          hasThread
+                            ? 'text-green-400 bg-green-500/10 border border-green-500/20 hover:bg-green-500/15'
+                            : 'text-white bg-gradient-to-r from-[var(--primary)] to-[#6d28d9] hover:shadow-md hover:shadow-purple-500/20'
+                        }`}
+                      >
+                        {hasThread ? 'Message' : 'Connect'}
+                      </button>
+                    </div>
+                  );
+                });
+              })()}
+            </div>
+          </div>
+        </>
       )}
 
 
