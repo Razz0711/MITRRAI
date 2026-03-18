@@ -45,6 +45,7 @@ interface RecentUser {
   aryaVoiceCount?: number;
   anonMessageCount?: number;
   reportCount?: number;
+  totalSeconds?: number;
 }
 
 interface FeedbackItem {
@@ -412,6 +413,7 @@ export default function AdminDashboardPage() {
                 <th className="pb-2 pr-4 text-center">Arya Chats</th>
                 <th className="pb-2 pr-4 text-center">Anon Posts</th>
                 <th className="pb-2 pr-4 text-center">Reports</th>
+                <th className="pb-2 pr-4 text-center">Time Spent</th>
                 <th className="pb-2 pr-4">Last Active</th>
                 <th className="pb-2">Joined</th>
               </tr>
@@ -441,6 +443,15 @@ export default function AdminDashboardPage() {
                     ) : (
                       <span className="text-[var(--muted)]/50">-</span>
                     )}
+                  </td>
+                  <td className="py-2.5 pr-4 text-center text-[var(--foreground)] font-mono text-[11px]">
+                    {u.totalSeconds ? (() => {
+                      const h = Math.floor(u.totalSeconds / 3600);
+                      const m = Math.floor((u.totalSeconds % 3600) / 60);
+                      if (h > 0) return `${h}h ${m}m`;
+                      if (m > 0) return `${m}m`;
+                      return '< 1m';
+                    })() : '-'}
                   </td>
                   <td className="py-2.5 pr-4 text-[var(--muted)] whitespace-nowrap">
                     {u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : 'Never'}

@@ -14,11 +14,15 @@ import { useTheme } from './ThemeProvider';
 import { Sun, Moon } from 'lucide-react';
 import GlobalNotificationPoller from './GlobalNotificationPoller';
 import IncomingCallBanner from './IncomingCallBanner';
+import { useTimeTracker } from '@/hooks/useTimeTracker';
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const { user } = useAuth();
   const { theme, toggleTheme } = useTheme();
+
+  // Start background tracker
+  useTimeTracker();
 
   // Determine page type
   const isAuthPage = pathname === '/login' || pathname.startsWith('/reset-password');

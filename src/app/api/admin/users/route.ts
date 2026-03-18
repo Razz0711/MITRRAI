@@ -42,6 +42,11 @@ export async function GET(req: NextRequest) {
       .from('anon_reports')
       .select('reported_user_id');
 
+    // 5. Fetch time logs
+    const { data: timeLogs } = await supabase
+      .from('user_time_logs')
+      .select('user_id, total_seconds');
+
     // Calculate aggregations
     const aryaCounts: Record<string, { total: number, voice: number }> = {};
     if (aryaMessages) {
@@ -66,6 +71,13 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const timeCounts: Record<string, number> = {};
+    if (timeLogs) {
+      for (const log of timeLogs) {
+        timeCounts[log.user_id] = (timeCounts[log.user_id] || 0) + (log.total_seconds || 0);
+      }
+    }
+
     // Merge into user data
     const enrichedData = (students || []).map(student => ({
       ...student,
@@ -73,6 +85,7 @@ export async function GET(req: NextRequest) {
       aryaVoiceCount: aryaCounts[student.id]?.voice || 0,
       anonMessageCount: anonCounts[student.id] || 0,
       reportCount: reportCounts[student.id] || 0,
+      totalSeconds: timeCounts[student.id] || 0,
     }));
 
     return NextResponse.json({ success: true, data: enrichedData });
