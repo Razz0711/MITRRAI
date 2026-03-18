@@ -20,7 +20,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Share2, Star, Clock, MessageCircle, Crown, Gamepad2 } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Share2, Star, MessageCircle, Crown } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useChatStability } from '@/hooks/useChatStability';
 
@@ -453,10 +453,7 @@ export default function AryaChatPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" /> Online
             </p>
           </div>
-          {/* Action icons */}
-          <button className="p-2 rounded-xl text-amber-400 hover:bg-amber-400/10 transition-all active:scale-90" title="Mini Games">
-            <Gamepad2 size={18} />
-          </button>
+          {/* Call icon */}
           <button onClick={startCall} className="p-2 rounded-xl text-amber-400 hover:bg-amber-400/10 transition-all active:scale-90" title="Call Arya">
             <Phone size={18} />
           </button>
@@ -474,13 +471,15 @@ export default function AryaChatPage() {
                 <div className="absolute right-0 top-12 z-50 w-52 rounded-2xl py-2 shadow-2xl" style={{ background: 'var(--surface-solid)', border: '1px solid var(--border)' }}>
                   {[
                     { icon: Share2, label: 'Share App', color: 'text-[var(--foreground)]', action: () => {
-                      const msg = encodeURIComponent('Hey! Chat with Arya AI on MitrrAi 💜\nhttps://mitrrai.vercel.app');
+                      const msg = encodeURIComponent('Hey! Chat with Arya AI on MitrrAi \nhttps://mitrrai.vercel.app');
                       window.open(`https://wa.me/?text=${msg}`, '_blank');
                       setShowHeaderMenu(false);
                     }},
                     { icon: Star, label: 'Rate Us', color: 'text-[var(--foreground)]', action: () => { router.push('/feedback'); setShowHeaderMenu(false); }},
-                    { icon: Clock, label: 'Talk-time', color: 'text-[var(--foreground)]', action: () => { setShowHeaderMenu(false); }},
-                    { icon: MessageCircle, label: 'Contact Us', color: 'text-[var(--foreground)]', action: () => { router.push('/feedback'); setShowHeaderMenu(false); }},
+                    { icon: MessageCircle, label: 'Contact Us', color: 'text-[var(--foreground)]', action: () => {
+                      window.open('https://wa.me/917061001946?text=Hi%2C%20I%20have%20a%20query%20about%20MitrrAi', '_blank');
+                      setShowHeaderMenu(false);
+                    }},
                     { icon: Crown, label: 'Subscription', color: 'text-[var(--foreground)]', action: () => { router.push('/subscription'); setShowHeaderMenu(false); }},
                     { icon: Trash2, label: 'Clear Chat', color: 'text-red-400', action: () => { setShowHeaderMenu(false); setClearConfirm(true); }},
                   ].map((item) => (
