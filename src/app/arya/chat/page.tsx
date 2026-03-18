@@ -118,22 +118,26 @@ export default function AryaChatPage() {
     setInput('');
     setSending(true);
 
-    // Optimistic UI update for instant feedback
-    const optimisticId = `user-temp-${Date.now()}`;
-    const optimisticMsg: Message = {
-      id: optimisticId,
+    // Optimistic UI update for user message
+    const optimisticUserId = `user-temp-${Date.now()}`;
+    const optimisticUserMsg: Message = {
+      id: optimisticUserId,
       role: 'user',
       content: text,
       created_at: new Date().toISOString(),
     };
     
-    setMessages(prev => [...prev, optimisticMsg]);
+    setMessages(prev => [...prev, optimisticUserMsg]);
 
-    // Fire DB persistence and API call in parallel
-    const persistUserPromise = persistMessage('user', text);
+    // Persist user message in background (don't block UI)
+    persistMessage('user', text).then(userMsg => {
+      if (userMsg) {
+        setMessages(prev => prev.map(m => m.id === optimisticUserId ? userMsg : m));
+      }
+    }).catch(() => { /* silent — optimistic msg stays */ });
 
     try {
-      // Call Grok API with conversation history //
+      // Call Grok API
       const res = await fetch('/api/arya/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -141,33 +145,41 @@ export default function AryaChatPage() {
       });
       const data = await res.json();
 
-      // Ensure persistence finishes and replace optimistic ID so it can be targeted for deletion if needed
-      const userMsg = await persistUserPromise;
-      if (userMsg) {
-        setMessages(prev => prev.map(m => m.id === optimisticId ? userMsg : m));
-      }
-
       if (data.success && data.data?.response) {
-        // Persist Arya's response
-        const aryaMsg = await persistMessage('assistant', data.data.response);
-        if (aryaMsg) {
-          setMessages(prev => [...prev, aryaMsg]);
-        }
+        // Show Arya's response IMMEDIATELY (optimistic)
+        const optimisticAryaId = `arya-temp-${Date.now()}`;
+        const optimisticAryaMsg: Message = {
+          id: optimisticAryaId,
+          role: 'assistant',
+          content: data.data.response,
+          created_at: new Date().toISOString(),
+        };
+        setMessages(prev => [...prev, optimisticAryaMsg]);
+
+        // Persist to DB in background
+        persistMessage('assistant', data.data.response).then(aryaMsg => {
+          if (aryaMsg) {
+            setMessages(prev => prev.map(m => m.id === optimisticAryaId ? aryaMsg : m));
+          }
+        }).catch(() => { /* silent — optimistic msg stays */ });
       } else {
-        // Fallback if API fails — show error for debugging
-        const errText = data.error || 'unknown error';
-        const fallback = await persistMessage('assistant', `[DEBUG] API error: ${errText}`);
-        if (fallback) setMessages(prev => [...prev, fallback]);
+        // Show error inline
+        const errText = data.error || 'Arya is taking a break. Try again!';
+        setMessages(prev => [...prev, {
+          id: `err-${Date.now()}`,
+          role: 'assistant',
+          content: errText,
+          created_at: new Date().toISOString(),
+        }]);
       }
     } catch (err) {
       console.error('Arya chat error:', err);
-      // Wait for persistence even on error so state is correct
-      const userMsg = await persistUserPromise;
-      if (userMsg) {
-        setMessages(prev => prev.map(m => m.id === optimisticId ? userMsg : m));
-      }
-      const fallback = await persistMessage('assistant', `[DEBUG] Fetch error: ${err instanceof Error ? err.message : String(err)}`);
-      if (fallback) setMessages(prev => [...prev, fallback]);
+      setMessages(prev => [...prev, {
+        id: `err-${Date.now()}`,
+        role: 'assistant',
+        content: 'Network error. Please check your connection and try again.',
+        created_at: new Date().toISOString(),
+      }]);
     }
 
     setSending(false);
