@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Edit Profile Page (IOC Redesign)
+// MitrrAi - Edit Profile Page (IOC Redesign)
 // Photo Upload (Supabase Storage) + Bio + Interests
 // ============================================
 

@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Password Reset Page (OTP-based)
+// MitrrAi - Password Reset Page (OTP-based)
 // 3-step flow: enter email → enter OTP → set new password
 // ============================================
 
@@ -122,7 +122,7 @@ function ResetPasswordInner() {
     <div className="min-h-[calc(100vh-4rem)] flex items-center justify-center px-4">
       <div className="w-full max-w-sm">
         <div className="text-center mb-8">
-          <Image src="/logo.jpg" alt="MitrRAI" width={56} height={56} className="h-14 w-auto mx-auto mb-3" priority />
+          <Image src="/logo.jpg" alt="MitrrAi" width={56} height={56} className="h-14 w-auto mx-auto mb-3" priority />
           <h1 className="text-xl font-bold text-[var(--foreground)]">
             {step === 'email' ? 'Reset Password' : step === 'otp' ? 'Verify Email' : 'Set New Password'}
           </h1>

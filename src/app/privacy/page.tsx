@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Privacy Policy
+// MitrrAi - Privacy Policy
 // ============================================
 
 export default function PrivacyPage() {
@@ -10,7 +10,7 @@ export default function PrivacyPage() {
 
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-[var(--foreground)]">1. Information We Collect</h2>
-        <p className="text-xs text-[var(--muted)] leading-relaxed">When you use MitrRAI, we collect:</p>
+        <p className="text-xs text-[var(--muted)] leading-relaxed">When you use MitrrAi, we collect:</p>
         <ul className="list-disc list-inside text-xs text-[var(--muted)] leading-relaxed space-y-1">
           <li><strong>Account Information:</strong> Name, SVNIT email, admission number, department, year, date of birth.</li>
           <li><strong>Academic Data:</strong> Subjects, study preferences, schedules, learning style, goals.</li>
@@ -92,7 +92,7 @@ export default function PrivacyPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-[var(--foreground)]">9. Children&apos;s Privacy</h2>
         <p className="text-xs text-[var(--muted)] leading-relaxed">
-          MitrRAI is intended for college students (18+). We do not knowingly collect data from individuals 
+          MitrrAi is intended for college students (18+). We do not knowingly collect data from individuals 
           under 18 years of age.
         </p>
       </section>

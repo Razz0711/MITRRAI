@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - ME Page (IOC-style Redesign)
+// MitrrAi - ME Page (IOC-style Redesign)
 // Profile + Account + Preferences + Support
 // ============================================
 
@@ -219,7 +219,7 @@ export default function MePage() {
           {/* Invite Friends */}
           <button
             onClick={() => {
-              const msg = encodeURIComponent(`Hey! Join MitrRAI — find study buddies at SVNIT\nhttps://mitrrai.vercel.app`);
+              const msg = encodeURIComponent(`Hey! Join MitrrAi — find study buddies at SVNIT\nhttps://mitrrai.vercel.app`);
               window.open(`https://wa.me/?text=${msg}`, '_blank');
             }}
             className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left"
@@ -290,7 +290,7 @@ export default function MePage() {
             <div className="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center text-lg">💬</div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Feedback</p>
-              <p className="text-[10px] text-[var(--muted)]">Help us improve MitrRAI</p>
+              <p className="text-[10px] text-[var(--muted)]">Help us improve MitrrAi</p>
             </div>
             <span className="text-[var(--muted)] text-xs">›</span>
           </Link>
@@ -302,7 +302,7 @@ export default function MePage() {
             <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-lg">❓</div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Help & FAQ</p>
-              <p className="text-[10px] text-[var(--muted)]">How to use MitrRAI</p>
+              <p className="text-[10px] text-[var(--muted)]">How to use MitrrAi</p>
             </div>
             <span className="text-[var(--muted)] text-xs">›</span>
           </Link>
@@ -326,7 +326,7 @@ export default function MePage() {
         <span>·</span>
         <Link href="/privacy" className="hover:text-[var(--foreground)] transition-colors">Privacy</Link>
         <span>·</span>
-        <span>MitrRAI v1.0</span>
+        <span>MitrrAi v1.0</span>
       </div>
 
       {/* Coming Soon Toast */}

@@ -35,7 +35,7 @@ export default function FeedbackPage() {
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <div className="text-5xl mb-4">💜</div>
           <h2 className="text-lg font-bold text-[var(--foreground)] mb-2">Thank you!</h2>
-          <p className="text-sm text-[var(--muted)] max-w-xs">Your feedback helps us make MitrRAI better for everyone at SVNIT.</p>
+          <p className="text-sm text-[var(--muted)] max-w-xs">Your feedback helps us make MitrrAi better for everyone at SVNIT.</p>
           <button onClick={() => router.back()} className="mt-6 px-6 py-2.5 rounded-xl text-sm font-bold text-white" style={{ background: 'linear-gradient(135deg, #8B5CF6, #6D28D9)' }}>
             Go Back
           </button>

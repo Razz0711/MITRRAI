@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Contact & Feedback Page
+// MitrrAi - Contact & Feedback Page
 // ============================================
 
 'use client';
@@ -14,7 +14,7 @@ const TYPES = [
 ];
 
 const FAQS = [
-  { q: 'Is MitrRAI free to use?', a: 'MitrRAI is currently free for all SVNIT students. Some premium features may be introduced in the future.' },
+  { q: 'Is MitrrAi free to use?', a: 'MitrrAi is currently free for all SVNIT students. Some premium features may be introduced in the future.' },
   { q: 'How does the matching work?', a: 'Our AI analyzes 5 dimensions — subjects, schedule, study style, goals, and personality — to find your ideal study buddy with a 100-point scoring system.' },
   { q: 'Can I suggest new features?', a: 'Absolutely! Use the Feature Idea option above to share your ideas. We love hearing from our users.' },
 ];
@@ -99,7 +99,7 @@ export default function FeedbackPage() {
         <h1 className="text-2xl font-extrabold mb-1">
           <span className="gradient-text">Contact & Feedback</span>
         </h1>
-        <p className="text-sm text-[var(--muted)]">Help us make MitrRAI better for everyone</p>
+        <p className="text-sm text-[var(--muted)]">Help us make MitrrAi better for everyone</p>
       </div>
 
       {/* Type Selection — Cards */}
@@ -152,7 +152,7 @@ export default function FeedbackPage() {
         {/* Star Rating */}
         {type === 'feedback' && (
           <div>
-            <label className="text-xs font-semibold text-[var(--muted)] mb-2 block">How would you rate MitrRAI?</label>
+            <label className="text-xs font-semibold text-[var(--muted)] mb-2 block">How would you rate MitrrAi?</label>
             <div className="flex items-center gap-1">
               {[1, 2, 3, 4, 5].map((star) => (
                 <button
@@ -188,7 +188,7 @@ export default function FeedbackPage() {
               type === 'bug' ? 'What happened? What did you expect? Steps to reproduce...' :
               type === 'feature' ? 'What feature would you like to see? How would it help?' :
               type === 'contact' ? 'How can we help you?' :
-              'Tell us what you think about MitrRAI...'
+              'Tell us what you think about MitrrAi...'
             }
             rows={4}
             className="input-field resize-none"
@@ -219,7 +219,7 @@ export default function FeedbackPage() {
         <p className="text-xs text-[var(--muted)] mb-4">Reach out to us directly anytime</p>
         <div className="flex flex-wrap gap-3 justify-center">
           <a
-            href="https://wa.me/917061001946?text=Hi%2C%20I%20have%20a%20query%20about%20MitrRAI"
+            href="https://wa.me/917061001946?text=Hi%2C%20I%20have%20a%20query%20about%20MitrrAi"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-green-500/15 border border-green-500/30 text-xs font-semibold text-green-400 hover:bg-green-500/25 transition-all"
@@ -227,7 +227,7 @@ export default function FeedbackPage() {
             WhatsApp
           </a>
           <a
-            href="mailto:rajkumaratsvnit@gmail.com?subject=MitrRAI%20Query"
+            href="mailto:rajkumaratsvnit@gmail.com?subject=MitrrAi%20Query"
             className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-blue-500/15 border border-blue-500/30 text-xs font-semibold text-blue-400 hover:bg-blue-500/25 transition-all"
           >
             Email

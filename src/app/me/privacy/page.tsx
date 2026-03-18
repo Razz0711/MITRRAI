@@ -63,7 +63,7 @@ export default function PrivacyPage() {
       <div className="mt-5 rounded-2xl p-4" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
         <p className="text-xs text-[var(--foreground)] font-semibold mb-1">🔒 Your data is safe</p>
         <p className="text-[10px] text-[var(--muted)] leading-relaxed">
-          MitrRAI never shares your personal information with third parties. Your chats are private and encrypted. Only matched users can see your profile details.
+          MitrrAi never shares your personal information with third parties. Your chats are private and encrypted. Only matched users can see your profile details.
         </p>
       </div>
     </div>

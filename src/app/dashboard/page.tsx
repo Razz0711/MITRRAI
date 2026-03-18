@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Dashboard (Feature Hub)
+// MitrrAi - Dashboard (Feature Hub)
 // Shows all features, quick stats, and quick-access cards
 // ============================================
 
@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
 import {
   Sparkles, Ghost, MessageCircle, Users, BookOpen,
-  Star, Zap, Radio, GraduationCap, Crown,
+  Star, Zap,
   ArrowRight, Bell, ChevronRight,
 } from 'lucide-react';
 
@@ -126,7 +126,7 @@ export default function DashboardPage() {
           <div className="w-16 h-16 mx-auto rounded-2xl bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center shadow-lg shadow-[var(--primary)]/20">
             <Sparkles size={28} className="text-white" />
           </div>
-          <h1 className="text-xl font-bold">Welcome to <span className="gradient-text">MitrRAI</span></h1>
+          <h1 className="text-xl font-bold">Welcome to <span className="gradient-text">MitrrAi</span></h1>
           <p className="text-sm text-[var(--muted)] max-w-xs mx-auto">Your all-in-one campus companion for SVNIT</p>
           <Link href="/login" className="btn-primary inline-flex items-center gap-2 px-6 py-3">
             Get Started <ArrowRight size={16} />
@@ -157,7 +157,7 @@ export default function DashboardPage() {
       </div>
 
       {/* ─── Quick Stats ─── */}
-      <div className="grid grid-cols-3 gap-2 mb-6">
+      <div className="grid grid-cols-2 gap-2 mb-6">
         <div className="card p-3 text-center">
           <p className="text-lg font-bold text-[var(--primary-light)]">
             {loadingStats ? '—' : stats.matches}
@@ -169,13 +169,6 @@ export default function DashboardPage() {
             {loadingStats ? '—' : stats.friends}
           </p>
           <p className="text-[10px] text-[var(--muted)]">Friends</p>
-        </div>
-        <div className="card p-3 text-center relative overflow-hidden">
-          <div className="absolute inset-0 bg-gradient-to-br from-[var(--primary)]/10 to-transparent" />
-          <Link href="/subscription" className="relative">
-            <Crown size={18} className="mx-auto text-amber-400 mb-0.5" />
-            <p className="text-[10px] text-amber-400 font-semibold">Go Pro</p>
-          </Link>
         </div>
       </div>
 
@@ -241,7 +234,6 @@ export default function DashboardPage() {
           { label: 'My Matches', href: '/matches', icon: Star, color: 'text-amber-400' },
           { label: 'Study Rooms', href: '/rooms', icon: BookOpen, color: 'text-blue-400' },
           { label: 'Friends', href: '/friends', icon: Users, color: 'text-emerald-400' },
-          { label: 'Subscription', href: '/subscription', icon: Crown, color: 'text-purple-400' },
         ].map(link => (
           <Link key={link.href} href={link.href} className="flex items-center gap-3 px-4 py-3 rounded-xl bg-[var(--surface)] border border-[var(--border)] hover:border-[var(--primary)]/20 transition-all group">
             <link.icon size={16} className={link.color} />
@@ -254,7 +246,7 @@ export default function DashboardPage() {
       {/* ─── Footer ─── */}
       <div className="mt-8 text-center">
         <p className="text-[10px] text-[var(--muted)]">
-          MitrRAI — Your all-in-one campus companion 💜
+          MitrrAi — Your all-in-one campus companion 💜
         </p>
         <div className="flex justify-center gap-3 mt-2">
           <Link href="/privacy" className="text-[10px] text-[var(--muted)] hover:text-[var(--foreground)] transition-colors">Privacy</Link>

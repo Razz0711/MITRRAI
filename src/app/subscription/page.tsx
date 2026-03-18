@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Subscription / Pricing Page
+// MitrrAi - Subscription / Pricing Page
 // ============================================
 
 'use client';
@@ -19,7 +19,7 @@ const PLAN_PRICES: Record<string, number> = {
 
 function getUpiUrl(plan: string) {
   const amount = PLAN_PRICES[plan] || 0;
-  const label = plan === 'monthly' ? 'MitrRAI Monthly Pro' : 'MitrRAI Yearly Pro';
+  const label = plan === 'monthly' ? 'MitrrAi Monthly Pro' : 'MitrrAi Yearly Pro';
   return `upi://pay?pa=${encodeURIComponent(UPI_ID)}&pn=${encodeURIComponent(PAYEE_NAME)}&am=${amount}&cu=INR&tn=${encodeURIComponent(label)}`;
 }
 
@@ -146,7 +146,7 @@ export default function SubscriptionPage() {
       {/* Header */}
       <div className="text-center mb-8">
         <h1 className="text-2xl font-bold mb-2">
-          <span className="gradient-text">MitrRAI Pro</span>
+          <span className="gradient-text">MitrrAi Pro</span>
         </h1>
         <p className="text-sm text-[var(--muted)]">
           Upgrade your study experience with premium features
@@ -338,7 +338,7 @@ export default function SubscriptionPage() {
           />
           <FaqItem
             q="Where do I find my Transaction / UTR ID?"
-            a="Open your UPI app (GPay, PhonePe, Paytm, etc.), go to payment history, find the MitrRAI payment, and look for the 12-digit UTR or Reference number."
+            a="Open your UPI app (GPay, PhonePe, Paytm, etc.), go to payment history, find the MitrrAi payment, and look for the 12-digit UTR or Reference number."
           />
         </div>
       </div>

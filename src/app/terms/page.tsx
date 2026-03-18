@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Terms of Service
+// MitrrAi - Terms of Service
 // ============================================
 
 export default function TermsPage() {
@@ -11,8 +11,8 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-[var(--foreground)]">1. Acceptance of Terms</h2>
         <p className="text-xs text-[var(--muted)] leading-relaxed">
-          By accessing and using MitrRAI (&quot;the Platform&quot;), you agree to be bound by these Terms of Service. 
-          MitrRAI is an AI-powered study buddy matching platform exclusively for students of Sardar Vallabhbhai 
+          By accessing and using MitrrAi (&quot;the Platform&quot;), you agree to be bound by these Terms of Service. 
+          MitrrAi is an AI-powered study buddy matching platform exclusively for students of Sardar Vallabhbhai 
           National Institute of Technology (SVNIT), Surat. If you do not agree with these terms, please do not use the Platform.
         </p>
       </section>
@@ -52,7 +52,7 @@ export default function TermsPage() {
         <h2 className="text-sm font-semibold text-[var(--foreground)]">5. Content & Materials</h2>
         <p className="text-xs text-[var(--muted)] leading-relaxed">
           Users may upload study materials for academic purposes. By uploading content, you confirm you have the 
-          right to share it. MitrRAI does not claim ownership of your content but reserves the right to remove 
+          right to share it. MitrrAi does not claim ownership of your content but reserves the right to remove 
           content that violates these terms.
         </p>
       </section>
@@ -60,7 +60,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-[var(--foreground)]">6. AI-Generated Content</h2>
         <p className="text-xs text-[var(--muted)] leading-relaxed">
-          MitrRAI uses artificial intelligence for matching, study plans, and session chat. AI-generated content 
+          MitrrAi uses artificial intelligence for matching, study plans, and session chat. AI-generated content 
           is provided for educational guidance only and should not be considered professional advice. Always 
           verify information with your course materials and professors.
         </p>
@@ -85,7 +85,7 @@ export default function TermsPage() {
       <section className="space-y-3">
         <h2 className="text-sm font-semibold text-[var(--foreground)]">9. Disclaimer</h2>
         <p className="text-xs text-[var(--muted)] leading-relaxed">
-          MitrRAI is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the availability, 
+          MitrrAi is provided &quot;as is&quot; without warranties of any kind. We do not guarantee the availability, 
           accuracy, or reliability of the Platform. Academic performance outcomes depend on individual effort.
         </p>
       </section>

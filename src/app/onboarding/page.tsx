@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Onboarding Chat Page
+// MitrrAi - Onboarding Chat Page
 // ============================================
 
 'use client';
@@ -36,7 +36,7 @@ export default function OnboardingPage() {
     {
       id: uuidv4(),
       role: 'assistant',
-      content: `Hey ${userName}! Welcome to MitrRAI. I already have your basic info from registration.\n\nLet's set up your study preferences so I can find you the perfect study buddy at SVNIT!\n\nWhat are you currently preparing for?`,
+      content: `Hey ${userName}! Welcome to MitrrAi. I already have your basic info from registration.\n\nLet's set up your study preferences so I can find you the perfect study buddy at SVNIT!\n\nWhat are you currently preparing for?`,
       timestamp: Date.now(),
     },
   ]);
@@ -243,7 +243,7 @@ export default function OnboardingPage() {
           onSendMessage={handleSendMessage}
           isLoading={isLoading}
           placeholder={isComplete ? '' : (hasOptions ? 'Or type your answer...' : 'Type your answer...')}
-          title="MitrRAI Onboarding"
+          title="MitrrAi Onboarding"
           subtitle="Let's set up your study profile"
           quickActions={
             hasOptions && !isComplete && !isLoading ? (

@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - xAI Grok AI Integration
+// MitrrAi - xAI Grok AI Integration
 // Replaces gemini.ts — all AI features now use Grok
 // ============================================
 
@@ -27,7 +27,7 @@ export async function getOnboardingResponse(
   const xai = getClient();
   if (!xai) throw new Error('GROK_API_KEY not configured');
 
-  const systemPrompt = `You are a friendly onboarding assistant for MitrRAI - A study buddy matching platform built for SVNIT Surat (Sardar Vallabhbhai National Institute of Technology) students.
+  const systemPrompt = `You are a friendly onboarding assistant for MitrrAi - A study buddy matching platform built for SVNIT Surat (Sardar Vallabhbhai National Institute of Technology) students.
 
 Your job is to collect student study preferences through a natural friendly conversation.
 The student's name, department, year, and admission number were already collected during registration.

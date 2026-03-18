@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI v3 — Premium Landing Page
+// MitrrAi v3 — Premium Landing Page
 // Updated: campus companion, not just study matching
 // ============================================
 
@@ -67,7 +67,7 @@ export default function Home() {
             {/* CTAs */}
             <div className="flex gap-3 justify-center slide-up-stagger-3">
               <Link href="/login" className="btn-primary px-7 py-3 text-base font-bold flex items-center gap-2 group">
-                Join MitrRAI
+                Join MitrrAi
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link href="/home" className="btn-secondary px-7 py-3 text-base font-medium">
@@ -154,7 +154,7 @@ export default function Home() {
           </div>
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">Ready to join the community?</h2>
           <p className="text-sm text-[var(--muted)] mb-8 max-w-sm mx-auto leading-relaxed">
-            Create your account, chat with Arya, and unlock everything MitrRAI has to offer. It&apos;s free to start.
+            Create your account, chat with Arya, and unlock everything MitrrAi has to offer. It&apos;s free to start.
           </p>
           <Link href="/login" className="btn-primary px-10 py-3 text-base font-bold inline-flex items-center gap-2 group">
             Create Account
@@ -168,7 +168,7 @@ export default function Home() {
         <div className="max-w-5xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-[var(--muted)]">
           <div className="flex items-center gap-2">
             <div className="w-5 h-5 rounded-md bg-gradient-to-br from-[var(--primary)] to-[var(--accent)] flex items-center justify-center text-white text-[8px] font-bold">M</div>
-            <span>&copy; 2026 MitrRAI — SVNIT Surat</span>
+            <span>&copy; 2026 MitrrAi — SVNIT Surat</span>
           </div>
           <div className="flex gap-5">
             <a href="/privacy" className="hover:text-[var(--foreground)] transition-colors">Privacy</a>

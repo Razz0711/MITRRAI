@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Campus Feed (Home Page)
+// MitrrAi - Campus Feed (Home Page)
 // Compose bar, tag picker, feed, filter sheet
 // Zero seeded data — all from campus_posts table
 // ============================================

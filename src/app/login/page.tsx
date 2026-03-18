@@ -1,5 +1,5 @@
 // ============================================
-// MitrRAI - Login / Sign Up Page
+// MitrrAi - Login / Sign Up Page
 // ============================================
 
 'use client';
@@ -295,9 +295,9 @@ function LoginPageInner() {
       <div className="w-full max-w-sm">
         {/* Logo */}
         <div className="text-center mb-8">
-          <Image src="/logo.jpg" alt="MitrRAI" width={56} height={56} className="h-14 w-auto mx-auto mb-3" priority />
+          <Image src="/logo.jpg" alt="MitrrAi" width={56} height={56} className="h-14 w-auto mx-auto mb-3" priority />
           <h1 className="text-xl font-bold text-[var(--foreground)]">
-            {isSignup ? 'Join MitrRAI' : 'Welcome back'}
+            {isSignup ? 'Join MitrrAi' : 'Welcome back'}
           </h1>
           <p className="text-sm text-[var(--muted)] mt-1">
             {isSignup ? 'Register with your SVNIT college email' : 'Sign in with your SVNIT college email'}
@@ -514,7 +514,7 @@ function LoginPageInner() {
         <div className="mt-8 pt-5 border-t border-[var(--border)] text-center">
           <p className="text-[11px] text-[var(--muted)] mb-2">Having trouble signing in?</p>
           <a
-            href="https://wa.me/917061001946?text=Hi%2C%20I%20need%20help%20logging%20into%20MitrRAI.%20My%20email%3A%20"
+            href="https://wa.me/917061001946?text=Hi%2C%20I%20need%20help%20logging%20into%20MitrrAi.%20My%20email%3A%20"
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center gap-2 px-4 py-2 rounded-lg bg-[#25D366]/10 border border-[#25D366]/20 text-[#25D366] text-xs font-medium hover:bg-[#25D366]/20 transition-colors"
