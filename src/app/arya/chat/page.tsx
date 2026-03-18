@@ -43,7 +43,6 @@ export default function AryaChatPage() {
   const [menuMsgId, setMenuMsgId] = useState<string | null>(null);
   const [clearConfirm, setClearConfirm] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const longPressTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Voice call states
   const [inCall, setInCall] = useState(false);
@@ -246,17 +245,29 @@ export default function AryaChatPage() {
   const startListening = () => {
     if (!callActiveRef.current) return;
     setCallStatus('listening');
-    setLiveTranscript('');
 
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     const recognition = new SpeechRecognitionAPI();
     recognitionRef.current = recognition;
     recognition.lang = 'en-IN';
     recognition.interimResults = true;
-    recognition.continuous = false;
+    recognition.continuous = true;  // Stay open — no ting sound on restart
     recognition.maxAlternatives = 1;
 
     let finalTranscript = '';
+    let silenceTimer: ReturnType<typeof setTimeout> | null = null;
+
+    const resetSilenceTimer = () => {
+      if (silenceTimer) clearTimeout(silenceTimer);
+      silenceTimer = setTimeout(() => {
+        // 2 seconds of silence = user finished speaking
+        if (finalTranscript.trim() && callActiveRef.current) {
+          try { recognition.stop(); } catch { /* */ }
+          handleVoiceResult(finalTranscript.trim());
+          finalTranscript = '';
+        }
+      }, 2000);
+    };
 
     recognition.onresult = (event: any) => {
       let interim = '';
@@ -268,18 +279,14 @@ export default function AryaChatPage() {
           interim += transcript;
         }
       }
-      setLiveTranscript(finalTranscript || interim);
+      resetSilenceTimer();
     };
 
     recognition.onend = () => {
-      if (!callActiveRef.current) return;
-      if (finalTranscript.trim()) {
+      if (silenceTimer) clearTimeout(silenceTimer);
+      // If call is still active and there's pending text, process it
+      if (callActiveRef.current && finalTranscript.trim()) {
         handleVoiceResult(finalTranscript.trim());
-      } else {
-        // No speech detected — restart listening
-        setTimeout(() => {
-          if (callActiveRef.current) startListening();
-        }, 300);
       }
     };
 
@@ -297,17 +304,16 @@ export default function AryaChatPage() {
   const handleVoiceResult = async (text: string) => {
     if (!callActiveRef.current || !conversationId) return;
     setCallStatus('thinking');
-    setLiveTranscript('');
 
-    // Persist user voice message
+    // Persist user voice message (without mic emoji to keep it clean)
     const userMsg: Message = {
       id: `voice-user-${Date.now()}`,
       role: 'user',
-      content: `🎤 ${text}`,
+      content: text,
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
-    persistMessage('user', `🎤 ${text}`).catch(() => {});
+    persistMessage('user', text).catch(() => {});
 
     // Call Arya API
     const result = await callAryaAPI(conversationId, text, 1);
@@ -406,27 +412,10 @@ export default function AryaChatPage() {
     }
   };
 
-  // Long-press handler for messages (cancel on scroll to avoid blocking)
-  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
-  const handleTouchStart = (msgId: string, e: React.TouchEvent) => {
-    const touch = e.touches[0];
-    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
-    longPressTimer.current = setTimeout(() => setMenuMsgId(msgId), 500);
-  };
-  const handleTouchMove = (e: React.TouchEvent) => {
-    if (!touchStartPos.current || !longPressTimer.current) return;
-    const touch = e.touches[0];
-    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
-    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
-    // If user moved more than 10px, cancel long-press (they're scrolling)
-    if (dx > 10 || dy > 10) {
-      clearTimeout(longPressTimer.current);
-      longPressTimer.current = null;
-    }
-  };
-  const handleTouchEnd = () => {
-    if (longPressTimer.current) clearTimeout(longPressTimer.current);
-    touchStartPos.current = null;
+  // Simple context menu for message deletion (no touch handlers = no scroll blocking)
+  const handleMsgMenu = (msgId: string, e: React.MouseEvent | React.TouchEvent) => {
+    if ('preventDefault' in e) e.preventDefault();
+    setMenuMsgId(msgId);
   };
 
   const formatTime = (dateStr: string) => {
@@ -519,9 +508,7 @@ export default function AryaChatPage() {
           <div
             key={msg.id}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative`}
-            onTouchStart={(e) => handleTouchStart(msg.id, e)}
-            onTouchMove={handleTouchMove}
-            onTouchEnd={handleTouchEnd}
+            onContextMenu={(e) => handleMsgMenu(msg.id, e)}
           >
             <div className={`flex items-end gap-2 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               {msg.role === 'assistant' && (
