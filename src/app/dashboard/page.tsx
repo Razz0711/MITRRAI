@@ -74,16 +74,6 @@ const FEATURES = [
     badge: null,
   },
   {
-    id: 'radar',
-    title: 'Campus Radar',
-    desc: 'See who\'s active & go live on campus',
-    icon: Radio,
-    href: '/radar',
-    gradient: 'from-cyan-600 to-sky-700',
-    glow: 'shadow-cyan-500/20',
-    badge: 'LIVE',
-  },
-  {
     id: 'doubts',
     title: 'Doubts & Confessions',
     desc: 'Ask doubts, confess anonymously, react',
@@ -91,16 +81,6 @@ const FEATURES = [
     href: '/doubts',
     gradient: 'from-red-600 to-rose-700',
     glow: 'shadow-red-500/20',
-    badge: null,
-  },
-  {
-    id: 'ratings',
-    title: 'Rate Professor',
-    desc: 'Anonymous multi-factor professor ratings',
-    icon: GraduationCap,
-    href: '/ratings',
-    gradient: 'from-yellow-600 to-amber-700',
-    glow: 'shadow-yellow-500/20',
     badge: null,
   },
 ];

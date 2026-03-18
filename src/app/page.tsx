@@ -77,7 +77,7 @@ export default function Home() {
 
             {/* Stats Row */}
             <div className="flex items-center justify-center gap-8 sm:gap-12 mt-16 slide-up-stagger-4">
-              <Stat value="15+" label="Features" />
+              <Stat value="10+" label="Features" />
               <div className="w-px h-8 bg-[var(--border)]" />
               <Stat value="AI" label="Powered" />
               <div className="w-px h-8 bg-[var(--border)]" />
@@ -117,8 +117,7 @@ export default function Home() {
             <FeatureCard icon={<Sparkles size={20} />} title="Arya AI" description="Your 24/7 AI bestie — vent, get study help, exam prep, or just chat. Powered by Grok." color="var(--primary)" badge="AI" />
             <FeatureCard icon={<Ghost size={20} />} title="Anonymous Chat" description="Get matched with random SVNIT students for anonymous conversations. Multiple room types." color="var(--accent)" />
             <FeatureCard icon={<Zap size={20} />} title="Campus Feed" description="Post activities — Study, Sports, Food runs, SOS — and find others doing the same thing." color="var(--secondary)" />
-            <FeatureCard icon={<Radio size={20} />} title="Campus Radar" description="Go live on campus. Broadcast what you're doing and where. See who's nearby." color="var(--success)" badge="LIVE" />
-            <FeatureCard icon={<GraduationCap size={20} />} title="Rate Your Professor" description="Anonymous multi-factor professor ratings. Teaching, grading, friendliness, material quality." color="var(--warning)" />
+
             <FeatureCard icon={<Users size={20} />} title="Circles & Rooms" description="Discord-style study communities. Create or join circles, spin up live study rooms." color="var(--primary-light)" />
             <FeatureCard icon={<MessageCircle size={20} />} title="Direct Chat" description="1-on-1 messaging with your matched study buddies. Real-time with typing indicators." color="var(--accent)" />
             <FeatureCard icon={<BookOpen size={20} />} title="Doubts & Confessions" description="Anonymous campus feed — post doubts, confessions, hot takes, spotted, and more." color="var(--secondary)" />
