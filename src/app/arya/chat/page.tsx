@@ -20,7 +20,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Camera, ImageIcon, Share2, Star, Clock, MessageCircle, Crown, Gamepad2 } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Share2, Star, Clock, MessageCircle, Crown, Gamepad2 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useChatStability } from '@/hooks/useChatStability';
 
@@ -406,12 +406,27 @@ export default function AryaChatPage() {
     }
   };
 
-  // Long-press handler for messages
-  const handleTouchStart = (msgId: string) => {
+  // Long-press handler for messages (cancel on scroll to avoid blocking)
+  const touchStartPos = useRef<{ x: number; y: number } | null>(null);
+  const handleTouchStart = (msgId: string, e: React.TouchEvent) => {
+    const touch = e.touches[0];
+    touchStartPos.current = { x: touch.clientX, y: touch.clientY };
     longPressTimer.current = setTimeout(() => setMenuMsgId(msgId), 500);
+  };
+  const handleTouchMove = (e: React.TouchEvent) => {
+    if (!touchStartPos.current || !longPressTimer.current) return;
+    const touch = e.touches[0];
+    const dx = Math.abs(touch.clientX - touchStartPos.current.x);
+    const dy = Math.abs(touch.clientY - touchStartPos.current.y);
+    // If user moved more than 10px, cancel long-press (they're scrolling)
+    if (dx > 10 || dy > 10) {
+      clearTimeout(longPressTimer.current);
+      longPressTimer.current = null;
+    }
   };
   const handleTouchEnd = () => {
     if (longPressTimer.current) clearTimeout(longPressTimer.current);
+    touchStartPos.current = null;
   };
 
   const formatTime = (dateStr: string) => {
@@ -505,9 +520,9 @@ export default function AryaChatPage() {
           <div
             key={msg.id}
             className={`flex ${msg.role === 'user' ? 'justify-end' : 'justify-start'} relative`}
-            onTouchStart={() => handleTouchStart(msg.id)}
+            onTouchStart={(e) => handleTouchStart(msg.id, e)}
+            onTouchMove={handleTouchMove}
             onTouchEnd={handleTouchEnd}
-            onContextMenu={(e) => { e.preventDefault(); setMenuMsgId(msg.id); }}
           >
             <div className={`flex items-end gap-2 max-w-[80%] ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
               {msg.role === 'assistant' && (
@@ -566,7 +581,7 @@ export default function AryaChatPage() {
         <div ref={bottomRef} />
       </div>
 
-      {/* Input Bar — Camera / Gallery / Mic */}
+      {/* Input Bar */}
       <div className="chat-input-bar px-3 py-3 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]" style={{
         background: 'var(--glass-bg)',
         backdropFilter: 'blur(20px)',
@@ -580,32 +595,13 @@ export default function AryaChatPage() {
             placeholder="Message..."
             className="flex-1 px-4 py-2.5 rounded-2xl bg-[var(--surface)] border border-[var(--border)] text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] focus:border-[var(--primary)] outline-none transition-colors"
           />
-          {/* Camera */}
-          <button className="p-2 rounded-xl text-amber-400/70 hover:text-amber-400 hover:bg-amber-400/10 transition-all active:scale-90" title="Camera">
-            <Camera size={18} />
+          <button
+            onClick={handleSend}
+            disabled={!input.trim() || sending}
+            className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-[#6d28d9] text-white flex items-center justify-center disabled:opacity-40 transition-all hover:shadow-lg hover:shadow-purple-500/30 active:scale-95"
+          >
+            <Send size={16} />
           </button>
-          {/* Gallery */}
-          <button className="p-2 rounded-xl text-amber-400/70 hover:text-amber-400 hover:bg-amber-400/10 transition-all active:scale-90" title="Gallery">
-            <ImageIcon size={18} />
-          </button>
-          {/* Voice / Send toggle */}
-          {input.trim() ? (
-            <button
-              onClick={handleSend}
-              disabled={sending}
-              className="w-10 h-10 rounded-2xl bg-gradient-to-br from-purple-500 to-[#6d28d9] text-white flex items-center justify-center disabled:opacity-40 transition-all hover:shadow-lg hover:shadow-purple-500/30 active:scale-95"
-            >
-              <Send size={16} />
-            </button>
-          ) : (
-            <button
-              onClick={startCall}
-              className="p-2 rounded-xl text-amber-400/70 hover:text-amber-400 hover:bg-amber-400/10 transition-all active:scale-90"
-              title="Voice message"
-            >
-              <Mic size={18} />
-            </button>
-          )}
         </div>
       </div>
 
@@ -639,52 +635,74 @@ export default function AryaChatPage() {
 
       {/* ─── Voice Call Overlay ─── */}
       {inCall && (
-        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(180deg, #1a0533 0%, #0a0a0a 100%)' }}>
-          {/* Animated pulse rings */}
-          <div className="relative mb-10">
-            <div className="absolute inset-0 w-32 h-32 rounded-full border-2 border-purple-500/20" style={{ animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite', top: '-16px', left: '-16px', width: '160px', height: '160px' }} />
-            <div className="absolute inset-0 w-32 h-32 rounded-full border border-purple-500/10" style={{ animation: 'ping 2s cubic-bezier(0, 0, 0.2, 1) infinite 0.5s', top: '-32px', left: '-32px', width: '192px', height: '192px' }} />
+        <div className="fixed inset-0 z-[100] flex flex-col items-center justify-center" style={{ background: 'linear-gradient(180deg, #1a0533 0%, #0d0d0d 50%, #0a0a0a 100%)' }}>
+          {/* Subtle animated rings */}
+          <div className="relative mb-8">
+            <div className="absolute rounded-full border border-purple-500/15" style={{ animation: 'ping 3s ease-in-out infinite', top: '-24px', left: '-24px', width: '176px', height: '176px' }} />
+            <div className="absolute rounded-full border border-purple-500/8" style={{ animation: 'ping 3s ease-in-out infinite 1s', top: '-40px', left: '-40px', width: '208px', height: '208px' }} />
+            <div className="absolute rounded-full border border-purple-400/5" style={{ animation: 'ping 3s ease-in-out infinite 2s', top: '-56px', left: '-56px', width: '240px', height: '240px' }} />
             <Image
               src="/arya-avatar.png"
               alt="Arya"
               width={128}
               height={128}
-              className="w-32 h-32 rounded-full object-cover ring-4 ring-purple-500/30 shadow-2xl shadow-purple-500/20"
+              className="w-32 h-32 rounded-full object-cover ring-4 ring-purple-500/20 shadow-2xl shadow-purple-900/40"
             />
+            {/* Green dot when listening */}
             {callStatus === 'listening' && (
-              <div className="absolute -bottom-1 -right-1 w-8 h-8 rounded-full bg-green-500 flex items-center justify-center shadow-lg shadow-green-500/30">
-                <Mic size={14} className="text-white animate-pulse" />
+              <div className="absolute bottom-1 right-1 w-5 h-5 rounded-full bg-green-500 ring-2 ring-black animate-pulse" />
+            )}
+            {/* Thinking indicator */}
+            {callStatus === 'thinking' && (
+              <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 flex gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '0ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '150ms' }} />
+                <span className="w-1.5 h-1.5 rounded-full bg-purple-400 animate-bounce" style={{ animationDelay: '300ms' }} />
               </div>
             )}
           </div>
 
-          {/* Name & Status */}
-          <h2 className="text-xl font-bold text-white mb-1">Arya</h2>
-          <p className="text-sm text-purple-300/80 mb-2">
-            {callStatus === 'connecting' && 'Connecting...'}
-            {callStatus === 'listening' && '🎙️ Listening...'}
-            {callStatus === 'thinking' && '💭 Thinking...'}
-            {callStatus === 'speaking' && '🔊 Speaking...'}
+          {/* Name */}
+          <h2 className="text-2xl font-bold text-white mb-1">Arya</h2>
+          <p className="text-sm text-white/40 mb-8">
+            {callStatus === 'connecting' && 'Ringing...'}
+            {callStatus === 'listening' && 'On call'}
+            {callStatus === 'thinking' && 'On call'}
+            {callStatus === 'speaking' && 'On call'}
           </p>
 
-          {/* Live transcript */}
-          {liveTranscript && (
-            <div className="px-6 max-w-xs text-center">
-              <p className="text-sm text-white/60 italic">"{liveTranscript}"</p>
-            </div>
-          )}
-
           {/* Timer */}
-          <p className="text-2xl font-mono text-white/70 mt-6 tracking-widest">{formatCallTime(callTimer)}</p>
+          <p className="text-3xl font-light font-mono text-white/50 tracking-[0.2em]">{formatCallTime(callTimer)}</p>
 
-          {/* End Call */}
-          <button
-            onClick={endCall}
-            className="mt-12 w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-xl shadow-red-500/30 active:scale-90 transition-transform"
-          >
-            <PhoneOff size={24} className="text-white" />
-          </button>
-          <p className="text-[11px] text-white/40 mt-3">End Call</p>
+          {/* Bottom controls */}
+          <div className="absolute bottom-16 flex items-center gap-8">
+            {/* Mute (visual only) */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <Mic size={22} className={`text-white/70 ${callStatus === 'listening' ? 'animate-pulse' : ''}`} />
+              </div>
+              <p className="text-[10px] text-white/30">Mic</p>
+            </div>
+
+            {/* End Call */}
+            <div className="flex flex-col items-center gap-2">
+              <button
+                onClick={endCall}
+                className="w-16 h-16 rounded-full bg-red-500 flex items-center justify-center shadow-xl shadow-red-500/30 active:scale-90 transition-transform"
+              >
+                <PhoneOff size={24} className="text-white" />
+              </button>
+              <p className="text-[10px] text-white/30">End</p>
+            </div>
+
+            {/* Speaker (visual only) */}
+            <div className="flex flex-col items-center gap-2">
+              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
+                <Phone size={22} className="text-white/70" />
+              </div>
+              <p className="text-[10px] text-white/30">Speaker</p>
+            </div>
+          </div>
         </div>
       )}
     </div>
