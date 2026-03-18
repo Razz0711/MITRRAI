@@ -46,7 +46,7 @@ export default function PrivacyPage() {
           <li>Your name, department, and year are visible to other SVNIT students on the Platform.</li>
           <li>Study preferences are used for matching but not publicly displayed in full.</li>
           <li>Birthday (day/month only) is shown if you opt in.</li>
-          <li>Google Gemini AI processes study-related queries (no personal data sent).</li>
+          <li>xAI Grok AI processes study-related queries (no personal data sent).</li>
         </ul>
       </section>
 

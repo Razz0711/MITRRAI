@@ -35,7 +35,7 @@ export async function POST(req: NextRequest) {
   } catch (error) {
     console.error('Onboarding chat error:', error);
 
-    // Use already-parsed values from above (won't lose them even if Gemini fails)
+    // Use already-parsed values from above (won't lose them even if Grok fails)
     const fallback = getFallbackResponse(step, message, collectedData);
 
     return NextResponse.json({ success: true, data: { response: fallback } });

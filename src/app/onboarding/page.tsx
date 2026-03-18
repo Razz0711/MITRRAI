@@ -42,7 +42,7 @@ export default function OnboardingPage() {
   ]);
   const [isLoading, setIsLoading] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
-  // Pre-populate with registration data so Gemini knows the student's context
+  // Pre-populate with registration data so Grok knows the student's context
   const [collectedData, setCollectedData] = useState<Record<string, string>>(() => {
     if (user) {
       return {
@@ -118,7 +118,7 @@ export default function OnboardingPage() {
     setCollectedData(newData);
 
     try {
-      // Build conversation history for Gemini
+      // Build conversation history for Grok
       const conversationHistory = messages.map(m => ({
         role: m.role,
         content: m.content,
