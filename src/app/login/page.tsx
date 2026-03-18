@@ -39,6 +39,7 @@ function LoginPageInner() {
   const [otpCode, setOtpCode] = useState('');
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
+  const [loadingText, setLoadingText] = useState('Verifying...');
   const [otpResendTimer, setOtpResendTimer] = useState(0);
   const [otpVerified, setOtpVerified] = useState(false); // tracks if OTP was already verified (prevents re-verify after login failure)
 
@@ -476,7 +477,7 @@ function LoginPageInner() {
                   disabled={otpCode.length !== 6 || otpVerifying}
                   className="btn-primary w-full text-sm py-2.5 disabled:opacity-50"
                 >
-                  {otpVerifying ? 'Verifying...' : otpVerified ? 'Retry Login' : 'Verify & Continue'}
+                  {otpVerifying ? loadingText : otpVerified ? 'Retry Login' : 'Verify & Continue'}
                 </button>
 
                 <div className="flex items-center justify-between">
