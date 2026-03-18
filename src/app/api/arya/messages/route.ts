@@ -56,7 +56,7 @@ export async function POST(req: NextRequest) {
   if (!user) return unauthorized();
 
   const body = await req.json();
-  const { conversation_id, role, content } = body;
+  const { conversation_id, role, content, is_voice } = body;
 
   if (!conversation_id || !role || !content) {
     return NextResponse.json({ success: false, error: 'conversation_id, role, content required' }, { status: 400 });
@@ -74,6 +74,7 @@ export async function POST(req: NextRequest) {
       user_id: user.id,
       role,
       content,
+      is_voice_message: !!is_voice,
     })
     .select()
     .single();
@@ -87,15 +88,16 @@ export async function POST(req: NextRequest) {
   await supabase
     .from('arya_conversations')
     .update({
-      message_count: supabase.rpc ? undefined : undefined, // handled below
       updated_at: new Date().toISOString(),
     })
     .eq('id', conversation_id);
 
   // Increment message_count via raw update
-  await supabase.rpc('increment_message_count', { conv_id: conversation_id }).catch(() => {
+  try {
+    await supabase.rpc('increment_message_count', { conv_id: conversation_id });
+  } catch {
     // If RPC doesn't exist, just update timestamp
-  });
+  }
 
   return NextResponse.json({ success: true, data: msg });
 }
@@ -135,6 +137,19 @@ export async function PATCH(req: NextRequest) {
 
     if (error) {
       return NextResponse.json({ success: false, error: 'Failed to clear chat' }, { status: 500 });
+    }
+    return NextResponse.json({ success: true });
+  }
+
+  if (action === 'rate_message' && message_id && typeof body.rating !== 'undefined') {
+    const { error } = await supabase
+      .from('arya_messages')
+      .update({ rating: body.rating })
+      .eq('id', message_id)
+      .eq('user_id', user.id);
+
+    if (error) {
+      return NextResponse.json({ success: false, error: 'Failed to rate message' }, { status: 500 });
     }
     return NextResponse.json({ success: true });
   }

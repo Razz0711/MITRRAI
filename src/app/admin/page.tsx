@@ -40,8 +40,11 @@ interface RecentUser {
   department: string;
   year_level: string;
   created_at: string;
+  last_active_at?: string;
   aryaMessageCount?: number;
+  aryaVoiceCount?: number;
   anonMessageCount?: number;
+  reportCount?: number;
 }
 
 interface FeedbackItem {
@@ -408,6 +411,8 @@ export default function AdminDashboardPage() {
                 <th className="pb-2 pr-4">Email</th>
                 <th className="pb-2 pr-4 text-center">Arya Chats</th>
                 <th className="pb-2 pr-4 text-center">Anon Posts</th>
+                <th className="pb-2 pr-4 text-center">Reports</th>
+                <th className="pb-2 pr-4">Last Active</th>
                 <th className="pb-2">Joined</th>
               </tr>
             </thead>
@@ -420,7 +425,7 @@ export default function AdminDashboardPage() {
                   <td className="py-2.5 pr-4 text-[var(--muted)] select-all">{u.email}</td>
                   <td className="py-2.5 pr-4 text-center">
                     <span className="inline-block px-2 text-[10px] font-bold bg-[#D4AF37]/10 text-[#D4AF37] rounded-full">
-                      {u.aryaMessageCount || 0}
+                      {u.aryaMessageCount || 0} {u.aryaVoiceCount ? `(🎤 ${u.aryaVoiceCount})` : ''}
                     </span>
                   </td>
                   <td className="py-2.5 pr-4 text-center">
@@ -428,7 +433,19 @@ export default function AdminDashboardPage() {
                       {u.anonMessageCount || 0}
                     </span>
                   </td>
-                  <td className="py-2.5 text-[var(--muted)]">{new Date(u.created_at).toLocaleDateString()}</td>
+                  <td className="py-2.5 pr-4 text-center">
+                    {(u.reportCount || 0) > 0 ? (
+                      <span className="inline-block px-2 text-[10px] font-bold bg-red-500/10 text-red-500 rounded-full">
+                        {u.reportCount}
+                      </span>
+                    ) : (
+                      <span className="text-[var(--muted)]/50">-</span>
+                    )}
+                  </td>
+                  <td className="py-2.5 pr-4 text-[var(--muted)] whitespace-nowrap">
+                    {u.last_active_at ? new Date(u.last_active_at).toLocaleDateString() : 'Never'}
+                  </td>
+                  <td className="py-2.5 text-[var(--muted)] whitespace-nowrap">{new Date(u.created_at).toLocaleDateString()}</td>
                 </tr>
               ))}
               {(allUsers || recentUsers).filter(u => !userQuery || u.name.toLowerCase().includes(userQuery.toLowerCase()) || u.email.toLowerCase().includes(userQuery.toLowerCase())).length === 0 && (

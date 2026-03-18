@@ -93,6 +93,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         localStorage.setItem('mitrrai_student_id', u.id);
         localStorage.setItem('mitrrai_student_name', u.name);
         localStorage.setItem('mitrrai_session', JSON.stringify(u));
+        
+        // Update last_active_at for DAU tracking
+        fetch('/api/auth/ping', { method: 'POST' }).catch(() => {});
       }
       setIsLoading(false);
     });
@@ -106,6 +109,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           localStorage.setItem('mitrrai_student_id', u.id);
           localStorage.setItem('mitrrai_student_name', u.name);
           localStorage.setItem('mitrrai_session', JSON.stringify(u));
+
+          if (_event === 'SIGNED_IN') {
+            fetch('/api/auth/ping', { method: 'POST' }).catch(() => {});
+          }
         } else {
           setUser(null);
           localStorage.removeItem('mitrrai_student_id');

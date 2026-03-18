@@ -26,10 +26,10 @@ export async function GET(req: NextRequest) {
 
     if (error) throw error;
 
-    // 2. Fetch all Arya messages (just user_id to count) to see who's talking to Arya
+    // 2. Fetch all Arya messages with voice flag to count
     const { data: aryaMessages } = await supabase
       .from('arya_messages')
-      .select('user_id')
+      .select('user_id, is_voice_message')
       .eq('role', 'user');
 
     // 3. Fetch all Anon messages (just sender_id)
@@ -37,11 +37,18 @@ export async function GET(req: NextRequest) {
       .from('anon_messages')
       .select('sender_id');
 
+    // 4. Fetch Anon reports to see who's getting reported
+    const { data: anonReports } = await supabase
+      .from('anon_reports')
+      .select('reported_user_id');
+
     // Calculate aggregations
-    const aryaCounts: Record<string, number> = {};
+    const aryaCounts: Record<string, { total: number, voice: number }> = {};
     if (aryaMessages) {
       for (const msg of aryaMessages) {
-        aryaCounts[msg.user_id] = (aryaCounts[msg.user_id] || 0) + 1;
+        if (!aryaCounts[msg.user_id]) aryaCounts[msg.user_id] = { total: 0, voice: 0 };
+        aryaCounts[msg.user_id].total++;
+        if (msg.is_voice_message) aryaCounts[msg.user_id].voice++;
       }
     }
 
@@ -52,11 +59,20 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    const reportCounts: Record<string, number> = {};
+    if (anonReports) {
+      for (const rep of anonReports) {
+        reportCounts[rep.reported_user_id] = (reportCounts[rep.reported_user_id] || 0) + 1;
+      }
+    }
+
     // Merge into user data
     const enrichedData = (students || []).map(student => ({
       ...student,
-      aryaMessageCount: aryaCounts[student.id] || 0,
+      aryaMessageCount: aryaCounts[student.id]?.total || 0,
+      aryaVoiceCount: aryaCounts[student.id]?.voice || 0,
       anonMessageCount: anonCounts[student.id] || 0,
+      reportCount: reportCounts[student.id] || 0,
     }));
 
     return NextResponse.json({ success: true, data: enrichedData });

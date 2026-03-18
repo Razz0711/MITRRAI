@@ -20,7 +20,7 @@
 import { useState, useRef, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
-import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Share2, Star, MessageCircle, Crown } from 'lucide-react';
+import { ArrowLeft, Send, MoreVertical, Trash2, X, Phone, PhoneOff, Mic, Share2, Star, MessageCircle, Crown, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 import { useChatStability } from '@/hooks/useChatStability';
 
@@ -29,6 +29,7 @@ interface Message {
   role: 'user' | 'assistant';
   content: string;
   created_at: string;
+  rating?: number;
 }
 
 export default function AryaChatPage() {
@@ -83,6 +84,7 @@ export default function AryaChatPage() {
           role: m.role,
           content: m.content,
           created_at: m.created_at,
+          rating: m.rating,
         })));
       }
     } catch (err) {
@@ -96,13 +98,13 @@ export default function AryaChatPage() {
   }, [initConversation]);
 
   // Persist message to DB
-  const persistMessage = async (role: 'user' | 'assistant', content: string): Promise<Message | null> => {
+  const persistMessage = async (role: 'user' | 'assistant', content: string, isVoice = false): Promise<Message | null> => {
     if (!conversationId) return null;
     try {
       const res = await fetch('/api/arya/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversation_id: conversationId, role, content }),
+        body: JSON.stringify({ conversation_id: conversationId, role, content, is_voice: isVoice }),
       });
       const data = await res.json();
       if (data.success && data.data) {
@@ -111,6 +113,7 @@ export default function AryaChatPage() {
           role: data.data.role,
           content: data.data.content,
           created_at: data.data.created_at,
+          rating: data.data.rating,
         };
       }
     } catch (err) {
@@ -313,7 +316,7 @@ export default function AryaChatPage() {
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, userMsg]);
-    persistMessage('user', text).catch(() => {});
+    persistMessage('user', text, true).catch(() => {});
 
     // Call Arya API
     const result = await callAryaAPI(conversationId, text, 1);
@@ -332,7 +335,7 @@ export default function AryaChatPage() {
       created_at: new Date().toISOString(),
     };
     setMessages(prev => [...prev, aryaMsg]);
-    persistMessage('assistant', responseText).catch(() => {});
+    persistMessage('assistant', responseText, true).catch(() => {});
 
     // Speak the response
     setCallStatus('speaking');
@@ -392,6 +395,20 @@ export default function AryaChatPage() {
       setMessages(prev => prev.filter(m => m.id !== msgId));
     } catch (err) {
       console.error('Delete message error:', err);
+    }
+  };
+
+  const handleRateMessage = async (msgId: string, rating: number) => {
+    // Optimistic update
+    setMessages(prev => prev.map(m => m.id === msgId ? { ...m, rating } : m));
+    try {
+      await fetch('/api/arya/messages', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'rate_message', message_id: msgId, rating }),
+      });
+    } catch (err) {
+      console.error('Rate message error:', err);
     }
   };
 
@@ -520,9 +537,29 @@ export default function AryaChatPage() {
                 </div>
                 <div className={`flex items-center gap-1.5 mt-1 ${msg.role === 'user' ? 'justify-end' : ''}`}>
                   <p className="text-[9px] text-[var(--muted)]">{formatTime(msg.created_at)}</p>
+                  
+                  {msg.role === 'assistant' && (
+                    <div className="flex items-center gap-1 ml-1 opacity-60">
+                      <button 
+                        onClick={() => handleRateMessage(msg.id, 1)}
+                        className={`p-0.5 rounded transition-all hover:text-green-400 hover:scale-110 ${msg.rating === 1 ? 'text-green-500 scale-110 opacity-100' : 'text-[var(--muted)] hover:opacity-100'}`}
+                        title="Good Response"
+                      >
+                        <ThumbsUp size={11} fill={msg.rating === 1 ? 'currentColor' : 'none'} />
+                      </button>
+                      <button 
+                        onClick={() => handleRateMessage(msg.id, -1)}
+                        className={`p-0.5 rounded transition-all hover:text-red-400 hover:scale-110 ${msg.rating === -1 ? 'text-red-500 scale-110 opacity-100' : 'text-[var(--muted)] hover:opacity-100'}`}
+                        title="Bad Response"
+                      >
+                        <ThumbsDown size={11} fill={msg.rating === -1 ? 'currentColor' : 'none'} />
+                      </button>
+                    </div>
+                  )}
+
                   <button
                     onClick={() => setMenuMsgId(menuMsgId === msg.id ? null : msg.id)}
-                    className="text-[var(--muted)] opacity-0 hover:opacity-100 transition-opacity p-0.5"
+                    className="text-[var(--muted)] opacity-0 hover:opacity-100 transition-opacity p-0.5 ml-1"
                   >
                     <MoreVertical size={10} />
                   </button>
