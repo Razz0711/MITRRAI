@@ -21,7 +21,10 @@ export async function POST(req: NextRequest) {
   const apiKey = process.env.GROK_API_KEY;
   if (!apiKey) {
     console.error('GROK_API_KEY not set');
-    return NextResponse.json({ success: false, error: 'GROK_API_KEY not configured' }, { status: 500 });
+    return NextResponse.json({
+      success: true,
+      data: { response: 'arre yaar, abhi thoda issue aa raha hai 🙏 thodi der mein try karna!' }
+    });
   }
 
   // Initialize OpenAI client pointing to xAI
@@ -184,10 +187,10 @@ export async function POST(req: NextRequest) {
     });
 
   } catch (error: any) {
-    console.error('Arya API Error:', error);
-    return NextResponse.json({ 
-      success: false, 
-      error: 'sorry yaar, thoda busy hoon 🙏 ek min mein try karna' 
-    }, { status: 500 });
+    console.error('Arya API Error:', error?.message || error);
+    return NextResponse.json({
+      success: true,
+      data: { response: 'arre yaar, abhi thoda issue aa raha hai 🙏 thodi der mein try karna!' }
+    });
   }
 }
