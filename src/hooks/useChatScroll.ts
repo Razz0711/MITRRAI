@@ -1,38 +1,40 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 
 /**
- * useChatScroll — Auto-scroll to bottom on new messages
- * Prevents scroll jump by only scrolling when user is near bottom
+ * useChatScroll — Smart scroll-to-bottom for chat pages.
+ *
+ * - On page load: instant scroll to bottom
+ * - On new message sent: smooth scroll to bottom
+ * - On new message received: only if user was already near bottom
+ * - If user scrolls up: don't force them down
+ *
+ * Returns { containerRef, bottomRef, scrollToBottom, forceScrollToBottom, handleScroll }
  */
-export function useChatScroll(deps: unknown[]) {
-  const bottomRef = useRef<HTMLDivElement>(null);
+export function useChatScroll(deps: unknown[] = []) {
   const containerRef = useRef<HTMLDivElement>(null);
+  const bottomRef = useRef<HTMLDivElement>(null);
+  const userAtBottom = useRef(true);
 
-  const scrollToBottom = useCallback((smooth = true) => {
-    if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({
-        behavior: smooth ? 'smooth' : 'auto',
-        block: 'end',
-      });
+  const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    if (userAtBottom.current) {
+      bottomRef.current?.scrollIntoView({ behavior });
     }
   }, []);
 
-  const isNearBottom = useCallback(() => {
+  const forceScrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
+    userAtBottom.current = true;
+    bottomRef.current?.scrollIntoView({ behavior });
+  }, []);
+
+  const handleScroll = useCallback(() => {
     const el = containerRef.current;
-    if (!el) return true;
-    const threshold = 150;
-    return el.scrollHeight - el.scrollTop - el.clientHeight < threshold;
+    if (!el) return;
+    userAtBottom.current = el.scrollHeight - el.scrollTop - el.clientHeight < 120;
   }, []);
 
-  useEffect(() => {
-    // Only auto-scroll if user is near bottom
-    if (isNearBottom()) {
-      // Small delay to let DOM render
-      const id = requestAnimationFrame(() => scrollToBottom());
-      return () => cancelAnimationFrame(id);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  // Auto-scroll when deps change (e.g. messages array)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { scrollToBottom('smooth'); }, deps);
 
-  return { bottomRef, containerRef, scrollToBottom, isNearBottom };
+  return { containerRef, bottomRef, scrollToBottom, forceScrollToBottom, handleScroll, userAtBottom };
 }

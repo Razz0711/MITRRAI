@@ -1,17 +1,20 @@
 // ============================================
 // MitrRAI - Anonymous Chat Room Page
-// Real-time messaging, reveal, report, block
+// WhatsApp-style rewrite: 100dvh, flex layout,
+// React.memo bubbles, textarea, smart scroll
 // ============================================
 
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { useAuth } from '@/lib/auth';
 import { useRouter, useParams } from 'next/navigation';
 import { ROOM_TYPES } from '@/lib/anon-aliases';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
 import { useChatStability } from '@/hooks/useChatStability';
+import { useChatScroll } from '@/hooks/useChatScroll';
+import { ArrowLeft, Send, MoreVertical } from 'lucide-react';
 
 interface AnonMsg {
   id: string;
@@ -33,6 +36,45 @@ interface RoomData {
   messageCount: number;
 }
 
+/* ─── Memoized Message Bubble ─── */
+const AnonBubble = memo(function AnonBubble({
+  msg, isMe,
+}: {
+  msg: AnonMsg;
+  isMe: boolean;
+}) {
+  return (
+    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+      <div
+        style={{ maxWidth: '75%', wordBreak: 'break-word', overflowWrap: 'break-word' }}
+      >
+        {/* Alias label */}
+        <div className={`text-[10px] mb-0.5 ${isMe ? 'text-right text-[#7c71ff]' : 'text-left text-purple-400'}`}>
+          {msg.alias}
+        </div>
+        {/* Bubble */}
+        <div
+          className="px-3 py-2 whitespace-pre-wrap"
+          style={{
+            background: isMe ? '#7c71ff' : '#1e1e1e',
+            color: '#fff',
+            fontSize: '14px',
+            lineHeight: '1.45',
+            borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+          }}
+        >
+          {msg.text}
+          <div className={`flex items-center mt-1 ${isMe ? 'justify-end' : ''}`}>
+            <span style={{ fontSize: '10px', color: isMe ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)' }}>
+              {new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+            </span>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+});
+
 export default function AnonChatRoomPage() {
   const { user, isLoading: authLoading } = useAuth();
   const router = useRouter();
@@ -53,32 +95,26 @@ export default function AnonChatRoomPage() {
   const [error, setError] = useState('');
   const [closed, setClosed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
   const pollMsgRef = useRef<NodeJS.Timeout | null>(null);
+
+  const { containerRef, bottomRef, forceScrollToBottom, handleScroll, userAtBottom } = useChatScroll([messages, sending]);
 
   // Load room data
   const loadRoom = useCallback(async () => {
     try {
       const res = await fetch(`/api/anon/${roomId}`);
       const json = await res.json();
-      if (!json.success) {
-        setError(json.error || 'Room not found');
-        return;
-      }
+      if (!json.success) { setError(json.error || 'Room not found'); return; }
       setData(json.data);
       setMessages(json.data.messages);
       if (json.data.room.status === 'closed') setClosed(true);
-    } catch {
-      setError('Failed to load room');
-    }
+    } catch { setError('Failed to load room'); }
   }, [roomId]);
 
   useEffect(() => {
     if (!user) return;
     loadRoom();
-
-    // Poll for new messages every 3 seconds as fallback for realtime
     pollMsgRef.current = setInterval(async () => {
       try {
         const res = await fetch(`/api/anon/${roomId}`);
@@ -92,384 +128,223 @@ export default function AnonChatRoomPage() {
           });
           if (json.data.room.status === 'closed') setClosed(true);
         }
-      } catch { /* ignore polling errors */ }
+      } catch { /* ignore */ }
     }, 3000);
-
-    return () => {
-      if (pollMsgRef.current) clearInterval(pollMsgRef.current);
-    };
+    return () => { if (pollMsgRef.current) clearInterval(pollMsgRef.current); };
   }, [user, loadRoom, roomId]);
 
   // Realtime subscription
   useEffect(() => {
     if (!roomId) return;
-
     const channel = supabaseBrowser
       .channel(`anon-room-${roomId}`)
-      .on(
-        'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'anon_messages', filter: `room_id=eq.${roomId}` },
-        (payload) => {
-          const row = payload.new;
-          const msg: AnonMsg = {
-            id: row.id,
-            roomId: row.room_id,
-            senderId: row.sender_id,
-            alias: row.alias,
-            text: row.text,
-            createdAt: row.created_at,
-          };
-          // 🔊 Play sound for incoming messages from partner
-          if (msg.senderId !== user?.id) {
-            playSound('message');
-          }
-          setMessages(prev => {
-            // Skip if we already have this message (by real id or if it matches an optimistic one)
-            if (prev.some(m => m.id === msg.id)) return prev;
-            // Replace optimistic message if this is the same text from same sender
-            const optimisticIndex = prev.findIndex(
-              m => m.id.startsWith('optimistic_') && m.senderId === msg.senderId && m.text === msg.text
-            );
-            if (optimisticIndex >= 0) {
-              const updated = [...prev];
-              updated[optimisticIndex] = msg;
-              return updated;
-            }
-            return [...prev, msg];
-          });
-        },
-      )
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'anon_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
+        const row = payload.new;
+        const msg: AnonMsg = { id: row.id, roomId: row.room_id, senderId: row.sender_id, alias: row.alias, text: row.text, createdAt: row.created_at };
+        if (msg.senderId !== user?.id) playSound('message');
+        setMessages(prev => {
+          if (prev.some(m => m.id === msg.id)) return prev;
+          const oi = prev.findIndex(m => m.id.startsWith('optimistic_') && m.senderId === msg.senderId && m.text === msg.text);
+          if (oi >= 0) { const u = [...prev]; u[oi] = msg; return u; }
+          return [...prev, msg];
+        });
+      })
       .subscribe();
-
     return () => { supabaseBrowser.removeChannel(channel); };
   }, [playSound, roomId, user?.id]);
 
-  // Auto-scroll
-  useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  }, [messages]);
+  // Initial scroll
+  useEffect(() => { setTimeout(() => forceScrollToBottom('instant'), 150); }, [forceScrollToBottom]);
 
   const sendMessage = async () => {
     if (!newMsg.trim() || sending || !data) return;
     const text = newMsg.trim();
     setSending(true);
     setNewMsg('');
-    inputRef.current?.focus();
+    if (textareaRef.current) textareaRef.current.style.height = '40px';
+    userAtBottom.current = true;
 
-    // Optimistically add message to UI immediately
-    const optimisticMsg: AnonMsg = {
-      id: `optimistic_${Date.now()}`,
-      roomId,
-      senderId: user!.id,
-      alias: data.myAlias,
-      text,
-      createdAt: new Date().toISOString(),
-    };
+    const optimisticMsg: AnonMsg = { id: `optimistic_${Date.now()}`, roomId, senderId: user!.id, alias: data.myAlias, text, createdAt: new Date().toISOString() };
     setMessages(prev => [...prev, optimisticMsg]);
 
     try {
-      const res = await fetch(`/api/anon/${roomId}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'message', text }),
-      });
+      const res = await fetch(`/api/anon/${roomId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'message', text }) });
       const json = await res.json();
       if (json.success && json.data) {
-        // Replace optimistic message with the real one from server
-        setMessages(prev =>
-          prev.map(m => m.id === optimisticMsg.id
-            ? { ...json.data, roomId: json.data.roomId || roomId }
-            : m
-          )
-        );
+        setMessages(prev => prev.map(m => m.id === optimisticMsg.id ? { ...json.data, roomId: json.data.roomId || roomId } : m));
       }
-    } catch { /* optimistic message stays visible */ }
+    } catch { /* optimistic stays */ }
     setSending(false);
   };
 
   const handleReveal = async () => {
-    const res = await fetch(`/api/anon/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'reveal' }),
-    });
+    const res = await fetch(`/api/anon/${roomId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'reveal' }) });
     const json = await res.json();
-    if (json.success) {
-      setShowReveal(false);
-      loadRoom(); // Refresh to get updated state
-    }
+    if (json.success) { setShowReveal(false); loadRoom(); }
   };
 
   const handleReport = async () => {
     if (!reportReason.trim()) return;
-    await fetch(`/api/anon/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'report', reason: reportReason.trim() }),
-    });
-    setShowReport(false);
-    setReportReason('');
+    await fetch(`/api/anon/${roomId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'report', reason: reportReason.trim() }) });
+    setShowReport(false); setReportReason('');
   };
 
   const handleBlock = async () => {
-    await fetch(`/api/anon/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'block' }),
-    });
-    setShowBlockConfirm(false);
-    setClosed(true);
+    await fetch(`/api/anon/${roomId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'block' }) });
+    setShowBlockConfirm(false); setClosed(true);
   };
 
   const handleClose = async () => {
     if (!confirm('Leave this anonymous chat? Messages will be lost.')) return;
-    await fetch(`/api/anon/${roomId}`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'close' }),
-    });
+    await fetch(`/api/anon/${roomId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'close' }) });
     setClosed(true);
   };
 
-  // Close menu when tapping outside
   useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (menuRef.current && !menuRef.current.contains(e.target as Node)) {
-        setShowMenu(false);
-      }
-    };
+    const handleClickOutside = (e: MouseEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setShowMenu(false); };
     if (showMenu) document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMenu]);
 
-  if (authLoading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  /* ─── Textarea auto-resize ─── */
+  const handleTextareaChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    setNewMsg(e.target.value);
+    const ta = e.target;
+    ta.style.height = '40px';
+    ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+  };
 
-  if (!user) {
-    return <div className="min-h-screen flex items-center justify-center"><p className="text-[var(--muted)]">Please log in</p></div>;
-  }
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  };
 
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center flex-col gap-4">
-        <p className="text-[var(--error)]">{error}</p>
-        <button onClick={() => router.push('/anon')} className="btn-primary text-sm px-4 py-2">Back to Lobby</button>
-      </div>
-    );
-  }
-
-  if (!data) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="w-8 h-8 border-2 border-[var(--primary)] border-t-transparent rounded-full animate-spin" />
-      </div>
-    );
-  }
+  if (authLoading) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>;
+  if (!user) return <div className="min-h-screen flex items-center justify-center"><p className="text-white/40">Please log in</p></div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center flex-col gap-4"><p className="text-red-400">{error}</p><button onClick={() => router.push('/anon')} className="px-4 py-2 bg-purple-600 text-white rounded-xl text-sm">Back to Lobby</button></div>;
+  if (!data) return <div className="min-h-screen flex items-center justify-center"><div className="w-8 h-8 border-2 border-purple-500 border-t-transparent rounded-full animate-spin" /></div>;
 
   const roomType = ROOM_TYPES.find(r => r.id === data.room.roomType);
   const isRevealed = data.room.status === 'revealed';
   const canReveal = messages.length >= 10 && !isRevealed;
 
   return (
-    <div className="chat-container overflow-x-hidden">
-      {/* Header */}
-      <div className="fixed top-14 left-0 right-0 z-40 bg-[var(--background)]/90 backdrop-blur-md border-b border-[var(--border)]">
-        <div className="max-w-2xl mx-auto px-4 py-2 flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <button onClick={() => router.push('/anon')} className="text-[var(--muted)] hover:text-[var(--foreground)] text-sm">
-              ← Back
-            </button>
-            <span className="text-xs font-semibold" style={{ color: roomType?.color || 'var(--primary)' }}>{roomType?.label?.charAt(0) || 'R'}</span>
-            <div>
-              <div className="text-xs font-semibold text-[var(--foreground)]">{roomType?.label}</div>
-              <div className="text-[10px] text-[var(--muted)]">
-                You: <span className="text-[var(--primary)]">{data.myAlias}</span>
-                {' · '}
-                Partner: <span className="text-purple-400">
-                  {isRevealed && data.partnerRealInfo ? `${data.partnerRealInfo.name} (${data.partnerRealInfo.department})` : data.partnerAlias}
-                </span>
-              </div>
-            </div>
-          </div>
-          <div className="flex items-center gap-1">
-            {canReveal && (
-              <button
-                onClick={() => setShowReveal(true)}
-                className="text-[10px] px-2 py-1 rounded-md bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors"
-              >
-                {data.myRevealConsent ? '✓ Reveal sent' : 'Reveal'}
-              </button>
-            )}
-            {isRevealed && (
-              <span className="text-[10px] px-2 py-1 rounded-md bg-green-500/20 text-green-400">
-                ✓ Revealed
-              </span>
-            )}
-            {/* ⋯ Menu (replaces exposed report/block buttons) */}
-            <div className="relative" ref={menuRef}>
-              <button
-                onClick={() => setShowMenu(!showMenu)}
-                className="text-lg px-2 py-1 rounded-md text-[var(--muted)] hover:bg-[var(--surface-light)] transition-colors"
-                title="More options"
-              >
-                ⋯
-              </button>
-              {showMenu && (
-                <div className="absolute right-0 top-full mt-1 w-48 rounded-xl bg-[var(--surface)] border border-[var(--border)] shadow-lg overflow-hidden z-50">
-                  <button
-                    onClick={() => { setShowMenu(false); setShowReport(true); }}
-                    className="w-full px-4 py-3 text-left text-sm text-[var(--foreground)] hover:bg-[var(--surface-light)] transition-colors flex items-center gap-2"
-                  >
-                    Report User
-                  </button>
-                  <button
-                    onClick={() => { setShowMenu(false); setShowBlockConfirm(true); }}
-                    className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors flex items-center gap-2 border-t border-[var(--border)]"
-                  >
-                    Block & Leave
-                  </button>
-                  <button
-                    onClick={() => { setShowMenu(false); handleClose(); }}
-                    className="w-full px-4 py-3 text-left text-sm text-[var(--muted)] hover:bg-[var(--surface-light)] transition-colors flex items-center gap-2 border-t border-[var(--border)]"
-                  >
-                    Leave Chat
-                  </button>
-                </div>
-              )}
-            </div>
-          </div>
+    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', position: 'fixed', inset: 0, zIndex: 30 }}>
+      {/* ─── Header ─── */}
+      <div className="shrink-0 flex items-center gap-2 px-3 py-2.5" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <button onClick={() => router.push('/anon')} className="p-1.5 rounded-lg text-white/50 hover:text-white transition-colors">
+          <ArrowLeft size={20} />
+        </button>
+        <span className="text-xs font-bold" style={{ color: roomType?.color || '#7c71ff' }}>{roomType?.label?.charAt(0) || 'R'}</span>
+        <div className="flex-1 min-w-0">
+          <p className="text-[14px] font-bold text-white leading-tight truncate">{roomType?.label}</p>
+          <p className="text-[10px] text-white/35 truncate">
+            You: <span className="text-[#7c71ff]">{data.myAlias}</span>
+            {' · '}
+            Partner: <span className="text-purple-400">
+              {isRevealed && data.partnerRealInfo ? `${data.partnerRealInfo.name} (${data.partnerRealInfo.department})` : data.partnerAlias}
+            </span>
+          </p>
         </div>
-      </div>
-
-      {/* Messages */}
-      <div className="chat-messages pt-28 pb-24 px-4">
-        <div className="max-w-2xl mx-auto space-y-3">
-          {/* System message */}
-          <div className="text-center py-4">
-            <p className="text-xs text-[var(--muted)] bg-[var(--surface)] inline-block px-3 py-1 rounded-full">
-              {roomType?.label} — Chat started. Be kind & respectful.
-            </p>
-          </div>
-
-          {messages.map(msg => {
-            const isMe = msg.senderId === user.id;
-            return (
-              <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-[75%] ${isMe ? 'order-2' : ''}`}>
-                  <div className={`text-[10px] mb-0.5 ${isMe ? 'text-right text-[var(--primary)]' : 'text-left text-purple-400'}`}>
-                    {msg.alias}
-                  </div>
-                  <div className={`px-3 py-2 rounded-2xl text-sm ${
-                    isMe
-                      ? 'bg-[var(--primary)] text-white rounded-tr-sm'
-                      : 'bg-[var(--surface-light)] text-[var(--foreground)] rounded-tl-sm'
-                  }`}>
-                    {msg.text}
-                  </div>
-                  <div className={`text-[9px] text-[var(--muted)] mt-0.5 ${isMe ? 'text-right' : 'text-left'}`}>
-                    {new Date(msg.createdAt).toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-
-          {closed && (
-            <div className="text-center py-4">
-              <p className="text-xs text-[var(--error)] bg-[var(--surface)] inline-block px-3 py-1 rounded-full">
-                This chat has ended
-              </p>
-              <button
-                onClick={() => router.push('/anon')}
-                className="block mx-auto mt-3 btn-primary text-xs px-4 py-2"
-              >
-                Back to Lobby
-              </button>
-            </div>
+        <div className="flex items-center gap-1">
+          {canReveal && (
+            <button onClick={() => setShowReveal(true)} className="text-[10px] px-2 py-1 rounded-lg bg-green-500/20 text-green-400 hover:bg-green-500/30 transition-colors">
+              {data.myRevealConsent ? '✓ Reveal sent' : 'Reveal'}
+            </button>
           )}
-
-          <div ref={messagesEndRef} />
+          {isRevealed && <span className="text-[10px] px-2 py-1 rounded-lg bg-green-500/20 text-green-400">✓ Revealed</span>}
+          <div className="relative" ref={menuRef}>
+            <button onClick={() => setShowMenu(!showMenu)} className="p-2 rounded-xl text-white/40 hover:text-white transition-colors">
+              <MoreVertical size={18} />
+            </button>
+            {showMenu && (
+              <div className="absolute right-0 top-full mt-1 w-48 rounded-2xl z-50 overflow-hidden" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)' }}>
+                <button onClick={() => { setShowMenu(false); setShowReport(true); }} className="w-full px-4 py-3 text-left text-sm text-white hover:bg-white/[0.04] transition-colors">Report User</button>
+                <button onClick={() => { setShowMenu(false); setShowBlockConfirm(true); }} className="w-full px-4 py-3 text-left text-sm text-red-400 hover:bg-red-500/10 transition-colors border-t border-white/[0.06]">Block & Leave</button>
+                <button onClick={() => { setShowMenu(false); handleClose(); }} className="w-full px-4 py-3 text-left text-sm text-white/50 hover:bg-white/[0.04] transition-colors border-t border-white/[0.06]">Leave Chat</button>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 
-      {/* Input bar */}
-      {!closed && (
-        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[var(--background)] border-t border-[var(--border)]" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="max-w-2xl mx-auto px-4 py-3 flex gap-2">
-            <input
-              ref={inputRef}
-              type="text"
-              value={newMsg}
-              onChange={e => setNewMsg(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && !e.shiftKey && sendMessage()}
-              placeholder="Type a message..."
-              maxLength={1000}
-              enterKeyHint="send"
-              autoComplete="off"
-              className="flex-1 px-3 py-2 rounded-xl border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)]"
-            />
-            <button
-              onClick={sendMessage}
-              disabled={!newMsg.trim() || sending}
-              className="px-4 py-2 rounded-xl bg-[var(--primary)] text-white text-sm font-medium disabled:opacity-40 hover:opacity-90 transition-opacity"
-            >
-              Send
-            </button>
+      {/* ─── Messages ─── */}
+      <div ref={containerRef} onScroll={handleScroll} className="flex-1 overflow-y-auto px-3 py-3" style={{ overscrollBehavior: 'contain' }}>
+        {/* System message */}
+        <div className="text-center py-3 mb-2">
+          <p className="text-[10px] text-white/30 inline-block px-3 py-1 rounded-full" style={{ background: '#141414' }}>
+            {roomType?.label} — Chat started. Be kind & respectful.
+          </p>
+        </div>
+
+        {messages.map(msg => (
+          <AnonBubble key={msg.id} msg={msg} isMe={msg.senderId === user.id} />
+        ))}
+
+        {closed && (
+          <div className="text-center py-4">
+            <p className="text-xs text-red-400 inline-block px-3 py-1 rounded-full" style={{ background: '#141414' }}>This chat has ended</p>
+            <button onClick={() => router.push('/anon')} className="block mx-auto mt-3 px-4 py-2 bg-purple-600 text-white rounded-xl text-xs">Back to Lobby</button>
           </div>
+        )}
+        <div ref={bottomRef} />
+      </div>
+
+      {/* ─── Input Bar ─── */}
+      {!closed && (
+        <div className="shrink-0 flex items-end gap-2 px-3 py-2" style={{ background: '#111111', borderTop: '1px solid rgba(255,255,255,0.06)', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 8px)' }}>
+          <textarea
+            ref={textareaRef}
+            value={newMsg}
+            onChange={handleTextareaChange}
+            onKeyDown={handleKeyDown}
+            placeholder="Type a message..."
+            maxLength={1000}
+            rows={1}
+            className="flex-1 resize-none bg-[#1e1e1e] text-white text-sm placeholder:text-white/30 rounded-2xl px-4 py-2.5 outline-none border border-white/8 focus:border-[#7c71ff]/50 transition-colors"
+            style={{ minHeight: '40px', maxHeight: '160px', lineHeight: '1.4' }}
+          />
+          <button
+            onClick={sendMessage}
+            disabled={!newMsg.trim() || sending}
+            className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center transition-all active:scale-90 disabled:opacity-30"
+            style={{ background: '#7c71ff' }}
+          >
+            <Send size={16} className="text-white" />
+          </button>
         </div>
       )}
 
-      {/* Block Confirmation Modal */}
+      {/* ─── Block Confirmation ─── */}
       {showBlockConfirm && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Block User</h3>
-            <p className="text-sm text-[var(--muted)] mb-4">
-              Are you sure you want to block this user? This will close the chat and they won&apos;t be matched with you again.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <h3 className="text-lg font-bold text-white mb-2">Block User</h3>
+            <p className="text-sm text-white/40 mb-4">Are you sure? This will close the chat and they won&apos;t be matched with you again.</p>
             <div className="flex gap-2">
-              <button onClick={() => setShowBlockConfirm(false)} className="flex-1 py-2.5 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">
-                Cancel
-              </button>
-              <button
-                onClick={handleBlock}
-                className="flex-1 py-2.5 rounded-lg bg-red-600 text-white text-sm font-medium hover:bg-red-700 transition-colors"
-              >
-                Block User
-              </button>
+              <button onClick={() => setShowBlockConfirm(false)} className="flex-1 py-2.5 rounded-xl text-sm text-white bg-white/5 border border-white/8">Cancel</button>
+              <button onClick={handleBlock} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-500 text-white">Block</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* Reveal Modal */}
+      {/* ─── Reveal Modal ─── */}
       {showReveal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Reveal Identity</h3>
-            <p className="text-sm text-[var(--muted)] mb-4">
-              Both of you must consent. Once both agree, your real names will be shown.
-              You need at least 10 messages in this chat.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <h3 className="text-lg font-bold text-white mb-2">Reveal Identity</h3>
+            <p className="text-sm text-white/40 mb-4">Both must consent. Once both agree, real names are shown. 10+ messages required.</p>
             <div className="flex items-center gap-3 mb-4 text-sm">
-              <div className={`px-3 py-1 rounded-full text-xs ${data.myRevealConsent ? 'bg-green-500/20 text-green-400' : 'bg-[var(--surface)] text-[var(--muted)]'}`}>
+              <div className={`px-3 py-1 rounded-full text-xs ${data.myRevealConsent ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-white/40'}`}>
                 You: {data.myRevealConsent ? '✓ Ready' : 'Not yet'}
               </div>
-              <div className={`px-3 py-1 rounded-full text-xs ${data.partnerRevealConsent ? 'bg-green-500/20 text-green-400' : 'bg-[var(--surface)] text-[var(--muted)]'}`}>
+              <div className={`px-3 py-1 rounded-full text-xs ${data.partnerRevealConsent ? 'bg-green-500/20 text-green-400' : 'bg-white/5 text-white/40'}`}>
                 Partner: {data.partnerRevealConsent ? '✓ Ready' : 'Not yet'}
               </div>
             </div>
             <div className="flex gap-2">
-              <button onClick={() => setShowReveal(false)} className="flex-1 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
-              <button
-                onClick={handleReveal}
-                className="flex-1 py-2 rounded-lg bg-green-600 text-white text-sm font-medium hover:bg-green-700 transition-colors"
-              >
+              <button onClick={() => setShowReveal(false)} className="flex-1 py-2.5 rounded-xl text-sm text-white bg-white/5 border border-white/8">Cancel</button>
+              <button onClick={handleReveal} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-green-600 text-white">
                 {data.myRevealConsent ? 'Withdraw Consent' : 'I Agree to Reveal'}
               </button>
             </div>
@@ -477,18 +352,16 @@ export default function AnonChatRoomPage() {
         </div>
       )}
 
-      {/* Report Modal */}
+      {/* ─── Report Modal ─── */}
       {showReport && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm p-4">
-          <div className="bg-[var(--background)] border border-[var(--border)] rounded-2xl p-6 max-w-sm w-full">
-            <h3 className="text-lg font-bold text-[var(--foreground)] mb-2">Report User</h3>
-            <p className="text-sm text-[var(--muted)] mb-4">
-              Help keep the community safe. False reports may result in your own ban.
-            </p>
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 p-4">
+          <div className="rounded-2xl p-6 max-w-sm w-full" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <h3 className="text-lg font-bold text-white mb-2">Report User</h3>
+            <p className="text-sm text-white/40 mb-4">Help keep the community safe. False reports may result in your own ban.</p>
             <select
               value={reportReason}
               onChange={e => setReportReason(e.target.value)}
-              className="w-full px-3 py-2 rounded-lg border border-[var(--border)] bg-[var(--surface)] text-[var(--foreground)] text-sm mb-4"
+              className="w-full px-3 py-2 rounded-xl border border-white/8 bg-[#1e1e1e] text-white text-sm mb-4"
             >
               <option value="">Select a reason...</option>
               <option value="harassment">Harassment or bullying</option>
@@ -499,14 +372,8 @@ export default function AnonChatRoomPage() {
               <option value="other">Other</option>
             </select>
             <div className="flex gap-2">
-              <button onClick={() => { setShowReport(false); setReportReason(''); }} className="flex-1 py-2 rounded-lg border border-[var(--border)] text-[var(--muted)] text-sm">Cancel</button>
-              <button
-                onClick={handleReport}
-                disabled={!reportReason}
-                className="flex-1 py-2 rounded-lg bg-red-600 text-white text-sm font-medium disabled:opacity-40 hover:bg-red-700 transition-colors"
-              >
-                Submit Report
-              </button>
+              <button onClick={() => { setShowReport(false); setReportReason(''); }} className="flex-1 py-2.5 rounded-xl text-sm text-white bg-white/5 border border-white/8">Cancel</button>
+              <button onClick={handleReport} disabled={!reportReason} className="flex-1 py-2.5 rounded-xl text-sm font-semibold bg-red-500 text-white disabled:opacity-40">Submit</button>
             </div>
           </div>
         </div>

@@ -14,6 +14,7 @@ import { DirectMessage, ChatThread, UserStatus, StudentProfile, MatchResult } fr
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
 import { useChatStability } from '@/hooks/useChatStability';
+import { useChatScroll } from '@/hooks/useChatScroll';
 
 import {
   Search,
@@ -103,9 +104,9 @@ export default function ChatPage() {
   const [profilePopup, setProfilePopup] = useState<string | null>(null);
   const [showDiscoverSheet, setShowDiscoverSheet] = useState(false);
   const [discoverSearch, setDiscoverSearch] = useState('');
-  const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { containerRef: chatScrollRef, bottomRef: messagesEndRef, handleScroll: handleChatScroll, forceScrollToBottom, userAtBottom } = useChatScroll([messages]);
 
   const COMMON_EMOJIS = ['😊','😂','❤️','🔥','👍','😭','🥺','😍','🙏','💕','✨','😅','🤔','💜','👀','🎉','😎','🥰','💪','😢','🤣','😘','🙈','👏','💯','😳','🤗','✌️','💀','🫶','😌','🤝','🫣','👋','😤','🥵','❤️‍🔥','🤭','😏','💔'];
 
@@ -209,7 +210,7 @@ export default function ChatPage() {
 
   useEffect(()=>{ loadThreads(); loadStudents(); loadFriends(); loadMatchScores(); }, [loadThreads, loadStudents, loadFriends, loadMatchScores]);
   useEffect(()=>{ if(selectedChatId){ loadMessages(); markRead(); } }, [selectedChatId, loadMessages, markRead]);
-  useEffect(()=>{ messagesEndRef.current?.scrollIntoView({behavior:'smooth'}); }, [messages]);
+  // Smart scroll is handled by useChatScroll hook
 
   // Realtime
   useEffect(() => {
@@ -472,41 +473,50 @@ export default function ChatPage() {
               </div>
 
               {/* Messages */}
-              <div className="flex-1 overflow-y-auto px-4 py-3 chat-message-pane">
+              <div ref={chatScrollRef} onScroll={handleChatScroll} className="flex-1 overflow-y-auto px-4 py-3 chat-message-pane" style={{ overscrollBehavior: 'contain' }}>
                 {messages.length === 0 ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <p className="text-sm font-semibold text-[var(--muted)] mb-2">No messages yet</p>
-                      <p className="text-xs text-[var(--muted)]">Say hi to {chatOtherName.split(' ')[0]}!</p>
+                      <p className="text-sm font-semibold text-white/40 mb-2">No messages yet</p>
+                      <p className="text-xs text-white/25">Say hi to {chatOtherName.split(' ')[0]}!</p>
                     </div>
                   </div>
                 ) : (
                   messagesByDate.map(group => (
                     <div key={group.date}>
                       <div className="flex items-center justify-center my-4">
-                        <span className="px-3 py-1 rounded-full text-[10px] font-medium text-[var(--muted)]" style={{background:'var(--surface)',border:'1px solid var(--glass-border)'}}>
+                        <span className="px-3 py-1 rounded-full text-[10px] font-medium text-white/30" style={{background:'#141414',border:'1px solid rgba(255,255,255,0.06)'}}>
                           {getDateLabel(group.msgs[0].createdAt)}
                         </span>
                       </div>
                       {group.date===messagesByDate[0]?.date && getMatchContext() && (
-                        <div className="mx-auto max-w-md mb-4 px-4 py-3 rounded-xl" style={{background:'var(--surface)',border:'1px solid var(--glass-border)'}}>
+                        <div className="mx-auto max-w-md mb-4 px-4 py-3 rounded-xl" style={{background:'#141414',border:'1px solid rgba(255,255,255,0.06)'}}>
                           <p className="text-[9px] font-bold uppercase tracking-wider text-violet-400 mb-1">Match Context</p>
-                          <p className="text-xs text-[var(--foreground)]">{getMatchContext()}</p>
+                          <p className="text-xs text-white">{getMatchContext()}</p>
                         </div>
                       )}
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         {group.msgs.map(msg => {
                           const isMine = msg.senderId === studentId;
                           return (
-                            <div key={msg.id} className={`flex ${isMine?'justify-end':'justify-start'} group`}>
+                            <div key={msg.id} className={`flex ${isMine?'justify-end':'justify-start'} group mb-1`}>
                               {isMine && (
-                                <button onClick={()=>handleDeleteMessage(msg.id)} className="opacity-40 md:opacity-0 md:group-hover:opacity-100 transition-opacity self-center mr-1 text-red-400 hover:text-red-500 text-xs px-1.5 py-0.5 rounded hover:bg-red-500/10" title="Delete">✕</button>
+                                <button onClick={()=>handleDeleteMessage(msg.id)} className="opacity-0 group-hover:opacity-60 transition-opacity self-center mr-1 text-red-400 hover:text-red-500 text-xs px-1 py-0.5 rounded hover:bg-red-500/10" title="Delete">✕</button>
                               )}
-                              <div className={`w-fit inline-block max-w-[85%] px-3 py-1.5 rounded-2xl text-sm ${isMine?'bg-[var(--primary)] text-white rounded-br-md':'bg-[var(--surface-light)] text-[var(--foreground)] rounded-bl-md border border-[var(--glass-border)]'}`}>
-                                <p className="break-words whitespace-pre-wrap">{msg.text}</p>
+                              <div className="px-3 py-2" style={{
+                                maxWidth: '75%',
+                                wordBreak: 'break-word',
+                                overflowWrap: 'break-word',
+                                background: isMine ? '#7c71ff' : '#1e1e1e',
+                                color: '#fff',
+                                fontSize: '14px',
+                                lineHeight: '1.45',
+                                borderRadius: isMine ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                              }}>
+                                <p className="whitespace-pre-wrap">{msg.text}</p>
                                 <div className={`flex items-center gap-1 mt-1 ${isMine?'justify-end':'justify-start'}`}>
-                                  <span className={`text-[10px] ${isMine?'text-white/60':'text-[var(--muted)]'}`}>{formatMessageTime(msg.createdAt)}</span>
-                                  {isMine && <span className="text-[10px] text-white/60">{msg.read?'✓✓':'✓'}</span>}
+                                  <span style={{ fontSize: '10px', color: isMine ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)' }}>{formatMessageTime(msg.createdAt)}</span>
+                                  {isMine && <span style={{ fontSize: '10px', color: 'rgba(255,255,255,0.5)' }}>{msg.read?'✓✓':'✓'}</span>}
                                 </div>
                               </div>
                             </div>
@@ -529,13 +539,13 @@ export default function ChatPage() {
               )}
 
               {/* Input */}
-              <div className="p-3 border-t border-[var(--border)] bg-[color-mix(in_srgb,var(--background)_96%,transparent)]">
+              <div className="p-3" style={{ background: '#111111', borderTop: '1px solid rgba(255,255,255,0.06)' }}>
                 {/* Emoji Picker */}
                 {emojiOpen && (
-                  <div className="mb-2 p-2 rounded-xl border border-[var(--glass-border)] bg-[var(--surface)]">
+                  <div className="mb-2 p-2 rounded-xl" style={{ background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.06)' }}>
                     <div className="grid grid-cols-10 gap-1">
                       {COMMON_EMOJIS.map(emoji => (
-                        <button key={emoji} onClick={() => insertEmoji(emoji)} className="w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-[var(--surface-light)] transition-colors active:scale-90">
+                        <button key={emoji} onClick={() => insertEmoji(emoji)} className="w-8 h-8 rounded-lg flex items-center justify-center text-lg hover:bg-white/[0.04] transition-colors active:scale-90">
                           {emoji}
                         </button>
                       ))}
@@ -543,11 +553,27 @@ export default function ChatPage() {
                   </div>
                 )}
                 <input ref={fileInputRef} type="file" className="hidden" onChange={handleFileSelect} />
-                <form onSubmit={e=>{e.preventDefault();sendMessage();}} className="flex items-center gap-2">
-                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-[var(--muted)] hover:text-[var(--foreground)] transition-colors p-1" title="Attach file"><Paperclip size={18}/></button>
-                  <button type="button" onClick={() => setEmojiOpen(!emojiOpen)} className={`transition-colors p-1 ${emojiOpen ? 'text-[var(--primary)]' : 'text-[var(--muted)] hover:text-[var(--foreground)]'}`} title="Emoji"><Smile size={18}/></button>
-                  <input ref={inputRef} type="text" value={newMsg} onChange={e=>setNewMsg(e.target.value)} placeholder="Type a message..." className="flex-1 input-field text-sm py-2.5" disabled={sending} autoFocus />
-                  <button type="submit" disabled={!newMsg.trim()||sending} className="w-10 h-10 rounded-xl flex items-center justify-center text-white transition-all disabled:opacity-40" style={{background:'linear-gradient(135deg, var(--primary), #6d28d9)'}}>
+                <form onSubmit={e=>{ e.preventDefault(); sendMessage(); }} className="flex items-end gap-2">
+                  <button type="button" onClick={() => fileInputRef.current?.click()} className="text-white/30 hover:text-white transition-colors p-1 mb-2" title="Attach file"><Paperclip size={18}/></button>
+                  <button type="button" onClick={() => setEmojiOpen(!emojiOpen)} className={`transition-colors p-1 mb-2 ${emojiOpen ? 'text-[#7c71ff]' : 'text-white/30 hover:text-white'}`} title="Emoji"><Smile size={18}/></button>
+                  <textarea
+                    ref={inputRef}
+                    value={newMsg}
+                    onChange={e => {
+                      setNewMsg(e.target.value);
+                      const ta = e.target;
+                      ta.style.height = '40px';
+                      ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+                    }}
+                    onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                    placeholder="Type a message..."
+                    rows={1}
+                    disabled={sending}
+                    autoFocus
+                    className="flex-1 resize-none bg-[#1e1e1e] text-white text-sm placeholder:text-white/30 rounded-2xl px-4 py-2.5 outline-none border border-white/8 focus:border-[#7c71ff]/50 transition-colors"
+                    style={{ minHeight: '40px', maxHeight: '160px', lineHeight: '1.4' }}
+                  />
+                  <button type="submit" disabled={!newMsg.trim()||sending} className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white transition-all active:scale-90 disabled:opacity-30 mb-0" style={{ background: '#7c71ff' }}>
                     {sending ? <span className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"/> : <Send size={16}/>}
                   </button>
                 </form>

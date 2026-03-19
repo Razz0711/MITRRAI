@@ -10,7 +10,8 @@ import { useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import CallRoom from '@/components/CallRoom';
-import { Phone } from 'lucide-react';
+import { Phone, ArrowLeft, Send } from 'lucide-react';
+import { useChatStability } from '@/hooks/useChatStability';
 
 interface RoomMsg {
   id: string;
@@ -52,6 +53,8 @@ export default function RoomDetailPage() {
   const [inCall, setInCall] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval>>();
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  useChatStability();
 
   const myName = user?.email?.split('@')[0] || 'Student';
 
@@ -160,7 +163,7 @@ export default function RoomDetailPage() {
   // Full-screen call mode
   if (inCall) {
     return (
-      <div className="h-[calc(100vh-60px)]">
+      <div style={{ height: 'calc(100dvh - 60px)' }}>
         <CallRoom
           roomName={`room_${id}`}
           displayName={user?.name || myName}
@@ -171,7 +174,7 @@ export default function RoomDetailPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[1fr_250px] gap-4 h-[calc(100vh-120px)]">
+    <div className="max-w-5xl mx-auto p-4 md:p-6 grid grid-cols-1 md:grid-cols-[1fr_250px] gap-4" style={{ height: 'calc(100dvh - 120px)' }}>
       {/* Main Chat Area */}
       <div className="flex flex-col bg-[var(--surface)] rounded-xl border border-[var(--border)] overflow-hidden">
         {/* Room Header */}
@@ -214,33 +217,27 @@ export default function RoomDetailPage() {
         {/* Messages */}
         {isMember ? (
           <>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 min-h-0">
+             <div className="flex-1 overflow-y-auto p-4 space-y-1 min-h-0" style={{ overscrollBehavior: 'contain' }}>
               {messages.length === 0 ? (
-                <p className="text-center text-[var(--muted)] py-8">
-                  No messages yet. Start the conversation! 💬
-                </p>
+                <p className="text-center text-white/30 py-8">No messages yet. Start the conversation! 💬</p>
               ) : (
                 messages.map((msg) => {
                   const isMe = msg.senderId === user?.id;
                   return (
-                    <div
-                      key={msg.id}
-                      className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                    >
-                      <div
-                        className={`w-fit inline-block max-w-[85%] px-3 py-1.5 rounded-2xl ${
-                          isMe
-                            ? 'bg-[var(--primary)] text-white rounded-br-md'
-                            : 'bg-[var(--surface-light)] text-[var(--foreground)] rounded-bl-md'
-                        }`}
-                      >
-                        {!isMe && (
-                          <p className="text-xs font-semibold text-[var(--primary-light)] mb-0.5">
-                            {msg.senderName}
-                          </p>
-                        )}
-                        <p className="text-sm">{msg.text}</p>
-                        <p className={`text-[10px] mt-1 ${isMe ? 'text-white/60' : 'text-[var(--muted)]'}`}>
+                    <div key={msg.id} className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+                      <div className="px-3 py-2" style={{
+                        maxWidth: '75%',
+                        wordBreak: 'break-word',
+                        overflowWrap: 'break-word',
+                        background: isMe ? '#7c71ff' : '#1e1e1e',
+                        color: '#fff',
+                        fontSize: '14px',
+                        lineHeight: '1.45',
+                        borderRadius: isMe ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+                      }}>
+                        {!isMe && <p className="text-xs font-semibold text-purple-400 mb-0.5">{msg.senderName}</p>}
+                        <p className="whitespace-pre-wrap">{msg.text}</p>
+                        <p className="mt-1" style={{ fontSize: '10px', color: isMe ? 'rgba(255,255,255,0.5)' : 'rgba(255,255,255,0.3)' }}>
                           {new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
                         </p>
                       </div>
@@ -252,20 +249,29 @@ export default function RoomDetailPage() {
             </div>
 
             {/* Input */}
-            <div className="p-3 border-t border-[var(--border)] flex gap-2">
-              <input
+            <div className="p-3 border-t border-white/[0.06] flex items-end gap-2" style={{ background: '#111111' }}>
+              <textarea
+                ref={textareaRef}
                 value={text}
-                onChange={(e) => setText(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && !e.shiftKey && handleSend()}
+                onChange={e => {
+                  setText(e.target.value);
+                  const ta = e.target;
+                  ta.style.height = '40px';
+                  ta.style.height = Math.min(ta.scrollHeight, 160) + 'px';
+                }}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
                 placeholder="Type a message..."
-                className="flex-1 px-4 py-2 rounded-full border border-[var(--border)] bg-[var(--surface-light)] text-[var(--foreground)] text-sm placeholder:text-[var(--muted)]"
+                rows={1}
+                className="flex-1 resize-none bg-[#1e1e1e] text-white text-sm placeholder:text-white/30 rounded-2xl px-4 py-2.5 outline-none border border-white/8 focus:border-[#7c71ff]/50 transition-colors"
+                style={{ minHeight: '40px', maxHeight: '160px', lineHeight: '1.4' }}
               />
               <button
                 onClick={handleSend}
                 disabled={sending || !text.trim()}
-                className="px-5 py-2 bg-[var(--primary)] text-white rounded-full text-sm font-medium hover:bg-[#6d28d9] disabled:opacity-50"
+                className="w-10 h-10 shrink-0 rounded-full flex items-center justify-center text-white transition-all active:scale-90 disabled:opacity-30"
+                style={{ background: '#7c71ff' }}
               >
-                Send
+                <Send size={16} />
               </button>
             </div>
           </>
