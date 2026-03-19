@@ -143,7 +143,37 @@ export default function AryaChatPage() {
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const userIsAtBottomRef = useRef(true);
 
-  useChatStability();
+  /* ─── Body scroll lock (prevents page jump on keyboard open) ─── */
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, []);
+
+  /* ─── visualViewport keyboard handler ─── */
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const handleResize = () => {
+      const root = document.getElementById('chat-root');
+      if (!root) return;
+      root.style.height = viewport.height + 'px';
+      root.style.top = viewport.offsetTop + 'px';
+      // Auto-scroll to bottom when keyboard opens
+      bottomRef.current?.scrollIntoView({ behavior: 'instant', block: 'end' });
+    };
+    viewport.addEventListener('resize', handleResize);
+    viewport.addEventListener('scroll', handleResize);
+    return () => {
+      viewport.removeEventListener('resize', handleResize);
+      viewport.removeEventListener('scroll', handleResize);
+    };
+  }, []);
 
   /* ─── Smart auto-scroll ─── */
   const scrollToBottom = useCallback((behavior: ScrollBehavior = 'smooth') => {
@@ -414,12 +444,17 @@ export default function AryaChatPage() {
   /* ═══════════════ RENDER ═══════════════ */
   return (
     <div
-      className="flex flex-col"
+      id="chat-root"
       style={{
-        height: 'calc(var(--vh, 1vh) * 100)',
-        maxHeight: '100dvh',
-        background: '#090909',
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        right: 0,
+        bottom: 0,
+        display: 'flex',
+        flexDirection: 'column',
         overflow: 'hidden',
+        background: '#090909',
       }}
     >
       {/* ─── Header ─── */}

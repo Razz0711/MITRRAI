@@ -83,6 +83,36 @@ export default function AnonChatRoomPage() {
   const { play: playSound } = useNotificationSound();
   useChatStability();
 
+  /* ─── Body scroll lock ─── */
+  useEffect(() => {
+    document.body.style.overflow = 'hidden';
+    document.body.style.position = 'fixed';
+    document.body.style.width = '100%';
+    return () => {
+      document.body.style.overflow = '';
+      document.body.style.position = '';
+      document.body.style.width = '';
+    };
+  }, []);
+
+  /* ─── visualViewport keyboard handler ─── */
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return;
+    const handleResize = () => {
+      const root = document.getElementById('chat-root');
+      if (!root) return;
+      root.style.height = viewport.height + 'px';
+      root.style.top = viewport.offsetTop + 'px';
+    };
+    viewport.addEventListener('resize', handleResize);
+    viewport.addEventListener('scroll', handleResize);
+    return () => {
+      viewport.removeEventListener('resize', handleResize);
+      viewport.removeEventListener('scroll', handleResize);
+    };
+  }, []);
+
   const [data, setData] = useState<RoomData | null>(null);
   const [messages, setMessages] = useState<AnonMsg[]>([]);
   const [newMsg, setNewMsg] = useState('');
@@ -228,7 +258,7 @@ export default function AnonChatRoomPage() {
   const canReveal = messages.length >= 10 && !isRevealed;
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', overflow: 'hidden' }}>
+    <div id="chat-root" className="flex flex-col" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#090909', overflow: 'hidden' }}>
       {/* ─── Header ─── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-2.5" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => router.push('/anon')} className="p-1 -ml-1 text-white hover:bg-white/10 rounded-full transition-colors">
