@@ -228,7 +228,7 @@ export default function AnonChatRoomPage() {
   const canReveal = messages.length >= 10 && !isRevealed;
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', position: 'fixed', inset: 0, zIndex: 30 }}>
+    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', overflow: 'hidden' }}>
       {/* ─── Header ─── */}
       <div className="shrink-0 flex items-center gap-2 px-3 py-2.5" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => router.push('/anon')} className="p-1 -ml-1 text-white hover:bg-white/10 rounded-full transition-colors">

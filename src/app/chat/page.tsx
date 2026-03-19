@@ -222,7 +222,7 @@ function ChatContent() {
   // We rewrite this into a clean list view.
   if (!selectedChatId) {
     return (
-      <div className="flex flex-col bg-[#090909]" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', position: 'fixed', inset: 0, zIndex: 30 }}>
+      <div className="flex flex-col bg-[#090909]" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', overflow: 'hidden' }}>
         <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
           <button onClick={() => router.push('/friends')} className="text-white">
             <ArrowLeft size={24} />
@@ -310,7 +310,7 @@ function ChatContent() {
   };
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', position: 'fixed', inset: 0, zIndex: 30 }}>
+    <div className="flex flex-col" style={{ height: 'calc(var(--vh, 1vh) * 100)', maxHeight: '100dvh', background: '#090909', overflow: 'hidden' }}>
       {/* ─── Header ─── */}
       <div className="shrink-0 flex items-center gap-3 px-4 py-2" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <button onClick={() => setSelectedChatId(null)} className="text-white p-1 -ml-1 hover:bg-white/10 rounded-full transition-colors">

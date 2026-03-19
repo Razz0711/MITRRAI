@@ -419,9 +419,7 @@ export default function AryaChatPage() {
         height: 'calc(var(--vh, 1vh) * 100)',
         maxHeight: '100dvh',
         background: '#090909',
-        position: 'fixed',
-        inset: 0,
-        zIndex: 30,
+        overflow: 'hidden',
       }}
     >
       {/* ─── Header ─── */}
