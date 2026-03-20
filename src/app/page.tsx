@@ -61,7 +61,7 @@ export default function Home() {
             </p>
 
             <p className="text-sm text-[var(--muted)] mb-10 max-w-md mx-auto leading-relaxed slide-up-stagger-2">
-              Chat with Arya AI, meet strangers anonymously, post on campus feed, rate professors, go live on radar — everything a SVNIT student needs, in one app.
+              Chat with Arya AI, meet strangers anonymously, post on campus feed, go live on radar — everything a SVNIT student needs, in one app.
             </p>
 
             {/* CTAs */}
@@ -98,7 +98,7 @@ export default function Home() {
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
             <StepCard step={1} icon={<MessageCircle size={20} />} title="Create Account" description="Sign up with your SVNIT email. Quick AI onboarding learns your subjects, schedule, and goals." color="var(--primary)" />
-            <StepCard step={2} icon={<Sparkles size={20} />} title="Explore Features" description="Chat with Arya AI, post on campus feed, join anonymous rooms, rate professors, and more." color="var(--accent)" />
+            <StepCard step={2} icon={<Sparkles size={20} />} title="Explore Features" description="Chat with Arya AI, post on campus feed, join anonymous rooms, and more." color="var(--accent)" />
             <StepCard step={3} icon={<Zap size={20} />} title="Connect & Grow" description="Match with study buddies, join circles, go live on radar, and become part of the SVNIT community." color="var(--success)" />
           </div>
         </div>
