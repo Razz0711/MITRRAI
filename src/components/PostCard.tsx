@@ -1,7 +1,10 @@
 'use client';
 
-import { Sparkles, MoreHorizontal, Trash2, Flag, Users, MessageCircle, Zap } from 'lucide-react';
+import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
+import { Sparkles, MoreHorizontal, Trash2, Flag, Users, MessageCircle, Zap, Send, X, ChevronDown, ChevronUp } from 'lucide-react';
 import Avatar from './Avatar';
+import { useAuth } from '@/lib/auth';
 
 interface PostCardProps {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -19,6 +22,21 @@ interface PostCardProps {
   isOlder?: boolean;
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   categories: any[];
+}
+
+interface InterestedUser {
+  id: string;
+  name: string;
+  department?: string;
+  year_level?: string;
+}
+
+interface Comment {
+  id: string;
+  user_id: string;
+  user_name: string;
+  content: string;
+  created_at: string;
 }
 
 function timeAgo(dateStr: string): string {
@@ -51,25 +69,32 @@ function formatDistance(meters: number): string {
   return `${(meters / 1000).toFixed(1)}km away`;
 }
 
-// Category → accent color for the left border
 function getCategoryAccent(categoryId: string, isSos?: boolean): string {
   if (isSos) return '#ef4444';
   const map: Record<string, string> = {
-    study: '#3b82f6',
-    sports: '#22c55e',
-    hangout: '#f59e0b',
-    food: '#f97316',
-    creative: '#a855f7',
-    fitness: '#06b6d4',
-    talk: '#ec4899',
-    sos: '#ef4444',
+    study: '#3b82f6', sports: '#22c55e', hangout: '#f59e0b', food: '#f97316',
+    creative: '#a855f7', fitness: '#06b6d4', talk: '#ec4899', sos: '#ef4444',
   };
   return map[categoryId] || '#7c3aed';
 }
 
+const AVATAR_COLORS = [
+  'from-violet-600 to-purple-700','from-emerald-600 to-teal-700','from-blue-600 to-indigo-700','from-pink-600 to-rose-700',
+  'from-amber-600 to-orange-700','from-cyan-600 to-sky-700',
+];
+function avatarGradient(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
+
 export default function PostCard({
-  post, userLat, userLng, userId, onReact, menuPostId, setMenuPostId, deleteConfirm: _deleteConfirm, setDeleteConfirm, onDelete: _onDelete, isSos, isOlder, categories
+  post, userLat, userLng, userId, onReact, menuPostId, setMenuPostId,
+  deleteConfirm: _deleteConfirm, setDeleteConfirm, onDelete: _onDelete, isSos, isOlder, categories
 }: PostCardProps) {
+  const router = useRouter();
+  const { user } = useAuth();
+
   const freshness = getFreshness(post.createdAt);
   const isOwn = post.userId === userId;
   const distance = (userLat && userLng && post.lat && post.lng) ? haversineDistance(userLat, userLng, post.lat, post.lng) : null;
@@ -79,8 +104,74 @@ export default function PostCard({
   const iminCount = post.reactions?.imin ?? 0;
   const connectCount = post.reactions?.connect ?? 0;
   const iminActive = post.myReactions?.includes('imin');
-  const replyActive = post.myReactions?.includes('reply');
   const connectActive = post.myReactions?.includes('connect');
+
+  // "I'm in" interested viewers (post author only)
+  const [showInterested, setShowInterested] = useState(false);
+  const [interestedUsers, setInterestedUsers] = useState<InterestedUser[]>([]);
+  const [interestedLoading, setInterestedLoading] = useState(false);
+
+  // Comments (Reply)
+  const [showComments, setShowComments] = useState(false);
+  const [comments, setComments] = useState<Comment[]>([]);
+  const [commentsLoading, setCommentsLoading] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [commentsSeen, setCommentsSeen] = useState(false);
+
+  const handleIminClick = useCallback(async () => {
+    if (isOwn && iminCount > 0) {
+      // Post author → show who's interested
+      setShowInterested(prev => !prev);
+      if (!showInterested && interestedUsers.length === 0) {
+        setInterestedLoading(true);
+        try {
+          const res = await fetch(`/api/feed/${post.id}?action=imin_users`);
+          const data = await res.json();
+          if (data.success) setInterestedUsers(data.data);
+        } catch { /* ignore */ } finally { setInterestedLoading(false); }
+      }
+    } else {
+      // Other user → toggle interest
+      onReact(post.id, 'imin');
+    }
+  }, [isOwn, iminCount, showInterested, interestedUsers.length, post.id, onReact]);
+
+  const handleConnectClick = useCallback(() => {
+    // Always record the reaction
+    onReact(post.id, 'connect');
+    // Navigate to chat if non-anonymous and has a userId
+    if (!post.isAnonymous && post.userId) {
+      router.push(`/chat?friendId=${encodeURIComponent(post.userId)}&friendName=${encodeURIComponent(post.userName || 'Student')}`);
+    }
+  }, [post.id, post.isAnonymous, post.userId, post.userName, onReact, router]);
+
+  const handleReplyClick = useCallback(async () => {
+    setShowComments(prev => !prev);
+    if (!commentsSeen) {
+      setCommentsSeen(true);
+      setCommentsLoading(true);
+      try {
+        const res = await fetch(`/api/feed/${post.id}?action=comments`);
+        const data = await res.json();
+        if (data.success) setComments(data.data);
+      } catch { /* ignore */ } finally { setCommentsLoading(false); }
+    }
+  }, [commentsSeen, post.id]);
+
+  const handleAddComment = async () => {
+    if (!commentText.trim() || !user) return;
+    const text = commentText.trim();
+    setCommentText('');
+    try {
+      const res = await fetch(`/api/feed/${post.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'comment', content: text }),
+      });
+      const data = await res.json();
+      if (data.success) setComments(prev => [...prev, data.data]);
+    } catch { /* ignore */ }
+  };
 
   return (
     <div
@@ -93,7 +184,7 @@ export default function PostCard({
           : `var(--shadow-card)`,
       }}
     >
-      {/* Fresh pulse line at top */}
+      {/* Fresh pulse line */}
       {freshness === 'fresh' && !isSos && (
         <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, #22c55e, transparent)' }} />
       )}
@@ -156,14 +247,8 @@ export default function PostCard({
         {/* Category tags */}
         <div className="flex flex-wrap gap-1.5">
           {catInfo && (
-            <span
-              className="px-2 py-0.5 rounded-lg text-[11px] font-semibold"
-              style={{
-                background: `${accentColor}18`,
-                color: accentColor,
-                border: `1px solid ${accentColor}30`,
-              }}
-            >
+            <span className="px-2 py-0.5 rounded-lg text-[11px] font-semibold"
+              style={{ background: `${accentColor}18`, color: accentColor, border: `1px solid ${accentColor}30` }}>
               {catInfo.emoji} {catInfo.label}
             </span>
           )}
@@ -177,37 +262,43 @@ export default function PostCard({
         {/* Content */}
         <p className="text-sm text-[var(--foreground)] leading-relaxed">{post.content}</p>
 
-        {/* Divider + action row */}
+        {/* Action row */}
         <div className="flex items-center gap-1 pt-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+
           {/* I'm in */}
           <button
-            onClick={() => onReact(post.id, 'imin')}
+            onClick={handleIminClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ${
-              iminActive
+              isOwn && iminCount > 0
+                ? 'bg-emerald-500/15 text-emerald-400 border border-emerald-500/20'
+                : iminActive
                 ? 'bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/30'
                 : 'text-[var(--muted-strong)] hover:bg-white/6 hover:text-[var(--foreground)]'
             }`}
           >
             <Users size={12} />
-            {iminCount > 0 ? iminCount : "I'm in"}
+            {isOwn && iminCount > 0
+              ? `${iminCount} interested ${showInterested ? '▲' : '▼'}`
+              : iminCount > 0 ? iminCount : "I'm in"}
           </button>
 
           {/* Reply */}
           <button
-            onClick={() => onReact(post.id, 'reply')}
+            onClick={handleReplyClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ${
-              replyActive
+              showComments
                 ? 'bg-blue-500/20 text-blue-400'
                 : 'text-[var(--muted-strong)] hover:bg-white/6 hover:text-[var(--foreground)]'
             }`}
           >
             <MessageCircle size={12} />
-            Reply
+            {comments.length > 0 ? comments.length : 'Reply'}
+            {showComments ? <ChevronUp size={11} /> : <ChevronDown size={11} />}
           </button>
 
           {/* Connect */}
           <button
-            onClick={() => onReact(post.id, 'connect')}
+            onClick={handleConnectClick}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ml-auto ${
               connectActive
                 ? 'bg-green-500/20 text-green-400'
@@ -215,9 +306,90 @@ export default function PostCard({
             }`}
           >
             <Zap size={12} />
-            {connectCount > 0 ? `${connectCount} connected` : 'Connect'}
+            {post.isAnonymous ? 'Anonymous' : connectCount > 0 ? `${connectCount} connect` : 'Connect'}
           </button>
         </div>
+
+        {/* ─── Interested Users Panel (post author only) ─── */}
+        {isOwn && showInterested && (
+          <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-3 space-y-2">
+            <div className="flex items-center justify-between mb-1">
+              <p className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider">Interested People</p>
+              <button onClick={() => setShowInterested(false)} className="text-[var(--muted)] hover:text-[var(--foreground)]">
+                <X size={13} />
+              </button>
+            </div>
+            {interestedLoading && <p className="text-xs text-[var(--muted)] text-center py-2">Loading…</p>}
+            {!interestedLoading && interestedUsers.length === 0 && (
+              <p className="text-xs text-[var(--muted)] text-center py-2">No one yet</p>
+            )}
+            {interestedUsers.map(u => (
+              <div key={u.id} className="flex items-center gap-2.5">
+                <div className={`w-8 h-8 rounded-full bg-gradient-to-br ${avatarGradient(u.name)} flex items-center justify-center text-white text-xs font-bold shrink-0`}>
+                  {u.name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-semibold text-[var(--foreground)] truncate">{u.name}</p>
+                  <p className="text-[10px] text-[var(--muted)] truncate">{[u.department, u.year_level].filter(Boolean).join(' · ')}</p>
+                </div>
+                <button
+                  onClick={() => router.push(`/chat?friendId=${encodeURIComponent(u.id)}&friendName=${encodeURIComponent(u.name)}`)}
+                  className="px-2 py-1 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/20 hover:bg-blue-500/25 transition-all shrink-0"
+                >
+                  💬 Chat
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* ─── Comments Section ─── */}
+        {showComments && (
+          <div className="rounded-xl border border-white/8 bg-white/3 p-3 space-y-2.5">
+            <p className="text-[11px] font-bold text-[var(--muted)] uppercase tracking-wider">Replies</p>
+
+            {commentsLoading && <p className="text-xs text-[var(--muted)] text-center py-2">Loading…</p>}
+
+            {!commentsLoading && comments.length === 0 && (
+              <p className="text-xs text-[var(--muted)] text-center py-1">Be the first to reply!</p>
+            )}
+
+            {comments.map(c => (
+              <div key={c.id} className="flex gap-2">
+                <div className={`w-6 h-6 rounded-full bg-gradient-to-br ${avatarGradient(c.user_name)} flex items-center justify-center text-white text-[9px] font-bold shrink-0 mt-0.5`}>
+                  {c.user_name.charAt(0).toUpperCase()}
+                </div>
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-baseline gap-1.5">
+                    <span className="text-[11px] font-semibold text-[var(--foreground)]">{c.user_name}</span>
+                    <span className="text-[9px] text-[var(--muted)]">{timeAgo(c.created_at)}</span>
+                  </div>
+                  <p className="text-xs text-[var(--foreground)] leading-relaxed">{c.content}</p>
+                </div>
+              </div>
+            ))}
+
+            {/* Comment input */}
+            <div className="flex gap-2 items-center pt-1 border-t border-white/6">
+              <input
+                type="text"
+                value={commentText}
+                onChange={e => setCommentText(e.target.value)}
+                onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleAddComment(); } }}
+                placeholder="Write a reply…"
+                maxLength={200}
+                className="flex-1 bg-transparent text-xs text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none"
+              />
+              <button
+                onClick={handleAddComment}
+                disabled={!commentText.trim()}
+                className="p-1.5 rounded-lg bg-[var(--primary)]/20 text-[var(--primary-light)] hover:bg-[var(--primary)]/30 disabled:opacity-40 transition-all"
+              >
+                <Send size={12} />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
