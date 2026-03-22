@@ -21,6 +21,8 @@ interface StudyRoom {
   maxMembers: number;
   status: string;
   createdAt: string;
+  durationMinutes: number;
+  expiresAt: string;
 }
 
 interface Circle {
@@ -44,6 +46,7 @@ export default function RoomsPage() {
   const [roomTopic, setRoomTopic] = useState('');
   const [roomDesc, setRoomDesc] = useState('');
   const [roomMax, setRoomMax] = useState(5);
+  const [roomDuration, setRoomDuration] = useState(60);
   const [roomCircle, setRoomCircle] = useState('');
   const [creating, setCreating] = useState(false);
 
@@ -86,6 +89,7 @@ export default function RoomsPage() {
           creatorId: user.id,
           creatorName: user.email?.split('@')[0] || 'Student',
           maxMembers: roomMax,
+          durationMinutes: roomDuration,
           circleId: roomCircle || '',
         }),
       });
@@ -96,6 +100,7 @@ export default function RoomsPage() {
         setRoomTopic('');
         setRoomDesc('');
         setRoomMax(5);
+        setRoomDuration(60);
         setRoomCircle('');
         await loadRooms();
       }
@@ -117,6 +122,25 @@ export default function RoomsPage() {
     return `${days}d ago`;
   };
 
+  const timeLeft = (expiresAt: string): { label: string; urgent: boolean } => {
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    if (diff <= 0) return { label: 'Expired', urgent: true };
+    const mins = Math.floor(diff / 60000);
+    if (mins < 5) return { label: `${mins}m left`, urgent: true };
+    if (mins < 60) return { label: `${mins}m left`, urgent: false };
+    const hrs = Math.floor(mins / 60);
+    const rem = mins % 60;
+    return { label: rem > 0 ? `${hrs}h ${rem}m left` : `${hrs}h left`, urgent: false };
+  };
+
+  const DURATION_OPTIONS = [
+    { value: 30, label: '30 min' },
+    { value: 60, label: '1 hour' },
+    { value: 120, label: '2 hours' },
+    { value: 180, label: '3 hours' },
+    { value: 240, label: '4 hours' },
+  ];
+
   if (loading) {
     return (
       <div className="max-w-2xl mx-auto px-4 py-6">
@@ -125,7 +149,9 @@ export default function RoomsPage() {
     );
   }
 
-  const displayRooms = tab === 'mine' ? myRooms : rooms;
+  const now = Date.now();
+  const isExpired = (room: StudyRoom) => room.expiresAt && new Date(room.expiresAt).getTime() < now;
+  const displayRooms = (tab === 'mine' ? myRooms : rooms).filter(r => !isExpired(r));
 
   return (
     <div className="min-h-screen">
@@ -197,18 +223,30 @@ export default function RoomsPage() {
               </select>
             </div>
             <div className="flex-1">
-              <label className="label">Circle (optional)</label>
+              <label className="label">Duration ⏱</label>
               <select
-                value={roomCircle}
-                onChange={(e) => setRoomCircle(e.target.value)}
+                value={roomDuration}
+                onChange={(e) => setRoomDuration(Number(e.target.value))}
                 className="input-field text-xs"
               >
-                <option value="">None</option>
-                {circles.map((c) => (
-                  <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+                {DURATION_OPTIONS.map(o => (
+                  <option key={o.value} value={o.value}>{o.label}</option>
                 ))}
               </select>
             </div>
+          </div>
+          <div className="flex-1">
+            <label className="label">Circle (optional)</label>
+            <select
+              value={roomCircle}
+              onChange={(e) => setRoomCircle(e.target.value)}
+              className="input-field text-xs"
+            >
+              <option value="">None</option>
+              {circles.map((c) => (
+                <option key={c.id} value={c.id}>{c.emoji} {c.name}</option>
+              ))}
+            </select>
           </div>
           <button
             onClick={handleCreate}
@@ -282,7 +320,17 @@ export default function RoomsPage() {
               )}
               <div className="flex items-center justify-between text-[10px] text-[var(--muted)]">
                 <span>👥 Max {room.maxMembers}</span>
-                <span>{timeAgo(room.createdAt)}</span>
+                <div className="flex items-center gap-2">
+                  {room.expiresAt && (() => {
+                    const { label, urgent } = timeLeft(room.expiresAt);
+                    return (
+                      <span className={`flex items-center gap-1 px-1.5 py-0.5 rounded-full font-semibold ${urgent ? 'bg-red-500/15 text-red-400' : 'bg-amber-500/10 text-amber-400'}`}>
+                        ⏱ {label}
+                      </span>
+                    );
+                  })()}
+                  <span>{timeAgo(room.createdAt)}</span>
+                </div>
               </div>
             </Link>
           ))}

@@ -132,7 +132,7 @@ export default function AryaChatPage() {
 
   // Voice call states
   const [inCall, setInCall] = useState(false);
-  const [callStatus, setCallStatus] = useState<'connecting' | 'listening' | 'thinking' | 'speaking'>('connecting');
+  const [callStatus, setCallStatus] = useState<'ringing' | 'connecting' | 'listening' | 'thinking' | 'speaking'>('ringing');
   const [callTimer, setCallTimer] = useState(0);
   const [speakerMuted, setSpeakerMuted] = useState(false);
   const [showCrisisNote, setShowCrisisNote] = useState(false);
@@ -140,6 +140,8 @@ export default function AryaChatPage() {
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const callActiveRef = useRef(false);
+  const ringAudioCtxRef = useRef<AudioContext | null>(null);
+  const ringIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
@@ -344,19 +346,80 @@ export default function AryaChatPage() {
   };
 
   /* ─── Voice Call Logic ─── */
+  const playRingBeep = (ctx: AudioContext, startTime: number) => {
+    // Two-tone phone ring: 480Hz + 440Hz mixed, two short bursts
+    for (let b = 0; b < 2; b++) {
+      const t = startTime + b * 0.55;
+      [480, 440].forEach(freq => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.connect(gain); gain.connect(ctx.destination);
+        osc.frequency.value = freq; osc.type = 'sine';
+        gain.gain.setValueAtTime(0, t);
+        gain.gain.linearRampToValueAtTime(0.18, t + 0.04);
+        gain.gain.setValueAtTime(0.18, t + 0.35);
+        gain.gain.linearRampToValueAtTime(0, t + 0.45);
+        osc.start(t); osc.stop(t + 0.5);
+      });
+    }
+  };
+
+  const startRinging = () => {
+    try {
+      const ctx = new AudioContext();
+      ringAudioCtxRef.current = ctx;
+      // Schedule ring immediately + repeat every 2s
+      playRingBeep(ctx, ctx.currentTime);
+      ringIntervalRef.current = setInterval(() => {
+        if (ringAudioCtxRef.current) playRingBeep(ringAudioCtxRef.current, ringAudioCtxRef.current.currentTime);
+      }, 2000);
+    } catch { /* AudioContext not available */ }
+  };
+
+  const stopRinging = () => {
+    if (ringIntervalRef.current) { clearInterval(ringIntervalRef.current); ringIntervalRef.current = null; }
+    try { ringAudioCtxRef.current?.close(); } catch { /* */ }
+    ringAudioCtxRef.current = null;
+  };
+
+  const pickUpCall = () => {
+    if (!callActiveRef.current) return;
+    stopRinging();
+    setCallStatus('speaking');
+    // Build greeting from recent chat context
+    const recentMessages = messages.slice(-4);
+    const lastTopic = recentMessages.filter(m => m.role === 'user').slice(-1)[0]?.content;
+    const greeting = lastTopic
+      ? `Haan yaar! Kya hua? ${lastTopic.length < 60 ? `${lastTopic.slice(0, 40)} ke baare mein baat karni hai?` : 'Bata, main sun rahi hun!'}`
+      : `Haan yaar! Bol, kya scene hai? Main yahan hun!`;
+    const utterance = new SpeechSynthesisUtterance(greeting);
+    utterance.lang = 'en-IN'; utterance.rate = 0.95; utterance.pitch = 1.15;
+    const voices = window.speechSynthesis.getVoices();
+    const femaleVoice = voices.find(v => v.lang.includes('en') && (v.name.toLowerCase().includes('female') || v.name.toLowerCase().includes('zira') || v.name.toLowerCase().includes('samantha')))
+      || voices.find(v => v.lang.includes('en-IN')) || voices.find(v => v.lang.includes('en'));
+    if (femaleVoice) utterance.voice = femaleVoice;
+    utterance.onend = () => { if (callActiveRef.current) startListening(); };
+    utterance.onerror = () => { if (callActiveRef.current) startListening(); };
+    window.speechSynthesis.speak(utterance);
+  };
+
   const startCall = () => {
     if (!conversationId) return;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const SpeechRecognitionAPI = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     if (!SpeechRecognitionAPI) { alert('Voice calling is not supported in this browser.'); return; }
-    setInCall(true); setCallTimer(0); setCallStatus('connecting');
+    setInCall(true); setCallTimer(0); setCallStatus('ringing');
     callActiveRef.current = true;
     callTimerRef.current = setInterval(() => setCallTimer(prev => prev + 1), 1000);
-    setTimeout(() => { if (callActiveRef.current) startListening(); }, 1000);
+    // Play ring tones, Arya picks up after 3-5 seconds
+    startRinging();
+    const ringDuration = 3000 + Math.random() * 2000;
+    setTimeout(() => { if (callActiveRef.current) pickUpCall(); }, ringDuration);
   };
 
   const endCall = () => {
-    callActiveRef.current = false; setInCall(false); setCallStatus('connecting');
+    callActiveRef.current = false; setInCall(false); setCallStatus('ringing');
+    stopRinging();
     if (callTimerRef.current) clearInterval(callTimerRef.current);
     if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch { /* */ } recognitionRef.current = null; }
     window.speechSynthesis?.cancel();
@@ -436,10 +499,12 @@ export default function AryaChatPage() {
   useEffect(() => {
     return () => {
       callActiveRef.current = false;
+      stopRinging();
       if (callTimerRef.current) clearInterval(callTimerRef.current);
       if (recognitionRef.current) try { recognitionRef.current.abort(); } catch { /* */ }
       window.speechSynthesis?.cancel();
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const formatCallTime = (s: number) => `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`;
@@ -650,9 +715,17 @@ export default function AryaChatPage() {
             )}
           </div>
           <h2 className="text-2xl font-bold text-white mb-1">Arya</h2>
-          <p className="text-sm text-white/60 mb-8">
-            {callStatus === 'connecting' ? 'Ringing...' : 'On call'}
+          <p className="text-sm text-white/60 mb-2">
+            {callStatus === 'ringing' ? 'Calling...' : callStatus === 'connecting' ? 'Connecting...' : 'On call'}
           </p>
+          {callStatus === 'ringing' && (
+            <div className="flex items-center gap-1 mb-6">
+              {[0, 150, 300].map(d => (
+                <span key={d} className="w-1.5 h-1.5 rounded-full bg-green-400 animate-bounce" style={{ animationDelay: `${d}ms` }} />
+              ))}
+            </div>
+          )}
+          {callStatus !== 'ringing' && <div className="mb-8" />}
           <p className="text-3xl font-light font-mono text-white/70 tracking-[0.2em]">{formatCallTime(callTimer)}</p>
           <div className="absolute bottom-16 flex items-center gap-8">
             <div className="flex flex-col items-center gap-2">

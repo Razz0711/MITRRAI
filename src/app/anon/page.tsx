@@ -299,8 +299,29 @@ export default function AnonLobbyPage() {
         {/* Header — Premium */}
         <div className="text-center mb-6 slide-up">
           <p className="text-[10px] uppercase tracking-[0.16em] text-[var(--muted)] font-bold mb-1">Safe anonymous space</p>
-          <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-gradient-to-br from-violet-500/20 via-pink-500/20 to-purple-500/20 flex items-center justify-center" style={{ animation: 'float 3s ease-in-out infinite' }}>
-            <span className="text-lg font-bold gradient-text">Anon</span>
+          <div className="relative mx-auto mb-4 w-24 h-24" style={{ animation: 'float 3s ease-in-out infinite' }}>
+            {/* Glow halo */}
+            <div className="absolute inset-0 rounded-full blur-2xl opacity-60" style={{ background: 'radial-gradient(circle, rgba(168,85,247,0.7) 0%, rgba(236,72,153,0.3) 60%, transparent 80%)' }} />
+            <div className="relative w-24 h-24 rounded-3xl flex items-center justify-center shadow-2xl shadow-violet-500/30" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.35) 0%, rgba(168,85,247,0.25) 50%, rgba(236,72,153,0.2) 100%)', border: '1px solid rgba(168,85,247,0.3)', backdropFilter: 'blur(12px)' }}>
+              <svg width="52" height="52" viewBox="0 0 52 52" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <defs>
+                  <linearGradient id="ghostG" x1="10" y1="4" x2="42" y2="48" gradientUnits="userSpaceOnUse">
+                    <stop offset="0%" stopColor="#c084fc" />
+                    <stop offset="100%" stopColor="#f472b6" />
+                  </linearGradient>
+                </defs>
+                {/* Ghost body */}
+                <path d="M26 5C16.6 5 9 12.6 9 22v22l5.5-4 5.5 4 5.5-4 5.5 4 5.5-4 5.5 4V22C43 12.6 35.4 5 26 5z" fill="url(#ghostG)" opacity="0.95" />
+                {/* Eyes */}
+                <ellipse cx="20" cy="22" rx="3.5" ry="4" fill="white" />
+                <ellipse cx="32" cy="22" rx="3.5" ry="4" fill="white" />
+                <ellipse cx="21" cy="23" rx="1.8" ry="2" fill="#1a0533" />
+                <ellipse cx="33" cy="23" rx="1.8" ry="2" fill="#1a0533" />
+                {/* Shine dots */}
+                <circle cx="22" cy="21.5" r="0.9" fill="white" opacity="0.8" />
+                <circle cx="34" cy="21.5" r="0.9" fill="white" opacity="0.8" />
+              </svg>
+            </div>
           </div>
           <h1 className="text-2xl font-extrabold text-[var(--foreground)] mb-2">
             <span className="gradient-text">Anonymous Chat</span>

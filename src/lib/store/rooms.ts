@@ -14,6 +14,8 @@ export interface StudyRoom {
   maxMembers: number;
   status: string;
   createdAt: string;
+  durationMinutes: number;
+  expiresAt: string;
 }
 
 export interface RoomMember {
@@ -36,7 +38,9 @@ export interface RoomMessage {
 
 // ── Room CRUD ──
 export async function getActiveRooms(circleId?: string, limit = 50): Promise<StudyRoom[]> {
-  let query = supabase.from('study_rooms').select('*').eq('status', 'active').order('created_at', { ascending: false }).limit(limit);
+  let query = supabase.from('study_rooms').select('*').eq('status', 'active')
+    .or(`expires_at.is.null,expires_at.gt.${new Date().toISOString()}`)
+    .order('created_at', { ascending: false }).limit(limit);
   if (circleId) query = query.eq('circle_id', circleId);
   const { data, error } = await query;
   if (error) { console.error('getActiveRooms error:', error); return []; }
@@ -49,9 +53,12 @@ export async function getRoomById(id: string): Promise<StudyRoom | null> {
   return fromRow<StudyRoom>(data);
 }
 
-export async function createRoom(room: Omit<StudyRoom, 'id' | 'status' | 'createdAt'>, creatorName = 'Student'): Promise<StudyRoom | null> {
+export async function createRoom(room: Omit<StudyRoom, 'id' | 'status' | 'createdAt' | 'expiresAt'> & { durationMinutes?: number }, creatorName = 'Student'): Promise<StudyRoom | null> {
   const id = `room_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`;
-  const full = { ...room, id, status: 'active', createdAt: new Date().toISOString() } as StudyRoom;
+  const durationMinutes = room.durationMinutes ?? 120;
+  const createdAt = new Date().toISOString();
+  const expiresAt = new Date(Date.now() + durationMinutes * 60 * 1000).toISOString();
+  const full = { ...room, id, status: 'active', createdAt, durationMinutes, expiresAt } as StudyRoom;
   const row = toRow(full);
   const { error } = await supabase.from('study_rooms').insert(row);
   if (error) { console.error('createRoom error:', error); return null; }

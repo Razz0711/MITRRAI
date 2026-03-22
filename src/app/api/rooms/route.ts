@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
 
   try {
     const body = await req.json();
-    const { name, topic, description, circleId, creatorId, creatorName, maxMembers } = body;
+    const { name, topic, description, circleId, creatorId, creatorName, maxMembers, durationMinutes } = body;
 
     if (!name || !creatorId) {
       return NextResponse.json({ success: false, error: 'name and creatorId required' }, { status: 400 });
@@ -55,6 +55,7 @@ export async function POST(req: NextRequest) {
       circleId: circleId || '',
       creatorId,
       maxMembers: maxMembers || 5,
+      durationMinutes: durationMinutes || 120,
     }, creatorName || 'Anonymous');
 
     if (!room) {
