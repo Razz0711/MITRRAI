@@ -11,6 +11,7 @@ import { supabase } from '@/lib/store/core';
 import { getAryaPrompt } from '@/lib/arya-prompt';
 import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
 import { detectCrisis } from '@/lib/crisis-detection';
+import { getStickerIds } from '@/lib/arya-stickers';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow more time for image generation if needed
@@ -57,7 +58,9 @@ export async function POST(req: NextRequest) {
         .order('created_at', { ascending: true })
         .limit(50),
     ]);
-    const systemPrompt = getAryaPrompt(studentRow?.gender);
+    const basePrompt = getAryaPrompt(studentRow?.gender);
+    const systemPrompt = basePrompt + `\n\n## REACTIONS & STICKERS\nYou can react to the user's message like a WhatsApp reaction. To do so, start your reply with "REACT:" followed by a single emoji (e.g. "REACT:❤️" or "REACT:😂"). Do this occasionally — only when the emotion is strong (funny, touching, surprising). After "REACT:emoji" continue your normal reply on the same line.\n\nYou can also send a sticker by including [STICKER:id] anywhere in your reply. Available sticker IDs: ${getStickerIds()}. Use stickers spontaneously when the mood fits — max once every 5 messages. You can send a sticker with text, or just a sticker alone.\n\nExample: "REACT:😂 haha yaar you're too funny! [STICKER:laugh]"`;
+
 
     if (historyError) {
       console.error('History fetch error:', historyError);
@@ -209,9 +212,27 @@ export async function POST(req: NextRequest) {
 
     // 6. Handle Standard Text Response
     if (responseMsg.content) {
+      let raw = responseMsg.content.trim();
+
+      // Parse optional reaction: "REACT:❤️ rest of message"
+      let reaction: string | undefined;
+      const reactMatch = raw.match(/^REACT:(\S+)\s*/);
+      if (reactMatch) {
+        reaction = reactMatch[1];
+        raw = raw.slice(reactMatch[0].length).trim();
+      }
+
+      // Parse optional sticker: [STICKER:id]
+      let sticker: string | undefined;
+      const stickerMatch = raw.match(/\[STICKER:([a-z_]+)\]/);
+      if (stickerMatch) {
+        sticker = stickerMatch[1];
+        // Keep [STICKER:id] in content so it persists in DB and UI can render it
+      }
+
       return NextResponse.json({
         success: true,
-        data: { response: responseMsg.content, crisisResource: isCrisis || undefined }
+        data: { response: raw || '...', reaction, sticker, crisisResource: isCrisis || undefined }
       });
     }
 

@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
   if (!rateLimit(`arya-messages:${user.id}`, 60, 60_000)) return rateLimitExceeded();
 
   const body = await req.json();
-  const { conversation_id, role, content, is_voice } = body;
+  const { conversation_id, role, content, is_voice, arya_reaction } = body;
 
   if (!conversation_id || !role || !content) {
     return NextResponse.json({ success: false, error: 'conversation_id, role, content required' }, { status: 400 });
@@ -71,15 +71,18 @@ export async function POST(req: NextRequest) {
   }
 
   // Insert message
+  const insertPayload: Record<string, unknown> = {
+    conversation_id,
+    user_id: user.id,
+    role,
+    content,
+    is_voice_message: !!is_voice,
+  };
+  if (arya_reaction) insertPayload.arya_reaction = arya_reaction;
+
   const { data: msg, error } = await supabase
     .from('arya_messages')
-    .insert({
-      conversation_id,
-      user_id: user.id,
-      role,
-      content,
-      is_voice_message: !!is_voice,
-    })
+    .insert(insertPayload)
     .select()
     .single();
 

@@ -4,15 +4,28 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { Friendship, FriendRequest, BuddyRating, UserStatus } from '@/lib/types';
+import { Friendship, FriendRequest, BuddyRating, UserStatus, StudentProfile } from '@/lib/types';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
+import { Search, X, UserPlus } from 'lucide-react';
+
+const AVATAR_COLORS = [
+  'from-violet-600 to-purple-700','from-emerald-600 to-teal-700','from-blue-600 to-indigo-700','from-pink-600 to-rose-700',
+  'from-amber-600 to-orange-700','from-cyan-600 to-sky-700','from-indigo-600 to-violet-700','from-rose-600 to-pink-700',
+];
+function avatarGradient(name: string) {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = name.charCodeAt(i) + ((h << 5) - h);
+  return AVATAR_COLORS[Math.abs(h) % AVATAR_COLORS.length];
+}
 
 export default function FriendsPage() {
   const { user } = useAuth();
+  const router = useRouter();
   const { play: playSound } = useNotificationSound();
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [pendingRequests, setPendingRequests] = useState<FriendRequest[]>([]);
@@ -24,6 +37,16 @@ export default function FriendsPage() {
   const [statuses, setStatuses] = useState<Record<string, UserStatus>>({});
   const [searchQuery, setSearchQuery] = useState('');
 
+  // Find People panel
+  const [showSearch, setShowSearch] = useState(false);
+  const [peopleQuery, setPeopleQuery] = useState('');
+  const [allPeople, setAllPeople] = useState<StudentProfile[]>([]);
+  const [peopleLoading, setPeopleLoading] = useState(false);
+  const [myProfile, setMyProfile] = useState<StudentProfile | null>(null);
+  const [pendingSentIds, setPendingSentIds] = useState<Set<string>>(new Set());
+  const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
   const loadData = useCallback(async () => {
     if (!user) return;
     try {
@@ -32,19 +55,24 @@ export default function FriendsPage() {
       if (data.success) {
         setFriends(data.data.friends || []);
         const newPending: FriendRequest[] = data.data.pendingRequests || [];
-        // 🔊 Play sound if there are new pending friend requests
         setPendingRequests(prev => {
-          if (newPending.length > prev.length && prev.length > 0) {
-            playSound('important');
-          }
+          if (newPending.length > prev.length && prev.length > 0) playSound('important');
           return newPending;
         });
         setRatingsReceived(data.data.ratingsReceived || []);
         setRatingsGiven(data.data.ratingsGiven || []);
         setAvgRating(data.data.averageRating || 0);
-        
-        // Load online statuses for all friends
+
         const friendsList: Friendship[] = data.data.friends || [];
+        const ids = new Set<string>(friendsList.map(f => f.user1Id === user.id ? f.user2Id : f.user1Id));
+        setFriendIds(ids);
+        const sentIds = new Set<string>(
+          (data.data.allRequests || [])
+            .filter((r: FriendRequest) => r.fromUserId === user.id && r.status === 'pending')
+            .map((r: FriendRequest) => r.toUserId)
+        );
+        setPendingSentIds(sentIds);
+
         if (friendsList.length > 0) {
           try {
             const statusRes = await fetch('/api/status');
@@ -61,9 +89,103 @@ export default function FriendsPage() {
     setLoading(false);
   }, [playSound, user]);
 
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
+  useEffect(() => { loadData(); }, [loadData]);
+
+  const loadAllPeople = useCallback(async () => {
+    if (allPeople.length > 0) return; // already loaded
+    setPeopleLoading(true);
+    try {
+      const res = await fetch('/api/students');
+      const data = await res.json();
+      if (data.success) {
+        const all: StudentProfile[] = data.data;
+        setAllPeople(all.filter(s => s.id !== user?.id));
+        const mine = all.find(s => s.id === user?.id);
+        if (mine) setMyProfile(mine);
+      }
+    } catch { /* ignore */ } finally { setPeopleLoading(false); }
+  }, [allPeople.length, user?.id]);
+
+  const openSearch = () => {
+    setShowSearch(true);
+    loadAllPeople();
+  };
+
+  const handlePeopleQueryChange = (q: string) => {
+    setPeopleQuery(q);
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    if (!q.trim()) return;
+    // For name search, filter from allPeople client-side;
+    // Also trigger server search for admission number matches
+    debounceRef.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/students?search=${encodeURIComponent(q.trim())}`);
+        const data = await res.json();
+        if (data.success) {
+          const results: StudentProfile[] = data.data.filter((s: StudentProfile) => s.id !== user?.id);
+          // Merge into allPeople (server may return admission-number matches not in local list)
+          setAllPeople(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
+            const newOnes = results.filter(r => !existingIds.has(r.id));
+            return [...prev, ...newOnes];
+          });
+        }
+      } catch { /* ignore */ }
+    }, 400);
+  };
+
+  // Sort people by closeness to current user
+  const getSortedPeople = (): { label: string; items: StudentProfile[] }[] => {
+    const q = peopleQuery.trim().toLowerCase();
+    let pool = allPeople;
+
+    if (q) {
+      pool = allPeople.filter(s =>
+        s.name.toLowerCase().includes(q) ||
+        (s.department || '').toLowerCase().includes(q) ||
+        (s.yearLevel || '').toLowerCase().includes(q)
+      );
+    }
+
+    const myDept = myProfile?.department || '';
+    const myYear = myProfile?.yearLevel || '';
+
+    const g0: StudentProfile[] = []; // same dept + year
+    const g1: StudentProfile[] = []; // same dept
+    const g2: StudentProfile[] = []; // same year
+    const g3: StudentProfile[] = []; // others
+
+    for (const s of pool) {
+      const sameDept = myDept && s.department === myDept;
+      const sameYear = myYear && s.yearLevel === myYear;
+      if (sameDept && sameYear) g0.push(s);
+      else if (sameDept) g1.push(s);
+      else if (sameYear) g2.push(s);
+      else g3.push(s);
+    }
+
+    const groups: { label: string; items: StudentProfile[] }[] = [];
+    if (g0.length) groups.push({ label: 'Same branch & year', items: g0 });
+    if (g1.length) groups.push({ label: 'Same branch', items: g1 });
+    if (g2.length) groups.push({ label: 'Same year', items: g2 });
+    if (g3.length) groups.push({ label: 'Other students', items: g3 });
+    return groups;
+  };
+
+  const handleSendRequest = async (studentId: string, studentName: string) => {
+    if (!user) return;
+    try {
+      await fetch('/api/friends', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'send_request', fromUserId: user.id, fromUserName: user.name,
+          toUserId: studentId, toUserName: studentName,
+        }),
+      });
+      setPendingSentIds(prev => { const next = new Set(Array.from(prev)); next.add(studentId); return next; });
+    } catch (err) { console.error('sendRequest:', err); }
+  };
 
   const handleRespondRequest = async (requestId: string, status: 'accepted' | 'declined') => {
     try {
@@ -97,35 +219,131 @@ export default function FriendsPage() {
     );
   }
 
+  const sortedGroups = showSearch ? getSortedPeople() : [];
+
   return (
-    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6">
+    <div className="max-w-3xl mx-auto px-4 sm:px-6 py-6 pb-28">
       {/* Header */}
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-xl font-bold">
             <span className="gradient-text">Friends & Ratings</span>
           </h1>
-          <p className="text-xs text-[var(--muted)] mt-0.5">
-            Your study buddies network
-          </p>
+          <p className="text-xs text-[var(--muted)] mt-0.5">Your study buddies network</p>
         </div>
-        {avgRating > 0 && (
-          <div className="card p-3 text-center">
-            <p className="text-2xl font-bold text-[var(--primary-light)]">{avgRating}</p>
-            <p className="text-[10px] text-[var(--muted)]">Avg Rating / 10</p>
-            <div className="flex gap-0.5 mt-1 justify-center">
-              {Array.from({ length: 10 }).map((_, i) => (
-                <div
-                  key={i}
-                  className={`w-1.5 h-3 rounded-sm ${
-                    i < Math.round(avgRating) ? 'bg-[var(--primary)]' : 'bg-white/10'
-                  }`}
-                />
-              ))}
+        <button
+          onClick={openSearch}
+          className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-semibold bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/25 transition-all"
+        >
+          <UserPlus size={13} />
+          Find People
+        </button>
+      </div>
+
+      {/* ─── Find People Panel ─── */}
+      {showSearch && (
+        <div className="mb-6 rounded-2xl border border-[var(--glass-border)] bg-[var(--surface)] overflow-hidden">
+          {/* Panel header */}
+          <div className="flex items-center justify-between px-4 py-3 border-b border-[var(--glass-border)]">
+            <p className="text-sm font-bold text-[var(--foreground)]">Find People</p>
+            <button onClick={() => { setShowSearch(false); setPeopleQuery(''); }} className="text-[var(--muted)] hover:text-[var(--foreground)]">
+              <X size={16} />
+            </button>
+          </div>
+
+          {/* Search input */}
+          <div className="px-4 pt-3 pb-2">
+            <div className="relative flex items-center">
+              <Search size={14} className="absolute left-3 text-[var(--muted)] pointer-events-none" />
+              <input
+                autoFocus
+                type="text"
+                value={peopleQuery}
+                onChange={e => handlePeopleQueryChange(e.target.value)}
+                placeholder="Search by name, branch, or admission number…"
+                className="w-full pl-8 pr-8 py-2 rounded-xl bg-white/5 border border-[var(--glass-border)] text-sm text-[var(--foreground)] placeholder-[var(--muted)] focus:outline-none focus:border-[var(--primary)]/40 transition-colors"
+              />
+              {peopleQuery && (
+                <button onClick={() => setPeopleQuery('')} className="absolute right-2.5 text-[var(--muted)] hover:text-[var(--foreground)]">
+                  <X size={13} />
+                </button>
+              )}
             </div>
           </div>
-        )}
-      </div>
+
+          {/* Results */}
+          <div className="px-4 pb-4 max-h-[60vh] overflow-y-auto">
+            {peopleLoading && (
+              <p className="text-xs text-[var(--muted)] text-center py-6">Loading students…</p>
+            )}
+
+            {!peopleLoading && sortedGroups.length === 0 && (
+              <p className="text-xs text-[var(--muted)] text-center py-6">
+                {peopleQuery ? 'No students found' : 'No other students registered yet'}
+              </p>
+            )}
+
+            {!peopleLoading && sortedGroups.map(group => (
+              <div key={group.label} className="mb-4">
+                {/* Group label */}
+                <p className="text-[10px] font-bold uppercase tracking-[0.16em] text-[var(--muted)] mb-2 flex items-center gap-1.5">
+                  <span className={`w-1 h-3 rounded-full ${
+                    group.label === 'Same branch & year' ? 'bg-violet-500' :
+                    group.label === 'Same branch' ? 'bg-emerald-500' :
+                    group.label === 'Same year' ? 'bg-amber-500' : 'bg-[var(--muted)]'
+                  }`} />
+                  {group.label}
+                  <span className="ml-auto text-[var(--muted)] font-normal normal-case tracking-normal">{group.items.length}</span>
+                </p>
+
+                <div className="space-y-2">
+                  {group.items.map(s => {
+                    const isFriend = friendIds.has(s.id);
+                    const isPending = pendingSentIds.has(s.id);
+                    return (
+                      <div key={s.id} className="flex items-center gap-3 p-3 rounded-xl bg-white/3 border border-[var(--glass-border)] hover:bg-white/5 transition-colors">
+                        <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGradient(s.name)} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                          {s.name.charAt(0).toUpperCase()}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-semibold text-[var(--foreground)] truncate">{s.name}</p>
+                          <p className="text-[10px] text-[var(--muted)] truncate">
+                            {[s.department, s.yearLevel].filter(Boolean).join(' · ') || 'SVNIT'}
+                          </p>
+                        </div>
+                        <div className="flex gap-1.5 shrink-0">
+                          {isFriend ? (
+                            <button
+                              onClick={() => router.push(`/chat?friendId=${encodeURIComponent(s.id)}&friendName=${encodeURIComponent(s.name)}`)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25 hover:bg-blue-500/25 transition-all"
+                            >
+                              💬 Chat
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => handleSendRequest(s.id, s.name)}
+                              disabled={isPending}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 disabled:opacity-50 transition-all"
+                            >
+                              {isPending ? '✓ Sent' : '+ Connect'}
+                            </button>
+                          )}
+                          <button
+                            onClick={() => router.push(`/chat?friendId=${encodeURIComponent(s.id)}&friendName=${encodeURIComponent(s.name)}`)}
+                            className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 hover:bg-amber-500/25 transition-all"
+                          >
+                            Ping
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-1 mb-6 p-1 rounded-xl bg-[var(--surface)]">
@@ -156,7 +374,6 @@ export default function FriendsPage() {
       {/* Friends Tab */}
       {activeTab === 'friends' && (
         <div className="space-y-3">
-          {/* Search */}
           {friends.length > 0 && (
             <div className="relative">
               <span className="absolute left-3 top-1/2 -translate-y-1/2 text-[var(--muted)] text-xs">🔍</span>
@@ -174,9 +391,9 @@ export default function FriendsPage() {
               <span className="text-4xl mb-3 block">👥</span>
               <h3 className="text-sm font-semibold mb-1">No friends yet</h3>
               <p className="text-xs text-[var(--muted)] mb-4">Find study buddies and send them friend requests!</p>
-              <Link href="/matches" className="btn-primary text-xs">
-                Find Matches
-              </Link>
+              <button onClick={openSearch} className="btn-primary text-xs">
+                Find People
+              </button>
             </div>
           ) : (
             friends.filter((f) => {
@@ -218,7 +435,6 @@ export default function FriendsPage() {
                     >
                       💬
                     </Link>
-
                     <button
                       onClick={() => handleRemoveFriend(friendId)}
                       className="px-2.5 py-1.5 rounded-lg text-[10px] font-medium text-red-400 hover:bg-red-500/10 transition-all"
@@ -279,7 +495,6 @@ export default function FriendsPage() {
       {/* Ratings Tab */}
       {activeTab === 'ratings' && (
         <div className="space-y-4">
-          {/* Received Ratings */}
           <div>
             <h3 className="text-xs font-semibold text-[var(--muted)] mb-2 uppercase tracking-wide">
               Ratings Received ({ratingsReceived.length})
@@ -298,7 +513,6 @@ export default function FriendsPage() {
             )}
           </div>
 
-          {/* Given Ratings */}
           {ratingsGiven.length > 0 && (
             <div>
               <h3 className="text-xs font-semibold text-[var(--muted)] mb-2 uppercase tracking-wide">
@@ -332,12 +546,7 @@ function RatingCard({ rating, showFrom }: { rating: BuddyRating; showFrom: boole
           </p>
           <div className="flex gap-0.5">
             {Array.from({ length: 10 }).map((_, i) => (
-              <div
-                key={i}
-                className={`w-1 h-2 rounded-sm ${
-                  i < rating.rating ? 'bg-[var(--primary)]' : 'bg-white/10'
-                }`}
-              />
+              <div key={i} className={`w-1 h-2 rounded-sm ${i < rating.rating ? 'bg-[var(--primary)]' : 'bg-white/10'}`} />
             ))}
           </div>
         </div>

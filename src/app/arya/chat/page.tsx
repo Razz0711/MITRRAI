@@ -15,6 +15,7 @@ import {
   Volume2, VolumeX,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
+import { STICKERS } from '@/lib/arya-stickers';
 
 /* ─── Types ─── */
 interface Message {
@@ -23,6 +24,19 @@ interface Message {
   content: string;
   created_at: string;
   rating?: number;
+  arya_reaction?: string; // emoji reaction Arya gave to this message
+}
+
+/* ─── Sticker Bubble ─── */
+function StickerBubble({ stickerId }: { stickerId: string }) {
+  const s = STICKERS[stickerId];
+  if (!s) return null;
+  return (
+    <div className={`inline-flex flex-col items-center px-5 py-4 rounded-2xl bg-gradient-to-br ${s.color} border border-white/10 animate-appear`}>
+      <span style={{ fontSize: '52px', lineHeight: 1 }}>{s.emoji}</span>
+      <p className="text-[11px] text-white/70 mt-2 font-medium text-center">{s.label}</p>
+    </div>
+  );
 }
 
 /* ─── Memoized Message Bubble ─── */
@@ -39,6 +53,11 @@ const MessageBubble = memo(function MessageBubble({
 }) {
   const isUser = msg.role === 'user';
 
+  // Parse sticker from content (e.g. "[STICKER:hug]")
+  const stickerMatch = msg.content.match(/\[STICKER:([a-z_]+)\]/);
+  const stickerId = stickerMatch?.[1];
+  const textContent = stickerMatch ? msg.content.replace(stickerMatch[0], '').trim() : msg.content;
+
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1 animate-appear`}>
       {/* Arya avatar for received */}
@@ -51,50 +70,65 @@ const MessageBubble = memo(function MessageBubble({
 
       <div
         className="relative group"
-        style={{
-          maxWidth: '75%',
-          wordBreak: 'break-word',
-          overflowWrap: 'break-word',
-        }}
+        style={{ maxWidth: '75%', wordBreak: 'break-word', overflowWrap: 'break-word' }}
       >
-        {/* Bubble */}
-        <div
-          className="px-3 py-2"
-          style={{
-            background: isUser ? 'var(--primary)' : '#1e1e1e',
-            color: '#ffffff',
-            fontSize: '14px',
-            lineHeight: '1.45',
-            borderRadius: isUser
-              ? '16px 16px 4px 16px'
-              : '16px 16px 16px 4px',
-          }}
-        >
-          {/* Render markdown images */}
-          {msg.content.includes('![') ? (
-            <div>
-              {msg.content.split(/(\!\[.*?\]\(.*?\))/g).map((part, i) => {
-                const imgMatch = part.match(/\!\[.*?\]\((.*?)\)/);
-                if (imgMatch) {
-                  return (
-                    <Image key={i} src={imgMatch[1]} alt="Arya Selfie" width={256} height={256}
-                      className="w-full max-w-[256px] rounded-xl mt-1 mb-1" unoptimized />
-                  );
-                }
-                return part ? <span key={i}>{part}</span> : null;
-              })}
-            </div>
-          ) : (
-            <p className="whitespace-pre-wrap">{msg.content}</p>
-          )}
+        {/* Sticker — rendered outside the bubble */}
+        {stickerId && (
+          <div className={`mb-1 ${isUser ? 'flex justify-end' : ''}`}>
+            <StickerBubble stickerId={stickerId} />
+          </div>
+        )}
 
-          {/* Timestamp inside bubble */}
-          <div className={`flex items-center gap-1 mt-1 ${isUser ? 'justify-end' : ''}`}>
-            <span style={{ fontSize: '11px', color: isUser ? 'rgba(255,255,255,0.65)' : 'rgba(255,255,255,0.65)' }}>
-              {formatTime(msg.created_at)}
+        {/* Text Bubble — only shown if there's text content */}
+        {textContent && (
+          <div
+            className="px-3 py-2"
+            style={{
+              background: isUser ? 'var(--primary)' : '#1e1e1e',
+              color: '#ffffff',
+              fontSize: '14px',
+              lineHeight: '1.45',
+              borderRadius: isUser ? '16px 16px 4px 16px' : '16px 16px 16px 4px',
+            }}
+          >
+            {/* Render markdown images */}
+            {textContent.includes('![') ? (
+              <div>
+                {textContent.split(/(\!\[.*?\]\(.*?\))/g).map((part, i) => {
+                  const imgMatch = part.match(/\!\[.*?\]\((.*?)\)/);
+                  if (imgMatch) {
+                    return (
+                      <Image key={i} src={imgMatch[1]} alt="Arya Selfie" width={256} height={256}
+                        className="w-full max-w-[256px] rounded-xl mt-1 mb-1" unoptimized />
+                    );
+                  }
+                  return part ? <span key={i}>{part}</span> : null;
+                })}
+              </div>
+            ) : (
+              <p className="whitespace-pre-wrap">{textContent}</p>
+            )}
+
+            {/* Timestamp inside bubble */}
+            <div className={`flex items-center gap-1 mt-1 ${isUser ? 'justify-end' : ''}`}>
+              <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.65)' }}>
+                {formatTime(msg.created_at)}
+              </span>
+            </div>
+          </div>
+        )}
+
+        {/* Reaction from Arya — shown below user message bubble */}
+        {isUser && msg.arya_reaction && (
+          <div className="flex justify-end mt-0.5 mr-1">
+            <span
+              className="text-base leading-none px-1.5 py-0.5 rounded-full bg-[#1e1e1e] border border-white/10 shadow"
+              style={{ fontSize: '16px' }}
+            >
+              {msg.arya_reaction}
             </span>
           </div>
-        </div>
+        )}
 
         {/* Like/Dislike — only received messages */}
         {!isUser && (
@@ -201,14 +235,21 @@ export default function AryaChatPage() {
       const msgRes = await fetch(`/api/arya/messages?conversation_id=${convId}`);
       const msgData = await msgRes.json();
       if (msgData.success && msgData.data) {
-        const loaded: Message[] = [];
+        const raw: Message[] = [];
         const seen = new Set<string>();
         for (const m of msgData.data) {
           if (!seen.has(m.id) && !m.content?.startsWith('[DEBUG]')) {
             seen.add(m.id);
-            loaded.push({ id: m.id, role: m.role, content: m.content, created_at: m.created_at, rating: m.rating });
+            raw.push({ id: m.id, role: m.role, content: m.content, created_at: m.created_at, rating: m.rating, arya_reaction: m.arya_reaction });
           }
         }
+        // Apply stored reactions: assistant message's arya_reaction → preceding user message
+        const loaded = raw.map((m, i) => {
+          if (m.role === 'user' && i + 1 < raw.length && raw[i + 1].role === 'assistant' && raw[i + 1].arya_reaction) {
+            return { ...m, arya_reaction: raw[i + 1].arya_reaction };
+          }
+          return m;
+        });
         setMessages(loaded);
 
         // Proactive message — if last message was 3+ hours ago and wasn't already from Arya
@@ -245,24 +286,24 @@ export default function AryaChatPage() {
   useEffect(() => { initConversation(); }, [initConversation]);
 
   /* ─── Persist message to DB ─── */
-  const persistMessage = async (role: 'user' | 'assistant', content: string, isVoice = false): Promise<Message | null> => {
+  const persistMessage = async (role: 'user' | 'assistant', content: string, isVoice = false, aryaReaction?: string): Promise<Message | null> => {
     if (!conversationId) return null;
     try {
       const res = await fetch('/api/arya/messages', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversation_id: conversationId, role, content, is_voice: isVoice }),
+        body: JSON.stringify({ conversation_id: conversationId, role, content, is_voice: isVoice, arya_reaction: aryaReaction }),
       });
       const data = await res.json();
       if (data.success && data.data) {
-        return { id: data.data.id, role: data.data.role, content: data.data.content, created_at: data.data.created_at, rating: data.data.rating };
+        return { id: data.data.id, role: data.data.role, content: data.data.content, created_at: data.data.created_at, rating: data.data.rating, arya_reaction: data.data.arya_reaction };
       }
     } catch (err) { console.error('Persist message error:', err); }
     return null;
   };
 
   /* ─── Call Arya API with timeout + retry ─── */
-  const callAryaAPI = async (convId: string, text: string, retries = 2): Promise<{ success: boolean; response?: string; crisisResource?: boolean }> => {
+  const callAryaAPI = async (convId: string, text: string, retries = 2): Promise<{ success: boolean; response?: string; reaction?: string; sticker?: string; crisisResource?: boolean }> => {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 25000); // 25s timeout
     try {
@@ -274,7 +315,13 @@ export default function AryaChatPage() {
       });
       clearTimeout(timeout);
       const data = await res.json();
-      if (data.success && data.data?.response) return { success: true, response: data.data.response, crisisResource: !!data.data.crisisResource };
+      if (data.success && data.data?.response) return {
+        success: true,
+        response: data.data.response,
+        reaction: data.data.reaction,
+        sticker: data.data.sticker,
+        crisisResource: !!data.data.crisisResource,
+      };
       if (retries > 0) { await new Promise(r => setTimeout(r, 1000)); return callAryaAPI(convId, text, retries - 1); }
       return { success: false };
     } catch {
@@ -304,13 +351,35 @@ export default function AryaChatPage() {
 
     if (result.success && result.response) {
       if (result.crisisResource) setShowCrisisNote(true);
+
+      // Apply Arya's reaction to the user's message (optimistic + DB)
+      if (result.reaction) {
+        setMessages(prev => prev.map(m => m.id === optimisticUserId ? { ...m, arya_reaction: result.reaction } : m));
+        // Also apply to the DB-persisted user message once it's saved
+      }
+
       const optimisticAryaId = `arya-temp-${Date.now()}`;
       setMessages(prev => {
         if (prev.some(m => m.content === result.response && m.role === 'assistant')) return prev;
         return [...prev, { id: optimisticAryaId, role: 'assistant', content: result.response!, created_at: new Date().toISOString() }];
       });
-      persistMessage('assistant', result.response).then(aryaMsg => {
-        if (aryaMsg) setMessages(prev => prev.map(m => m.id === optimisticAryaId ? aryaMsg : m));
+      // Save assistant message with arya_reaction stored (for persistence)
+      persistMessage('assistant', result.response, false, result.reaction).then(aryaMsg => {
+        if (aryaMsg) {
+          setMessages(prev => prev.map(m => {
+            // Update assistant message
+            if (m.id === optimisticAryaId) return aryaMsg;
+            // Also apply reaction to the real persisted user message
+            if (m.id !== optimisticUserId && aryaMsg.arya_reaction && m.role === 'user') {
+              // Only update the message right before this assistant message
+              const msgs = prev;
+              const aryaIdx = msgs.findIndex(x => x.id === optimisticAryaId);
+              const userIdx = msgs.findIndex(x => x.id === m.id);
+              if (aryaIdx - 1 === userIdx) return { ...m, arya_reaction: aryaMsg.arya_reaction };
+            }
+            return m;
+          }));
+        }
       }).catch(() => {});
     } else {
       setMessages(prev => [...prev, {

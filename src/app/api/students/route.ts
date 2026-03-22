@@ -77,6 +77,7 @@ export async function GET(req: NextRequest) {
   const authUser = await getAuthUser(); if (!authUser) return unauthorized();
   const { searchParams } = new URL(req.url);
   const id = searchParams.get('id');
+  const search = searchParams.get('search')?.trim();
 
   if (id) {
     const student = await getStudentById(id);
@@ -86,6 +87,21 @@ export async function GET(req: NextRequest) {
     // Return full data for own profile, stripped for others
     const data = id === authUser.id ? student : stripSensitive(student);
     return NextResponse.json({ success: true, data });
+  }
+
+  // Search by name or admission number (server-side, admission number never exposed in response)
+  if (search) {
+    const { supabase } = await import('@/lib/store/core');
+    const { data: rows } = await supabase
+      .from('students')
+      .select('*')
+      .or(`name.ilike.%${search}%,admission_number.ilike.%${search}%`)
+      .limit(30);
+    const { fromRow, STUDENT_DEFAULTS } = await import('@/lib/store/core');
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const students = (rows || []).map((r: any) => fromRow<StudentProfile>(r, STUDENT_DEFAULTS));
+    const result = students.map(s => s.id === authUser.id ? s : stripSensitive(s));
+    return NextResponse.json({ success: true, data: result });
   }
 
   const students = await getAllStudents();
