@@ -210,6 +210,29 @@ export default function AryaChatPage() {
           }
         }
         setMessages(loaded);
+
+        // Proactive message — if last message was 3+ hours ago and wasn't already from Arya
+        if (loaded.length > 0) {
+          const lastMsg = loaded[loaded.length - 1];
+          const hoursAgo = (Date.now() - new Date(lastMsg.created_at).getTime()) / 3600000;
+          if (hoursAgo >= 3 && lastMsg.role === 'user') {
+            // Fire & forget — don't block UI
+            fetch('/api/arya/proactive', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ conversation_id: convId, hours_away: Math.round(hoursAgo) }),
+            }).then(r => r.json()).then(data => {
+              if (data.success && data.data?.message) {
+                setMessages(prev => [...prev, {
+                  id: data.data.message.id,
+                  role: 'assistant',
+                  content: data.data.message.content,
+                  created_at: data.data.message.created_at,
+                }]);
+              }
+            }).catch(() => {});
+          }
+        }
       }
     } catch (err) {
       console.error('Init conversation error:', err);
