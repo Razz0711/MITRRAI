@@ -39,7 +39,7 @@ function LoginPageInner() {
   const [otpCode, setOtpCode] = useState('');
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
-  const [_loadingText, _setLoadingText] = useState('Verifying...');
+  const [loadingText, _setLoadingText] = useState('Verifying...');
   const [otpResendTimer, setOtpResendTimer] = useState(0);
   const [otpVerified, setOtpVerified] = useState(false); // tracks if OTP was already verified (prevents re-verify after login failure)
 
