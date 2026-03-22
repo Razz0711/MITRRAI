@@ -10,6 +10,110 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import { validateSVNITEmail, ParsedEmail } from '@/lib/email-parser';
 
+// Gender-aware welcome splash shown right after login
+function WelcomeSplash({ userId, userName }: { userId: string; userName?: string }) {
+  const router = useRouter();
+  const [gender, setGender] = useState<string>('Male');
+  const [showBubble, setShowBubble] = useState(false);
+  const [showText, setShowText] = useState(false);
+
+  const firstName = userName?.split(' ')[0] || 'yaar';
+
+  useEffect(() => {
+    fetch(`/api/students?id=${encodeURIComponent(userId)}`)
+      .then(r => r.json())
+      .then(d => { if (d.data?.gender) setGender(d.data.gender); })
+      .catch(() => {});
+
+    const t1 = setTimeout(() => setShowBubble(true), 700);
+    const t2 = setTimeout(() => setShowText(true), 1100);
+    const t3 = setTimeout(() => router.push('/home'), 3200);
+    return () => { clearTimeout(t1); clearTimeout(t2); clearTimeout(t3); };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const isFemale = gender === 'Female';
+  const avatarSrc = isFemale ? '/aryan-avtar.png' : '/arya-avatar.png';
+  const companionName = isFemale ? 'Aryan' : 'Arya';
+  const accentColor = isFemale ? '#7c3aed' : '#c026d3';
+  const greeting = isFemale
+    ? `Hey ${firstName}! Finally aagayi 😊 bahut intezaar kiya tera…`
+    : `Ooh ${firstName} tu aa gaya finally! 🥺❤️ main toh wait kar rahi thi…`;
+
+  return (
+    <div style={{
+      position: 'fixed', inset: 0,
+      background: 'var(--background)',
+      display: 'flex', flexDirection: 'column',
+      alignItems: 'center', justifyContent: 'center',
+    }}>
+      {/* Ambient glow */}
+      <div style={{
+        position: 'absolute',
+        width: 280, height: 280,
+        borderRadius: '50%',
+        background: `radial-gradient(circle, ${accentColor}22 0%, transparent 70%)`,
+        animation: 'pulse 2.5s ease-in-out infinite',
+        pointerEvents: 'none',
+      }} />
+
+      {/* Avatar */}
+      <div style={{ animation: 'slideUpFade 0.55s ease-out forwards', zIndex: 1 }}>
+        <Image
+          src={avatarSrc}
+          alt={companionName}
+          width={110}
+          height={110}
+          style={{
+            borderRadius: '50%',
+            objectFit: 'cover',
+            border: `3px solid ${accentColor}80`,
+            boxShadow: `0 0 32px ${accentColor}55, 0 8px 24px rgba(0,0,0,0.4)`,
+          }}
+        />
+      </div>
+
+      {/* Name */}
+      <p style={{
+        color: accentColor, fontWeight: 700, fontSize: 15,
+        marginTop: 10, marginBottom: 0, letterSpacing: 0.3,
+        animation: 'slideUpFade 0.55s 0.15s ease-out both',
+        zIndex: 1,
+      }}>{companionName}</p>
+
+      {/* Chat bubble */}
+      <div style={{
+        marginTop: 14, maxWidth: 270, minWidth: 180,
+        background: 'rgba(255,255,255,0.07)',
+        border: '1px solid rgba(255,255,255,0.1)',
+        borderRadius: '18px 18px 18px 4px',
+        padding: '12px 16px',
+        opacity: showBubble ? 1 : 0,
+        transform: showBubble ? 'translateY(0)' : 'translateY(10px)',
+        transition: 'opacity 0.35s ease, transform 0.35s ease',
+        zIndex: 1,
+      }}>
+        {showText ? (
+          <p style={{ color: '#fff', fontSize: 14, lineHeight: 1.55, margin: 0 }}>
+            {greeting}
+          </p>
+        ) : (
+          <div style={{ display: 'flex', gap: 5, alignItems: 'center', height: 18 }}>
+            {[0, 150, 300].map(d => (
+              <span key={d} style={{
+                width: 7, height: 7, borderRadius: '50%',
+                background: 'rgba(255,255,255,0.45)',
+                display: 'inline-block',
+                animation: `bounce 0.8s ${d}ms ease-in-out infinite`,
+              }} />
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 // Crisp SVG logo — no blur, scales perfectly
 function MitrrAiLogo({ size = 56 }: { size?: number }) {
   return (
@@ -97,24 +201,9 @@ function LoginPageInner() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [email, isSignup]);
 
-  // Redirect if already logged in
+  // Show welcome splash while redirecting
   if (user) {
-    router.push('/home');
-    return (
-      <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 transition-opacity duration-300">
-        <div className="w-16 h-16 bg-[var(--surface)] rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-[var(--primary)]/10">
-          <Image src="/logo.jpg" alt="MitrrAi" width={40} height={40} className="w-10 h-10 rounded-xl" />
-        </div>
-        <div className="flex gap-1.5 items-center justify-center tracking-widest text-[var(--primary)]">
-          <span className="w-2.5 h-2.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '0ms' }} />
-          <span className="w-2.5 h-2.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '150ms' }} />
-          <span className="w-2.5 h-2.5 rounded-full bg-current animate-bounce" style={{ animationDelay: '300ms' }} />
-        </div>
-        <p className="text-white/40 text-sm mt-5 font-medium animate-pulse">
-          {isSignup ? 'Setting up your profile...' : 'Taking you to campus...'}
-        </p>
-      </div>
-    );
+    return <WelcomeSplash userId={user.id} userName={user.name} />;
   }
 
   const DEMO_EMAIL = 'demo@mitrai.study';
