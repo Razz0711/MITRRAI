@@ -1,18 +1,7 @@
--- ============================================================
--- MitrRAI — Deduplicate students + enforce unique admission_number
--- ============================================================
--- Step 1: For each duplicate admission_number, keep the row whose
---         id appears in auth.users (i.e. has a valid auth account)
---         and delete the orphan rows.
--- Step 2: Add UNIQUE constraint on admission_number so this can
---         never happen again.
--- Step 3: Add UNIQUE constraint on email for the same reason.
--- ============================================================
-
 -- 1a. Delete orphan students rows (no matching auth user)
 DELETE FROM students
 WHERE id NOT IN (
-  SELECT id FROM auth.users
+  SELECT id::text FROM auth.users
 );
 
 -- 1b. Among remaining duplicates by admission_number,
