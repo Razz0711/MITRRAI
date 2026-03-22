@@ -351,7 +351,6 @@ export default function FriendsPage() {
         {[
           { key: 'friends' as const, label: 'Friends', count: friends.length },
           { key: 'requests' as const, label: 'Requests', count: pendingRequests.length },
-          { key: 'ratings' as const, label: 'Ratings', count: ratingsReceived.length },
         ].map((tab) => (
           <button
             key={tab.key}

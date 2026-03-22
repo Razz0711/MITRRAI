@@ -9,12 +9,15 @@
 import { useState, useRef, useEffect, useCallback, memo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { DirectMessage, ChatThread, UserStatus, MatchResult } from '@/lib/types';
+import { DirectMessage, ChatThread, UserStatus, MatchResult, StudentProfile } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
 import { useChatStability } from '@/hooks/useChatStability';
 import { useChatScroll } from '@/hooks/useChatScroll';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, UserPlus, Search, X } from 'lucide-react';
+
+const AVATAR_GRAD = ['from-violet-600 to-purple-700','from-emerald-600 to-teal-700','from-blue-600 to-indigo-700','from-pink-600 to-rose-700','from-amber-600 to-orange-700','from-cyan-600 to-sky-700'];
+function avatarGrad(name: string) { let h=0; for(let i=0;i<name.length;i++) h=name.charCodeAt(i)+((h<<5)-h); return AVATAR_GRAD[Math.abs(h)%AVATAR_GRAD.length]; }
 
 /* ─── Memoized Message Bubble ─── */
 const MessageBubble = memo(function MessageBubble({
@@ -95,6 +98,16 @@ function ChatContent() {
   const [statuses, setStatuses] = useState<Record<string, UserStatus>>({});
   const [matchScores, setMatchScores] = useState<Record<string, number>>({});
 
+  // Find People panel
+  const [showFindPeople, setShowFindPeople] = useState(false);
+  const [allPeople, setAllPeople] = useState<StudentProfile[]>([]);
+  const [myProfile, setMyProfile] = useState<StudentProfile | null>(null);
+  const [peopleLoading, setPeopleLoading] = useState(false);
+  const [peopleQuery, setPeopleQuery] = useState('');
+  const [pendingSentIds, setPendingSentIds] = useState<Set<string>>(new Set());
+  const [friendIds, setFriendIds] = useState<Set<string>>(new Set());
+  const peopleDebounce = useRef<NodeJS.Timeout | null>(null);
+
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const { containerRef: chatScrollRef, bottomRef: messagesEndRef, forceScrollToBottom, handleScroll, userAtBottom } = useChatScroll([messages, sending]);
 
@@ -154,6 +167,71 @@ function ChatContent() {
       if (d.success && d.data.matches) { const sc: Record<string, number> = {}; d.data.matches.forEach((m: MatchResult) => { sc[m.student.id] = m.score.overall; }); setMatchScores(sc); }
     } catch { /* ignore */ }
   }, [studentId]);
+
+  const loadFindPeople = useCallback(async () => {
+    if (allPeople.length > 0) return;
+    setPeopleLoading(true);
+    try {
+      const [studRes, friendRes] = await Promise.all([fetch('/api/students'), fetch(`/api/friends?userId=${studentId}`)]);
+      const studData = await studRes.json();
+      const friendData = await friendRes.json();
+      if (studData.success) {
+        const all: StudentProfile[] = studData.data;
+        setAllPeople(all.filter(s => s.id !== studentId));
+        const mine = all.find(s => s.id === studentId);
+        if (mine) setMyProfile(mine);
+      }
+      if (friendData.success) {
+        const fIds = new Set<string>((friendData.data.friends || []).map((f: { user1Id: string; user2Id: string }) => f.user1Id === studentId ? f.user2Id : f.user1Id));
+        setFriendIds(fIds);
+        const sIds = new Set<string>((friendData.data.allRequests || []).filter((r: { fromUserId: string; status: string }) => r.fromUserId === studentId && r.status === 'pending').map((r: { toUserId: string }) => r.toUserId));
+        setPendingSentIds(sIds);
+      }
+    } catch { /* ignore */ } finally { setPeopleLoading(false); }
+  }, [allPeople.length, studentId]);
+
+  const openFindPeople = () => { setShowFindPeople(true); loadFindPeople(); };
+
+  const handlePeopleQuery = (q: string) => {
+    setPeopleQuery(q);
+    if (peopleDebounce.current) clearTimeout(peopleDebounce.current);
+    if (!q.trim()) return;
+    peopleDebounce.current = setTimeout(async () => {
+      try {
+        const res = await fetch(`/api/students?search=${encodeURIComponent(q.trim())}`);
+        const data = await res.json();
+        if (data.success) {
+          const results: StudentProfile[] = data.data.filter((s: StudentProfile) => s.id !== studentId);
+          setAllPeople(prev => { const ids = new Set(prev.map(p => p.id)); return [...prev, ...results.filter(r => !ids.has(r.id))]; });
+        }
+      } catch { /* ignore */ }
+    }, 350);
+  };
+
+  const getSortedPeople = () => {
+    const q = peopleQuery.trim().toLowerCase();
+    const pool = q ? allPeople.filter(s => s.name.toLowerCase().includes(q) || (s.department || '').toLowerCase().includes(q)) : allPeople;
+    const myDept = myProfile?.department || ''; const myYear = myProfile?.yearLevel || '';
+    const g0: StudentProfile[] = [], g1: StudentProfile[] = [], g2: StudentProfile[] = [], g3: StudentProfile[] = [];
+    for (const s of pool) {
+      const sd = myDept && s.department === myDept, sy = myYear && s.yearLevel === myYear;
+      if (sd && sy) g0.push(s); else if (sd) g1.push(s); else if (sy) g2.push(s); else g3.push(s);
+    }
+    return [
+      ...(g0.length ? [{ label: 'Same branch & year', color: 'bg-violet-500', items: g0 }] : []),
+      ...(g1.length ? [{ label: 'Same branch', color: 'bg-emerald-500', items: g1 }] : []),
+      ...(g2.length ? [{ label: 'Same year', color: 'bg-amber-500', items: g2 }] : []),
+      ...(g3.length ? [{ label: 'Other students', color: 'bg-gray-500', items: g3 }] : []),
+    ];
+  };
+
+  const handleSendRequest = async (toId: string, toName: string) => {
+    if (!user) return;
+    try {
+      await fetch('/api/friends', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'send_request', fromUserId: user.id, fromUserName: user.name, toUserId: toId, toUserName: toName }) });
+      setPendingSentIds(prev => { const n = new Set(Array.from(prev)); n.add(toId); return n; });
+    } catch { /* ignore */ }
+  };
 
   useEffect(() => { loadThreads(); loadMatchScores(); }, [loadThreads, loadMatchScores]);
   useEffect(() => { if (selectedChatId) { loadMessages(); markRead(); } }, [selectedChatId, loadMessages, markRead]);
@@ -250,26 +328,115 @@ function ChatContent() {
   };
 
   if (!selectedChatId) {
+    const sortedPeopleGroups = getSortedPeople();
     return (
       <div id="chat-root" className="flex flex-col" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--background)', overflow: 'hidden' }}>
+        {/* Header */}
         <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', background: 'var(--glass-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid var(--glass-border)' }}>
-          <button onClick={() => router.push('/friends')} className="p-1.5 -ml-1 rounded-xl hover:bg-white/8 text-[var(--muted)] transition-colors">
-            <ArrowLeft size={22} />
-          </button>
           <div className="flex-1">
             <h1 className="text-lg font-bold text-[var(--foreground)]">Your Chats</h1>
             {threads.length > 0 && <p className="text-[11px] text-[var(--muted-strong)]">{threads.length} conversation{threads.length !== 1 ? 's' : ''}</p>}
           </div>
+          <button onClick={openFindPeople} className="p-2 rounded-xl bg-[var(--primary)]/15 text-[var(--primary-light)] border border-[var(--primary)]/25 hover:bg-[var(--primary)]/25 transition-all active:scale-95">
+            <UserPlus size={18} />
+          </button>
         </div>
+
+        {/* Find People Panel */}
+        {showFindPeople && (
+          <div className="shrink-0 border-b border-white/[0.06] bg-[#0f0f18]">
+            <div className="px-4 pt-3 pb-2 flex items-center gap-2">
+              <div className="relative flex-1">
+                <Search size={14} className="absolute left-3 top-1/2 -translate-y-1/2 text-white/40 pointer-events-none" />
+                <input
+                  autoFocus
+                  type="text"
+                  value={peopleQuery}
+                  onChange={e => handlePeopleQuery(e.target.value)}
+                  placeholder="Search by name, branch, or admission no…"
+                  className="w-full pl-8 pr-8 py-2 rounded-xl bg-white/5 border border-white/10 text-sm text-white placeholder-white/30 focus:outline-none focus:border-[var(--primary)]/40 transition-colors"
+                />
+                {peopleQuery && (
+                  <button onClick={() => setPeopleQuery('')} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-white/40 hover:text-white">
+                    <X size={13} />
+                  </button>
+                )}
+              </div>
+              <button onClick={() => { setShowFindPeople(false); setPeopleQuery(''); }} className="p-2 text-white/40 hover:text-white transition-colors">
+                <X size={18} />
+              </button>
+            </div>
+            <div className="px-4 pb-3 max-h-[45vh] overflow-y-auto">
+              {peopleLoading && <p className="text-xs text-white/40 text-center py-4">Loading students…</p>}
+              {!peopleLoading && sortedPeopleGroups.length === 0 && (
+                <p className="text-xs text-white/40 text-center py-4">
+                  {peopleQuery ? 'No students found' : 'No other students registered yet'}
+                </p>
+              )}
+              {!peopleLoading && sortedPeopleGroups.map(group => (
+                <div key={group.label} className="mb-3">
+                  <p className="text-[10px] font-bold uppercase tracking-wider text-white/35 mb-1.5 flex items-center gap-1.5">
+                    <span className={`w-1 h-3 rounded-full ${group.color}`} />
+                    {group.label}
+                    <span className="ml-auto font-normal normal-case tracking-normal">{group.items.length}</span>
+                  </p>
+                  <div className="space-y-1.5">
+                    {group.items.map(s => {
+                      const isFriend = friendIds.has(s.id);
+                      const isPending = pendingSentIds.has(s.id);
+                      return (
+                        <div key={s.id} className="flex items-center gap-3 p-2.5 rounded-xl bg-white/[0.03] border border-white/[0.06]">
+                          <div className={`w-9 h-9 rounded-full bg-gradient-to-br ${avatarGrad(s.name)} flex items-center justify-center text-white text-sm font-bold shrink-0`}>
+                            {s.name.charAt(0).toUpperCase()}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold text-white truncate">{s.name}</p>
+                            <p className="text-[10px] text-white/40 truncate">{[s.department, s.yearLevel].filter(Boolean).join(' · ') || 'SVNIT'}</p>
+                          </div>
+                          <div className="flex gap-1.5 shrink-0">
+                            {isFriend ? (
+                              <button
+                                onClick={() => { setShowFindPeople(false); setPeopleQuery(''); const cid = [studentId, s.id].sort().join('__'); setSelectedChatId(cid); }}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-blue-500/15 text-blue-400 border border-blue-500/25 hover:bg-blue-500/25 transition-all"
+                              >
+                                💬 Chat
+                              </button>
+                            ) : (
+                              <button
+                                onClick={() => handleSendRequest(s.id, s.name)}
+                                disabled={isPending}
+                                className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-emerald-500/15 text-emerald-400 border border-emerald-500/25 hover:bg-emerald-500/25 disabled:opacity-50 transition-all"
+                              >
+                                {isPending ? '✓ Sent' : '+ Connect'}
+                              </button>
+                            )}
+                            <button
+                              onClick={() => router.push(`/chat?friendId=${encodeURIComponent(s.id)}&friendName=${encodeURIComponent(s.name)}`)}
+                              className="px-2.5 py-1 rounded-lg text-[10px] font-bold bg-amber-500/15 text-amber-400 border border-amber-500/25 hover:bg-amber-500/25 transition-all"
+                            >
+                              Ping
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Thread list */}
         <div className="flex-1 overflow-y-auto">
-          {threads.length === 0 ? (
+          {threads.length === 0 && !showFindPeople ? (
             <div className="flex flex-col items-center justify-center p-8 mt-16 text-center space-y-4">
               <div className="w-20 h-20 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-4xl">💬</div>
               <div>
                 <p className="text-[var(--foreground)] font-bold text-lg mb-1">No chats yet</p>
                 <p className="text-[var(--muted-strong)] text-sm">Find your study buddy or hangout partner</p>
               </div>
-              <button onClick={() => router.push('/friends')} className="px-6 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl text-sm transition-transform active:scale-95 shadow-lg shadow-[var(--primary)]/20">Find Friends</button>
+              <button onClick={openFindPeople} className="px-6 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl text-sm transition-transform active:scale-95 shadow-lg shadow-[var(--primary)]/20">Find People</button>
             </div>
           ) : (
             <div className="divide-y divide-white/[0.04]">
