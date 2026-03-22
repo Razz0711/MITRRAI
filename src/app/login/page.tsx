@@ -158,7 +158,7 @@ function LoginPageInner() {
   const [otpCode, setOtpCode] = useState('');
   const [otpSending, setOtpSending] = useState(false);
   const [otpVerifying, setOtpVerifying] = useState(false);
-  const [loadingText, _setLoadingText] = useState('Verifying...');
+  const [otpLoadingStep, setOtpLoadingStep] = useState<'verifying' | 'signing_in' | 'done'>('verifying');
   const [otpResendTimer, setOtpResendTimer] = useState(0);
   const [otpVerified, setOtpVerified] = useState(false); // tracks if OTP was already verified (prevents re-verify after login failure)
 
@@ -250,6 +250,7 @@ function LoginPageInner() {
   const verifyOtpAndProceed = async () => {
     const trimmedEmail = email.trim().toLowerCase();
     setOtpVerifying(true);
+    setOtpLoadingStep('verifying');
     setError('');
     try {
       // Skip OTP API call if already verified (retry after login/signup failure)
@@ -274,6 +275,7 @@ function LoginPageInner() {
       }
 
       // OTP verified — now do actual login/signup
+      setOtpLoadingStep('signing_in');
       if (isSignup) {
         const result = await signup({
           name: name.trim(),
@@ -293,14 +295,18 @@ function LoginPageInner() {
         });
         if (!result.success) {
           setError(result.error || 'Something went wrong. Tap "Verify & Continue" to retry.');
+          setOtpVerifying(false);
+        } else {
+          setOtpLoadingStep('done'); // keep spinner — WelcomeSplash will take over
         }
-        // on success: auth state updates → WelcomeSplash renders → redirects to /home
       } else {
         const result = await login(trimmedEmail, password);
         if (!result.success) {
           setError(result.error || 'Invalid credentials');
+          setOtpVerifying(false);
+        } else {
+          setOtpLoadingStep('done'); // keep spinner — WelcomeSplash will take over
         }
-        // on success: auth state updates → WelcomeSplash renders → redirects to /home
       }
     } catch (err) {
       console.error('verifyOtp:', err);
@@ -309,7 +315,6 @@ function LoginPageInner() {
       } else {
         setError('Network error — tap "Verify & Continue" to retry.');
       }
-    } finally {
       setOtpVerifying(false);
     }
   };
@@ -568,7 +573,11 @@ function LoginPageInner() {
                   disabled={otpCode.length !== 6 || otpVerifying}
                   className="btn-primary w-full text-sm py-2.5 disabled:opacity-50"
                 >
-                  {otpVerifying ? loadingText : otpVerified ? 'Retry Login' : 'Verify & Continue'}
+                  {otpVerifying
+                    ? otpLoadingStep === 'signing_in' ? '✓ Verified! Signing in...'
+                    : otpLoadingStep === 'done' ? '✓ Almost there...'
+                    : 'Verifying...'
+                    : otpVerified ? 'Retry Login' : 'Verify & Continue'}
                 </button>
 
                 <div className="flex items-center justify-between">
