@@ -9,7 +9,7 @@
 import { useState, useRef, useEffect, useCallback, memo, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
-import { DirectMessage, ChatThread, UserStatus, StudentProfile, MatchResult } from '@/lib/types';
+import { DirectMessage, ChatThread, UserStatus, MatchResult } from '@/lib/types';
 import { supabaseBrowser } from '@/lib/supabase-browser';
 import { useNotificationSound } from '@/hooks/useNotificationSound';
 import { useChatStability } from '@/hooks/useChatStability';
@@ -93,7 +93,6 @@ function ChatContent() {
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
   const [statuses, setStatuses] = useState<Record<string, UserStatus>>({});
-  const [_allStudents, setAllStudents] = useState<StudentProfile[]>([]);
   const [matchScores, setMatchScores] = useState<Record<string, number>>({});
 
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -148,7 +147,6 @@ function ChatContent() {
     try { await fetch('/api/chat', { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ chatId: selectedChatId, userId: studentId }) }); } catch { /* ignore */ }
   }, [selectedChatId, studentId]);
 
-  const loadStudents = useCallback(async () => { try { const r = await fetch('/api/students'); const d = await r.json(); if (d.success) setAllStudents(d.data || []); } catch { /* ignore */ } }, []);
   const loadMatchScores = useCallback(async () => {
     if (!studentId) return;
     try {
@@ -157,7 +155,7 @@ function ChatContent() {
     } catch { /* ignore */ }
   }, [studentId]);
 
-  useEffect(() => { loadThreads(); loadStudents(); loadMatchScores(); }, [loadThreads, loadStudents, loadMatchScores]);
+  useEffect(() => { loadThreads(); loadMatchScores(); }, [loadThreads, loadMatchScores]);
   useEffect(() => { if (selectedChatId) { loadMessages(); markRead(); } }, [selectedChatId, loadMessages, markRead]);
 
   // Initial scroll

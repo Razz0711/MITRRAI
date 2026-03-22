@@ -6,7 +6,7 @@
 
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
@@ -73,6 +73,8 @@ export default function CirclesPage() {
   // Dept stats
   const [allStudents, setAllStudents] = useState<{id: string; department: string}[]>([]);
 
+  const roomPollRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
   const loadCircles = useCallback(async () => {
     if (!user) return;
     try {
@@ -101,6 +103,19 @@ export default function CirclesPage() {
   useEffect(() => {
     loadCircles();
   }, [loadCircles]);
+
+  // Poll rooms every 5s so live room status stays fresh
+  useEffect(() => {
+    const pollRooms = async () => {
+      try {
+        const res = await fetch('/api/rooms');
+        const data = await res.json();
+        if (data.success) setRooms(data.data.rooms || []);
+      } catch { /* ignore */ }
+    };
+    roomPollRef.current = setInterval(pollRooms, 5000);
+    return () => { if (roomPollRef.current) clearInterval(roomPollRef.current); };
+  }, []);
 
   const loadMembers = useCallback(async (circleId: string) => {
     try {
@@ -285,7 +300,7 @@ export default function CirclesPage() {
               filtered.map((circle) => {
                 const cs = getCircleStatus(circle);
                 const isActive = activeCircle?.id === circle.id;
-                const deptInCircle = memberships.filter(m => m.circleId === circle.id && deptStudentIds.has(m.userId || '')).length;
+                const deptInCircle = memberships.filter(m => m.circleId === circle.id && m.userId != null && deptStudentIds.has(m.userId)).length;
                 return (
                   <button
                     key={circle.id}
@@ -548,7 +563,7 @@ export default function CirclesPage() {
                       <div className="space-y-2">
                         {circles.map(circle => {
                           // Count dept members in this circle (approximation from memberships)
-                          const deptInCircle = memberships.filter(m => m.circleId === circle.id && deptStudentIds.has(m.userId || '')).length;
+                          const deptInCircle = memberships.filter(m => m.circleId === circle.id && m.userId != null && deptStudentIds.has(m.userId)).length;
                           const totalInCircle = memberCounts[circle.id] || 0;
                           const barWidth = totalInCircle > 0 ? Math.max(10, (deptInCircle / totalInCircle) * 100) : 10;
                           return (

@@ -531,6 +531,9 @@ export default function AnonLobbyPage() {
                     >
                       Open UPI App Directly
                     </a>
+                    <p className="text-[10px] text-[var(--muted)] mt-1 md:block hidden">
+                      On desktop: scan the QR code above with any UPI app on your phone, or open your bank&apos;s UPI interface and pay to the UPI ID shown.
+                    </p>
                   </div>
 
                   {/* Transaction ID input */}

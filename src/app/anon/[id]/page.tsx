@@ -115,7 +115,6 @@ export default function AnonChatRoomPage() {
   const [closed, setClosed] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
-  const pollMsgRef = useRef<NodeJS.Timeout | null>(null);
 
   const { containerRef, bottomRef, forceScrollToBottom, handleScroll, userAtBottom } = useChatScroll([messages, sending]);
 
@@ -134,23 +133,7 @@ export default function AnonChatRoomPage() {
   useEffect(() => {
     if (!user) return;
     loadRoom();
-    pollMsgRef.current = setInterval(async () => {
-      try {
-        const res = await fetch(`/api/anon/${roomId}`);
-        const json = await res.json();
-        if (json.success && json.data.messages) {
-          setMessages(prev => {
-            const existingIds = new Set(prev.map(m => m.id));
-            const newMsgs = json.data.messages.filter((m: AnonMsg) => !existingIds.has(m.id));
-            if (newMsgs.length === 0) return prev;
-            return [...prev, ...newMsgs];
-          });
-          if (json.data.room.status === 'closed') setClosed(true);
-        }
-      } catch { /* ignore */ }
-    }, 3000);
-    return () => { if (pollMsgRef.current) clearInterval(pollMsgRef.current); };
-  }, [user, loadRoom, roomId]);
+  }, [user, loadRoom]);
 
   // Realtime subscription
   useEffect(() => {

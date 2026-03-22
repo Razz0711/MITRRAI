@@ -10,7 +10,7 @@ import { useParams } from 'next/navigation';
 import { useAuth } from '@/lib/auth';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
 import CallRoom from '@/components/CallRoom';
-import { Phone, Send } from 'lucide-react';
+import { Phone, Send, Users } from 'lucide-react';
 import { useChatStability } from '@/hooks/useChatStability';
 
 interface RoomMsg {
@@ -51,6 +51,7 @@ export default function RoomDetailPage() {
   const [isMember, setIsMember] = useState(false);
   const [joining, setJoining] = useState(false);
   const [inCall, setInCall] = useState(false);
+  const [showMembersDrawer, setShowMembersDrawer] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const pollRef = useRef<ReturnType<typeof setInterval>>();
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -211,6 +212,13 @@ export default function RoomDetailPage() {
                 </button>
               </>
             )}
+            {/* Members button — mobile only */}
+            <button
+              onClick={() => setShowMembersDrawer(true)}
+              className="md:hidden flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-[var(--surface-light)] text-[var(--muted)] text-xs"
+            >
+              <Users size={13} /> {members.length}
+            </button>
           </div>
         </div>
 
@@ -291,6 +299,31 @@ export default function RoomDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Mobile Members Drawer */}
+      {showMembersDrawer && (
+        <>
+          <div className="fixed inset-0 z-40 bg-black/60 md:hidden" onClick={() => setShowMembersDrawer(false)} />
+          <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden rounded-t-2xl p-5 pb-[calc(env(safe-area-inset-bottom)+1.25rem)]" style={{ background: 'var(--surface)', border: '1px solid var(--border)' }}>
+            <div className="w-10 h-1 rounded-full bg-[var(--muted)]/30 mx-auto mb-4" />
+            <h2 className="font-bold text-[var(--foreground)] mb-3">Members ({members.length}/{room.maxMembers})</h2>
+            <div className="space-y-2 max-h-64 overflow-y-auto">
+              {members.map((m) => (
+                <div key={m.userId} className="flex items-center gap-2 text-sm">
+                  <div className="w-8 h-8 rounded-full bg-[var(--primary)]/15 flex items-center justify-center text-[var(--primary-light)] font-bold text-xs">
+                    {m.userName?.charAt(0)?.toUpperCase() || '?'}
+                  </div>
+                  <p className="text-[var(--foreground)]">
+                    {m.userName}
+                    {m.userId === user?.id && <span className="text-xs text-[var(--muted)] ml-1">(you)</span>}
+                  </p>
+                  {m.role === 'creator' && <span className="text-[10px] text-amber-500 ml-auto">Creator</span>}
+                </div>
+              ))}
+            </div>
+          </div>
+        </>
+      )}
 
       {/* Members Sidebar */}
       <div className="bg-[var(--surface)] rounded-xl border border-[var(--border)] p-4 space-y-4 hidden md:block">

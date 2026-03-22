@@ -12,6 +12,7 @@ import { useRouter } from 'next/navigation';
 import {
   ArrowLeft, Send, MoreVertical, Trash2, Phone, PhoneOff,
   Mic, Share2, Star, MessageCircle, Crown, ThumbsUp, ThumbsDown,
+  Volume2, VolumeX,
 } from 'lucide-react';
 import { useAuth } from '@/lib/auth';
 
@@ -133,6 +134,7 @@ export default function AryaChatPage() {
   const [inCall, setInCall] = useState(false);
   const [callStatus, setCallStatus] = useState<'connecting' | 'listening' | 'thinking' | 'speaking'>('connecting');
   const [callTimer, setCallTimer] = useState(0);
+  const [speakerMuted, setSpeakerMuted] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const recognitionRef = useRef<any>(null);
   const callTimerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -356,6 +358,16 @@ export default function AryaChatPage() {
     if (callTimerRef.current) clearInterval(callTimerRef.current);
     if (recognitionRef.current) { try { recognitionRef.current.abort(); } catch { /* */ } recognitionRef.current = null; }
     window.speechSynthesis?.cancel();
+    setSpeakerMuted(false);
+  };
+
+  const toggleSpeaker = () => {
+    if (!speakerMuted) {
+      window.speechSynthesis?.cancel();
+      setSpeakerMuted(true);
+    } else {
+      setSpeakerMuted(false);
+    }
   };
 
   const startListening = () => {
@@ -406,6 +418,7 @@ export default function AryaChatPage() {
     setMessages(prev => [...prev, { id: `voice-arya-${Date.now()}`, role: 'assistant', content: responseText, created_at: new Date().toISOString() }]);
     persistMessage('assistant', responseText, true).catch(() => {});
     setCallStatus('speaking');
+    if (speakerMuted) { if (callActiveRef.current) setTimeout(() => startListening(), 400); return; }
     const utterance = new SpeechSynthesisUtterance(responseText);
     utterance.lang = 'en-IN'; utterance.rate = 1.0; utterance.pitch = 1.1;
     const voices = window.speechSynthesis.getVoices();
@@ -635,10 +648,10 @@ export default function AryaChatPage() {
               <p className="text-[10px] text-white/30">End</p>
             </div>
             <div className="flex flex-col items-center gap-2">
-              <div className="w-14 h-14 rounded-full bg-white/10 flex items-center justify-center">
-                <Phone size={22} className="text-white/70" />
-              </div>
-              <p className="text-[10px] text-white/30">Speaker</p>
+              <button onClick={toggleSpeaker} className={`w-14 h-14 rounded-full flex items-center justify-center transition-colors ${speakerMuted ? 'bg-red-500/20' : 'bg-white/10 hover:bg-white/20'}`}>
+                {speakerMuted ? <VolumeX size={22} className="text-red-400" /> : <Volume2 size={22} className="text-white/70" />}
+              </button>
+              <p className="text-[10px] text-white/30">{speakerMuted ? 'Muted' : 'Speaker'}</p>
             </div>
           </div>
         </div>

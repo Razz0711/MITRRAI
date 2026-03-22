@@ -19,13 +19,9 @@ export default function MePage() {
   const [loading, setLoading] = useState(true);
   const [matchCount, setMatchCount] = useState(0);
   const [circleCount, setCircleCount] = useState(0);
-  const [sessionCount, _setSessionCount] = useState(0);
   const [topMatch, setTopMatch] = useState(0);
   const [zoomPhoto, setZoomPhoto] = useState(false);
   const [darkMode, setDarkMode] = useState(true);
-  const [comingSoon, setComingSoon] = useState(false);
-
-  const _showComingSoon = () => { setComingSoon(true); setTimeout(() => setComingSoon(false), 2500); };
 
   const loadData = useCallback(async () => {
     if (!user) return;
@@ -75,9 +71,6 @@ export default function MePage() {
     document.documentElement.setAttribute('data-theme', newMode ? 'dark' : 'light');
     localStorage.setItem('theme', newMode ? 'dark' : 'light');
   };
-
-  // Suppress unused lint
-  void sessionCount;
 
   if (loading) {
     return (
@@ -149,7 +142,7 @@ export default function MePage() {
         </div>
 
         {/* Stats Row */}
-        <div className="grid grid-cols-4 gap-1 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+        <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
           <div className="text-center py-3">
             <div className="text-lg font-bold text-[var(--foreground)]">{matchCount}</div>
             <div className="text-[10px] text-[var(--muted)]">Matches</div>
@@ -157,10 +150,6 @@ export default function MePage() {
           <div className="text-center py-3 border-l border-[var(--border)]">
             <div className="text-lg font-bold text-[var(--foreground)]">{circleCount}</div>
             <div className="text-[10px] text-[var(--muted)]">Circles</div>
-          </div>
-          <div className="text-center py-3 border-l border-[var(--border)]">
-            <div className="text-lg font-bold text-[var(--foreground)]">{sessionCount}</div>
-            <div className="text-[10px] text-[var(--muted)]">Sessions</div>
           </div>
           <div className="text-center py-3 border-l border-[var(--border)]">
             <div className="text-lg font-bold text-[var(--foreground)]">{topMatch > 0 ? `${topMatch}%` : '—'}</div>
@@ -329,14 +318,6 @@ export default function MePage() {
         <span>MitrrAi v1.0</span>
       </div>
 
-      {/* Coming Soon Toast */}
-      {comingSoon && (
-        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 z-50">
-          <div className="px-5 py-3 rounded-2xl text-sm font-semibold text-white shadow-2xl animate-bounce" style={{background:'linear-gradient(135deg, #8B5CF6, #6d28d9)',boxShadow:'0 8px 32px rgba(124,58,237,0.4)'}}>
-            🚀 Coming Soon!
-          </div>
-        </div>
-      )}
     </div>
   );
 }

@@ -22,17 +22,19 @@ export default function AryaProfilePage() {
   const picInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const saved = localStorage.getItem('arya_display_name');
-    if (saved) setDisplayName(saved);
-    const savedPic = localStorage.getItem('arya_custom_avatar');
-    if (savedPic) setCustomAvatar(savedPic);
+    try {
+      const saved = localStorage.getItem('arya_display_name');
+      if (saved) setDisplayName(saved);
+      const savedPic = localStorage.getItem('arya_custom_avatar');
+      if (savedPic) setCustomAvatar(savedPic);
+    } catch { /* localStorage unavailable */ }
   }, []);
 
   const saveName = () => {
     setIsEditing(false);
     const trimmed = displayName.trim() || 'Arya AI ✨';
     setDisplayName(trimmed);
-    localStorage.setItem('arya_display_name', trimmed);
+    try { localStorage.setItem('arya_display_name', trimmed); } catch { /* quota exceeded */ }
   };
 
   useEffect(() => {
@@ -48,7 +50,11 @@ export default function AryaProfilePage() {
     reader.onload = () => {
       const dataUrl = reader.result as string;
       setCustomAvatar(dataUrl);
-      localStorage.setItem('arya_custom_avatar', dataUrl);
+      try {
+        localStorage.setItem('arya_custom_avatar', dataUrl);
+      } catch {
+        // localStorage quota exceeded (large image) — keep in memory only
+      }
       setShowPicSheet(false);
     };
     reader.readAsDataURL(file);
@@ -56,7 +62,7 @@ export default function AryaProfilePage() {
 
   const handlePicRemove = () => {
     setCustomAvatar(null);
-    localStorage.removeItem('arya_custom_avatar');
+    try { localStorage.removeItem('arya_custom_avatar'); } catch { /* ignore */ }
     setShowPicSheet(false);
   };
 

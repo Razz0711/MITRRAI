@@ -39,6 +39,8 @@ export default function EditProfilePage() {
   const [saving, setSaving] = useState(false);
   const [zoomPhoto, setZoomPhoto] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [error, setError] = useState('');
+  const [isDirty, setIsDirty] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form state
@@ -54,6 +56,16 @@ export default function EditProfilePage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [user]);
 
+  useEffect(() => {
+    const handler = (e: BeforeUnloadEvent) => {
+      if (!isDirty) return;
+      e.preventDefault();
+      e.returnValue = '';
+    };
+    window.addEventListener('beforeunload', handler);
+    return () => window.removeEventListener('beforeunload', handler);
+  }, [isDirty]);
+
   const loadProfile = async () => {
     if (!user) return;
     try {
@@ -66,6 +78,7 @@ export default function EditProfilePage() {
         setInterests(data.data.strongSubjects || []);
         setInstagramId(data.data.instagramId || data.data.instagram_id || '');
         setTwitterId(data.data.twitterId || data.data.twitter_id || '');
+        setIsDirty(false);
       }
     } catch (err) {
       console.error(err);
@@ -80,13 +93,14 @@ export default function EditProfilePage() {
     
     // Validate file type and size
     if (!file.type.startsWith('image/')) {
-      alert('Please select an image file');
+      setError('Please select an image file');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      alert('Image must be under 5MB');
+      setError('Image must be under 5MB');
       return;
     }
+    setError('');
 
     setUploading(true);
     try {
@@ -101,7 +115,7 @@ export default function EditProfilePage() {
 
       if (uploadError) {
         console.error('Upload error:', uploadError);
-        alert('Failed to upload photo. Make sure the avatars bucket exists in Supabase Storage.');
+        setError('Failed to upload photo. Make sure the avatars bucket exists in Supabase Storage.');
         return;
       }
 
@@ -122,11 +136,11 @@ export default function EditProfilePage() {
       if (data.success) {
         setPhotoUrl(publicUrl);
       } else {
-        alert('Photo uploaded but failed to save to profile');
+        setError('Photo uploaded but failed to save to profile');
       }
     } catch (err) {
       console.error(err);
-      alert('Failed to upload photo');
+      setError('Failed to upload photo');
     } finally {
       setUploading(false);
     }
@@ -149,19 +163,21 @@ export default function EditProfilePage() {
       });
       const data = await res.json();
       if (data.success) {
+        setIsDirty(false);
         router.push('/me');
       } else {
-        alert(data.error || 'Failed to save changes');
+        setError(data.error || 'Failed to save changes');
       }
     } catch (err) {
       console.error(err);
-      alert('An error occurred while saving.');
+      setError('An error occurred while saving.');
     } finally {
       setSaving(false);
     }
   };
 
   const toggleInterest = (id: string) => {
+    setIsDirty(true);
     setInterests((prev) => {
       if (prev.includes(id)) return prev.filter((s) => s !== id);
       if (prev.length >= MAX_INTERESTS) return prev; // cap at 5
@@ -189,6 +205,14 @@ export default function EditProfilePage() {
         className="hidden"
         onChange={handlePhotoUpload}
       />
+
+      {/* ── Error Banner ── */}
+      {error && (
+        <div className="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-sm text-red-400 flex items-center justify-between gap-2">
+          <span>{error}</span>
+          <button onClick={() => setError('')} className="text-red-400/60 hover:text-red-400 shrink-0">✕</button>
+        </div>
+      )}
 
       {/* ── Top Bar ── */}
       <div className="flex items-center justify-between mb-5">
@@ -287,7 +311,7 @@ export default function EditProfilePage() {
           <div className="relative">
             <textarea
               value={bio}
-              onChange={(e) => setBio(e.target.value.slice(0, 100))}
+              onChange={(e) => { setBio(e.target.value.slice(0, 100)); setIsDirty(true); }}
               placeholder='e.g. "3rd year CSE, love DSA and late-night coding. Looking for hackathon teammates!"'
               className="w-full bg-white/5 rounded-xl border border-[var(--glass-border)] px-4 py-3 text-sm text-[var(--foreground)] placeholder:text-[var(--muted)] resize-none focus:outline-none focus:border-violet-500/40 min-h-[80px] transition-colors"
             />

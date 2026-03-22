@@ -94,6 +94,9 @@ export default function CampusFeedPage() {
   const [loading, setLoading] = useState(true);
   const [posts, setPosts] = useState<FeedPost[]>([]);
   const [_totalPosts, setTotalPosts] = useState(0);
+  const [page, setPage] = useState(0);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [studentName, setStudentName] = useState('');
   const [studentPhoto, setStudentPhoto] = useState('');
 
@@ -161,22 +164,46 @@ export default function CampusFeedPage() {
     fetchProfile();
   }, [user]);
 
-  // Fetch feed
+  // Fetch feed (page 0 = fresh load, resets posts)
   const fetchFeed = useCallback(async () => {
     try {
       const params = new URLSearchParams();
       if (filterCat !== 'all') params.set('category', filterCat);
       if (filterLoc !== 'anywhere') params.set('location', filterLoc);
-      params.set('limit', '50');
+      params.set('limit', '20');
+      params.set('offset', '0');
       const res = await fetch(`/api/feed?${params}`);
       const d = await res.json();
       if (d.success) {
         setPosts(d.data.posts || []);
         setTotalPosts(d.data.total || 0);
+        setHasMore((d.data.posts || []).length === 20);
+        setPage(0);
       }
     } catch (e) { console.error('fetchFeed:', e); }
     setLoading(false);
   }, [filterCat, filterLoc]);
+
+  const loadMore = async () => {
+    setLoadingMore(true);
+    try {
+      const nextPage = page + 1;
+      const params = new URLSearchParams();
+      if (filterCat !== 'all') params.set('category', filterCat);
+      if (filterLoc !== 'anywhere') params.set('location', filterLoc);
+      params.set('limit', '20');
+      params.set('offset', String(nextPage * 20));
+      const res = await fetch(`/api/feed?${params}`);
+      const d = await res.json();
+      if (d.success) {
+        const newPosts = d.data.posts || [];
+        setPosts(prev => [...prev, ...newPosts]);
+        setHasMore(newPosts.length === 20);
+        setPage(nextPage);
+      }
+    } catch (e) { console.error('loadMore:', e); }
+    setLoadingMore(false);
+  };
 
   useEffect(() => { if (user) fetchFeed(); }, [user, fetchFeed]);
 
@@ -488,6 +515,28 @@ export default function CampusFeedPage() {
           <div className="space-y-2">
             <h3 className="text-[10px] font-bold uppercase tracking-widest text-[var(--muted)] opacity-60 px-1">| OLDER</h3>
             {grouped.older.map(post => <PostCard key={post.id} post={post} userLat={userLat} userLng={userLng} userId={user?.id || ''} onReact={handleReact} menuPostId={menuPostId} setMenuPostId={setMenuPostId} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={handleDelete} isOlder categories={CATEGORIES} />)}
+          </div>
+        )}
+
+        {/* ─── Filtered empty state ─── */}
+        {!loading && posts.length > 0 && grouped.sos.length === 0 && grouped.fresh.length === 0 && grouped.active.length === 0 && grouped.older.length === 0 && (
+          <div className="card p-6 text-center space-y-2">
+            <p className="text-2xl">🔍</p>
+            <p className="text-sm font-semibold text-[var(--foreground)]">No posts match your filters</p>
+            <p className="text-xs text-[var(--muted)]">Try removing the distance or location filter</p>
+          </div>
+        )}
+
+        {/* ─── Load More ─── */}
+        {hasMore && !loading && (
+          <div className="flex justify-center py-2">
+            <button
+              onClick={loadMore}
+              disabled={loadingMore}
+              className="px-6 py-2 rounded-xl text-xs font-semibold bg-[var(--surface)] border border-[var(--border)] text-[var(--muted)] hover:text-[var(--foreground)] hover:border-[var(--primary)]/40 disabled:opacity-50 transition-all"
+            >
+              {loadingMore ? 'Loading...' : 'Load more posts'}
+            </button>
           </div>
         )}
       </div>
