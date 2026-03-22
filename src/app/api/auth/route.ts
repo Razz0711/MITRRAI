@@ -61,6 +61,28 @@ export async function POST(req: NextRequest) {
       const finalDeptKnown = deptKnown ?? parsed?.deptKnown ?? true;
       const finalAutoFilled = profileAutoFilled ?? !!parsed;
 
+      // Pre-check: reject if email OR admission number already exists in students table
+      const trimmedEmail = email.trim().toLowerCase();
+      const { data: existingByEmail } = await supabaseService
+        .from('students')
+        .select('id')
+        .eq('email', trimmedEmail)
+        .maybeSingle();
+      if (existingByEmail) {
+        return NextResponse.json({ success: false, error: 'An account with this email already exists. Please log in.' }, { status: 409 });
+      }
+
+      if (finalAdmNo) {
+        const { data: existingByAdmNo } = await supabaseService
+          .from('students')
+          .select('id')
+          .ilike('admission_number', finalAdmNo.trim())
+          .maybeSingle();
+        if (existingByAdmNo) {
+          return NextResponse.json({ success: false, error: 'An account with this admission number already exists. Please log in.' }, { status: 409 });
+        }
+      }
+
       // Create Supabase Auth user with admin API (auto-confirmed, no email verification needed since we verified via OTP)
       const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
         email: email.trim().toLowerCase(),
