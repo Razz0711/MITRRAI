@@ -556,9 +556,9 @@ export default function AryaChatPage() {
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold text-amber-300 mb-0.5">A quick note</p>
               <p className="text-xs text-amber-200/80 leading-relaxed">
-                If you're going through something heavy, iCall (India) is free and confidential —{' '}
+                If you&apos;re going through something heavy, iCall (India) is free and confidential —{' '}
                 <strong className="text-amber-300">9152987821</strong>
-                {' '}(Mon–Sat 8am–10pm). You're not alone. 🧡
+                {' '}(Mon–Sat 8am–10pm). You&apos;re not alone. 🧡
               </p>
             </div>
             <button onClick={() => setShowCrisisNote(false)} className="text-amber-400/60 hover:text-amber-300 text-xs shrink-0 mt-0.5">✕</button>
