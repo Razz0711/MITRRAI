@@ -8,9 +8,7 @@ import {
   getCircleById,
   getCircleMembers,
 } from '@/lib/store/circles';
-import type { CircleMembership } from '@/lib/store/circles';
 import { getActiveRooms } from '@/lib/store/rooms';
-import { getStudentById } from '@/lib/store/students';
 import { getAuthUser, unauthorized } from '@/lib/api-auth';
 
 export const dynamic = 'force-dynamic';
@@ -36,18 +34,12 @@ export async function GET(
     getActiveRooms(params.id),
   ]);
 
-  // Enrich memberships with student profiles (name, department, etc.)
-  const members = await Promise.all(
-    memberships.map(async (m: CircleMembership) => {
-      const student = await getStudentById(m.userId);
-      return {
-        userId: m.userId,
-        name: student?.name || 'Unknown',
-        department: student?.department || '',
-        joinedAt: m.createdAt,
-      };
-    })
-  );
+  // memberships already includes name + department from getCircleMembers join
+  const members = memberships.map((m) => ({
+    userId: m.userId,
+    name: m.userName,
+    department: m.department || '',
+  }));
 
   return NextResponse.json({
     success: true,
