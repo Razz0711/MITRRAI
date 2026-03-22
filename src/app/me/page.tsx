@@ -6,6 +6,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
@@ -15,6 +16,7 @@ import { X, Star, Globe, Moon, Shield, MessageSquare, HelpCircle, Pencil, Camera
 
 export default function MePage() {
   const { user, logout } = useAuth();
+  const router = useRouter();
   const [student, setStudent] = useState<StudentProfile | null>(null);
   const [loading, setLoading] = useState(true);
   const [matchCount, setMatchCount] = useState(0);
@@ -55,7 +57,7 @@ export default function MePage() {
   }, [user]);
 
   useEffect(() => {
-    if (!user) return;
+    if (!user) { setLoading(false); return; }
     loadData();
   }, [user, loadData]);
 
@@ -78,6 +80,11 @@ export default function MePage() {
         <LoadingSkeleton type="cards" count={3} label="Loading profile..." />
       </div>
     );
+  }
+
+  if (!user) {
+    router.replace('/login');
+    return null;
   }
 
   const fullName = student?.name || user?.name || 'Student';
