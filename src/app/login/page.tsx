@@ -99,7 +99,7 @@ function LoginPageInner() {
 
   // Redirect if already logged in
   if (user) {
-    if (isSignup) { router.push('/onboarding'); } else { router.push('/home'); }
+    if (isSignup) { router.push('/home');
     return (
       <div className="min-h-[calc(100vh-4rem)] flex flex-col items-center justify-center px-4 transition-opacity duration-300">
         <div className="w-16 h-16 bg-[var(--surface)] rounded-2xl flex items-center justify-center mb-6 shadow-2xl shadow-[var(--primary)]/10">
@@ -203,7 +203,7 @@ function LoginPageInner() {
           profileAutoFilled: !!parsedEmail,
         });
         if (result.success) {
-          router.push('/onboarding');
+          router.push('/home');
         } else {
           setError(result.error || 'Something went wrong. Tap "Verify & Continue" to retry.');
         }
@@ -295,7 +295,7 @@ function LoginPageInner() {
             profileAutoFilled: !!parsedEmail,
           });
           if (result.success) {
-            router.push('/onboarding');
+            router.push('/home');
           } else {
             setError(result.error || 'Signup failed — please try again.');
           }
