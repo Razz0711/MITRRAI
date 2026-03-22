@@ -8,7 +8,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { getAuthUser, unauthorized } from '@/lib/api-auth';
 import { supabase } from '@/lib/store/core';
-import { ARYA_SYSTEM_PROMPT } from '@/lib/arya-prompt';
+import { getAryaPrompt } from '@/lib/arya-prompt';
 import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
 import { detectCrisis } from '@/lib/crisis-detection';
 
@@ -49,7 +49,15 @@ export async function POST(req: NextRequest) {
   const isCrisis = detectCrisis(String(message));
 
   try {
-    // 1. Load History
+    // 1. Fetch user gender to select persona (female → Aryan, male/default → Arya)
+    const { data: studentRow } = await supabase
+      .from('students')
+      .select('gender')
+      .eq('id', user.id)
+      .single();
+    const systemPrompt = getAryaPrompt(studentRow?.gender);
+
+    // 2. Load History
     const { data: history, error: historyError } = await supabase
       .from('arya_messages')
       .select('role, content')
@@ -61,9 +69,9 @@ export async function POST(req: NextRequest) {
       console.error('History fetch error:', historyError);
     }
 
-    // 2. Format history for xAI
+    // 3. Format history for xAI
     const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: 'system', content: ARYA_SYSTEM_PROMPT }
+      { role: 'system', content: systemPrompt }
     ];
 
     if (history && history.length > 0) {

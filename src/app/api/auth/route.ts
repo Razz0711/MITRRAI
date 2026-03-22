@@ -27,7 +27,7 @@ export async function POST(req: NextRequest) {
     }
 
     if (action === 'signup') {
-      const { name, email, password, admissionNumber, department, yearLevel, dob,
+      const { name, email, password, admissionNumber, department, yearLevel, gender, dob,
               matchKey, programType, batchYear, deptCode, rollNo, deptKnown, profileAutoFilled } = body;
 
       // Rate limit signups by email (10 attempts per 10 minutes)
@@ -108,6 +108,7 @@ export async function POST(req: NextRequest) {
           admission_number: finalAdmNo.trim().toUpperCase(),
           department: finalDept,
           year_level: finalYear,
+          gender: gender || 'Male',
           dob: dob || '',
           show_birthday: true,
           current_study: currentStudy,
