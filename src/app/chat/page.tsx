@@ -29,7 +29,7 @@ const MessageBubble = memo(function MessageBubble({
   };
 
   return (
-    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-1 animate-appear`}>
       <div className="px-3 py-2" style={{
         maxWidth: '75%',
         wordBreak: 'break-word',
@@ -239,59 +239,80 @@ function ChatContent() {
 
   // If no chat is selected (and no friendId in URL to start one), render thread list.
   // We rewrite this into a clean list view.
+  const formatThreadTime = (iso: string) => {
+    const diff = Date.now() - new Date(iso).getTime();
+    const mins = Math.floor(diff / 60000);
+    if (mins < 1) return 'now';
+    if (mins < 60) return `${mins}m`;
+    const hrs = Math.floor(mins / 60);
+    if (hrs < 24) return `${hrs}h`;
+    return `${Math.floor(hrs / 24)}d`;
+  };
+
   if (!selectedChatId) {
     return (
-      <div id="chat-root" className="flex flex-col bg-[#090909]" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, overflow: 'hidden' }}>
-        <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ background: '#111111', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-          <button onClick={() => router.push('/friends')} className="text-white">
-            <ArrowLeft size={24} />
+      <div id="chat-root" className="flex flex-col" style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'var(--background)', overflow: 'hidden' }}>
+        <div className="shrink-0 flex items-center gap-3 px-4 py-3" style={{ paddingTop: 'calc(env(safe-area-inset-top) + 0.75rem)', background: 'var(--glass-bg)', backdropFilter: 'blur(20px)', WebkitBackdropFilter: 'blur(20px)', borderBottom: '1px solid var(--glass-border)' }}>
+          <button onClick={() => router.push('/friends')} className="p-1.5 -ml-1 rounded-xl hover:bg-white/8 text-[var(--muted)] transition-colors">
+            <ArrowLeft size={22} />
           </button>
-          <h1 className="text-lg font-bold text-white">Chats</h1>
+          <div className="flex-1">
+            <h1 className="text-lg font-bold text-[var(--foreground)]">Your Chats</h1>
+            {threads.length > 0 && <p className="text-[11px] text-[var(--muted-strong)]">{threads.length} conversation{threads.length !== 1 ? 's' : ''}</p>}
+          </div>
         </div>
         <div className="flex-1 overflow-y-auto">
           {threads.length === 0 ? (
-            <div className="flex flex-col items-center justify-center p-8 mt-10">
-              <p className="text-white/60 mb-4">No conversations yet</p>
-              <button onClick={() => router.push('/friends')} className="px-6 py-2 bg-[var(--primary)] text-white font-medium rounded-xl text-sm transition-transform active:scale-95">Find Friends</button>
+            <div className="flex flex-col items-center justify-center p-8 mt-16 text-center space-y-4">
+              <div className="w-20 h-20 rounded-3xl bg-[var(--primary)]/10 flex items-center justify-center text-4xl">💬</div>
+              <div>
+                <p className="text-[var(--foreground)] font-bold text-lg mb-1">No chats yet</p>
+                <p className="text-[var(--muted-strong)] text-sm">Find your study buddy or hangout partner</p>
+              </div>
+              <button onClick={() => router.push('/friends')} className="px-6 py-2.5 bg-[var(--primary)] text-white font-semibold rounded-xl text-sm transition-transform active:scale-95 shadow-lg shadow-[var(--primary)]/20">Find Friends</button>
             </div>
           ) : (
-            threads.map(thread => {
-              const otherId = thread.user1Id === studentId ? thread.user2Id : thread.user1Id;
-              const otherName = thread.user1Id === studentId ? thread.user2Name : thread.user1Name;
-              const unread = thread.user1Id === studentId ? thread.unreadCount1 : thread.unreadCount2;
-              const isOnline = statuses[otherId]?.status === 'online' || statuses[otherId]?.status === 'in-session';
-              const initial = otherName.charAt(0).toUpperCase();
+            <div className="divide-y divide-white/[0.04]">
+              {threads.map(thread => {
+                const otherId = thread.user1Id === studentId ? thread.user2Id : thread.user1Id;
+                const otherName = thread.user1Id === studentId ? thread.user2Name : thread.user1Name;
+                const unread = thread.user1Id === studentId ? thread.unreadCount1 : thread.unreadCount2;
+                const isOnline = statuses[otherId]?.status === 'online' || statuses[otherId]?.status === 'in-session';
+                const initial = otherName.charAt(0).toUpperCase();
 
-              // Consistent Avatar color
-              const avatarColors = ['bg-violet-600','bg-emerald-600','bg-blue-600','bg-pink-600','bg-amber-600','bg-cyan-600','bg-indigo-600','bg-rose-600'];
-              let h=0; for(let i=0;i<otherName.length;i++) h=otherName.charCodeAt(i)+((h<<5)-h); 
-              const color = avatarColors[Math.abs(h)%avatarColors.length];
+                const avatarColors = ['bg-violet-600','bg-emerald-600','bg-blue-600','bg-pink-600','bg-amber-600','bg-cyan-600','bg-indigo-600','bg-rose-600'];
+                let h=0; for(let i=0;i<otherName.length;i++) h=otherName.charCodeAt(i)+((h<<5)-h);
+                const color = avatarColors[Math.abs(h)%avatarColors.length];
 
-              return (
-                <button
-                  key={thread.chatId}
-                  onClick={() => setSelectedChatId(thread.chatId)}
-                  className="w-full flex items-center gap-3 px-4 py-3 hover:bg-[#111111] transition-colors border-b border-white/[0.04] text-left"
-                >
-                  <div className="relative shrink-0">
-                    <div className={`w-12 h-12 rounded-full ${color} flex items-center justify-center text-white font-bold text-lg`}>
-                      {initial}
+                return (
+                  <button
+                    key={thread.chatId}
+                    onClick={() => setSelectedChatId(thread.chatId)}
+                    className="w-full flex items-center gap-3 px-4 py-3.5 text-left transition-colors"
+                    style={{ background: unread > 0 ? 'rgba(124,58,237,0.04)' : 'transparent' }}
+                    onMouseEnter={e => (e.currentTarget.style.background = 'rgba(255,255,255,0.03)')}
+                    onMouseLeave={e => (e.currentTarget.style.background = unread > 0 ? 'rgba(124,58,237,0.04)' : 'transparent')}
+                  >
+                    <div className="relative shrink-0">
+                      <div className={`w-12 h-12 rounded-full ${color} flex items-center justify-center text-white font-bold text-lg`}>
+                        {initial}
+                      </div>
+                      {isOnline && <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--background)] rounded-full animate-pulse" />}
                     </div>
-                    {isOnline && <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 border-2 border-[var(--background)] rounded-full" />}
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between mb-0.5">
-                      <h3 className="text-[15px] font-bold text-white truncate">{otherName}</h3>
-                      <span className="text-[11px] text-white/60">{thread.lastMessageAt ? new Date(thread.lastMessageAt).toLocaleDateString() : ''}</span>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between mb-0.5">
+                        <h3 className={`text-[15px] truncate ${unread > 0 ? 'font-bold text-white' : 'font-semibold text-white/90'}`}>{otherName}</h3>
+                        <span className="text-[11px] text-white/40 ml-2 shrink-0">{thread.lastMessageAt ? formatThreadTime(thread.lastMessageAt) : ''}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <p className={`text-[13px] truncate ${unread > 0 ? 'text-white/80' : 'text-white/45'}`}>{thread.lastMessage || 'Say hi!'}</p>
+                        {unread > 0 && <span className="w-5 h-5 flex items-center justify-center bg-[var(--primary)] text-white font-bold text-[10px] rounded-full shrink-0">{unread > 9 ? '9+' : unread}</span>}
+                      </div>
                     </div>
-                    <div className="flex items-center justify-between">
-                      <p className="text-[13px] text-white/65 truncate pr-2">{thread.lastMessage || 'Start textin...'}</p>
-                      {unread > 0 && <span className="w-5 h-5 flex items-center justify-center bg-green-500 text-white font-bold text-[11px] rounded-full shrink-0">{unread}</span>}
-                    </div>
-                  </div>
-                </button>
-              );
-            })
+                  </button>
+                );
+              })}
+            </div>
           )}
         </div>
       </div>

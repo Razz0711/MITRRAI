@@ -1,6 +1,6 @@
 'use client';
 
-import { Sparkles, MoreHorizontal, Trash2, Flag } from 'lucide-react';
+import { Sparkles, MoreHorizontal, Trash2, Flag, Users, MessageCircle, Zap } from 'lucide-react';
 import Avatar from './Avatar';
 
 interface PostCardProps {
@@ -24,11 +24,11 @@ interface PostCardProps {
 function timeAgo(dateStr: string): string {
   const diff = Date.now() - new Date(dateStr).getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'now';
-  if (mins < 60) return `${mins}m`;
+  if (mins < 1) return 'just now';
+  if (mins < 60) return `${mins}m ago`;
   const hrs = Math.floor(mins / 60);
-  if (hrs < 24) return `${hrs}h`;
-  return `${Math.floor(hrs / 24)}d`;
+  if (hrs < 24) return `${hrs}h ago`;
+  return `${Math.floor(hrs / 24)}d ago`;
 }
 
 function getFreshness(dateStr: string): 'fresh' | 'active' | 'older' {
@@ -47,8 +47,24 @@ function haversineDistance(lat1: number, lng1: number, lat2: number, lng2: numbe
 }
 
 function formatDistance(meters: number): string {
-  if (meters < 1000) return `~${Math.round(meters)}m`;
-  return `~${(meters / 1000).toFixed(1)}km`;
+  if (meters < 1000) return `${Math.round(meters)}m away`;
+  return `${(meters / 1000).toFixed(1)}km away`;
+}
+
+// Category → accent color for the left border
+function getCategoryAccent(categoryId: string, isSos?: boolean): string {
+  if (isSos) return '#ef4444';
+  const map: Record<string, string> = {
+    study: '#3b82f6',
+    sports: '#22c55e',
+    hangout: '#f59e0b',
+    food: '#f97316',
+    creative: '#a855f7',
+    fitness: '#06b6d4',
+    talk: '#ec4899',
+    sos: '#ef4444',
+  };
+  return map[categoryId] || '#7c3aed';
 }
 
 export default function PostCard({
@@ -58,102 +74,150 @@ export default function PostCard({
   const isOwn = post.userId === userId;
   const distance = (userLat && userLng && post.lat && post.lng) ? haversineDistance(userLat, userLng, post.lat, post.lng) : null;
   const catInfo = categories.find(c => c.id === post.category);
+  const accentColor = getCategoryAccent(post.category, isSos);
+
+  const iminCount = post.reactions?.imin ?? 0;
+  const connectCount = post.reactions?.connect ?? 0;
+  const iminActive = post.myReactions?.includes('imin');
+  const replyActive = post.myReactions?.includes('reply');
+  const connectActive = post.myReactions?.includes('connect');
 
   return (
     <div
-      className={`card p-3.5 space-y-2.5 transition-all ${isSos ? 'border-red-500/40 shadow-lg shadow-red-500/10' : freshness === 'fresh' ? 'border-green-500/20' : ''} ${isOlder ? 'opacity-65' : ''}`}
+      className={`animate-appear relative overflow-hidden rounded-2xl transition-all ${isOlder ? 'opacity-70' : ''}`}
+      style={{
+        background: 'var(--surface-card)',
+        borderLeft: `3px solid ${accentColor}`,
+        boxShadow: isSos
+          ? `0 2px 12px rgba(239,68,68,0.15), 0 0 0 1px rgba(239,68,68,0.2)`
+          : `var(--shadow-card)`,
+      }}
     >
-      {/* Header */}
-      <div className="flex items-center gap-2.5">
-        {post.isAnonymous ? (
-          <div className="w-8 h-8 rounded-full bg-purple-500/20 flex items-center justify-center shrink-0">
-            <Sparkles size={14} className="text-purple-400" />
-          </div>
-        ) : (
-          <Avatar src={post.userPhotoUrl} name={post.userName || 'U'} size={32} />
-        )}
-        <div className="flex-1 min-w-0">
-          <span className="text-sm font-semibold text-[var(--foreground)] truncate block">{post.userName || 'Anonymous'}</span>
-          <div className="flex items-center gap-1.5 text-[11px] text-[var(--muted-strong)]">
-            {distance !== null && <span className="text-amber-400 font-medium">{formatDistance(distance)}</span>}
-            <span>{timeAgo(post.createdAt)}</span>
-            <span className={`px-1.5 py-0.5 rounded-full text-[11px] font-bold ${isSos ? 'bg-red-500/20 text-red-400' : freshness === 'fresh' ? 'bg-green-500/20 text-green-400' : freshness === 'active' ? 'bg-blue-500/20 text-blue-400' : 'bg-white/8 text-[var(--muted-strong)]'}`}>
-              {isSos ? 'SOS' : freshness}
+      {/* Fresh pulse line at top */}
+      {freshness === 'fresh' && !isSos && (
+        <div className="absolute top-0 left-0 right-0 h-[2px]" style={{ background: 'linear-gradient(90deg, #22c55e, transparent)' }} />
+      )}
+
+      <div className="p-3.5 space-y-2.5">
+        {/* Header */}
+        <div className="flex items-center gap-2.5">
+          {post.isAnonymous ? (
+            <div className="w-9 h-9 rounded-full bg-purple-500/15 flex items-center justify-center shrink-0 border border-purple-500/20">
+              <Sparkles size={15} className="text-purple-400" />
+            </div>
+          ) : (
+            <Avatar src={post.userPhotoUrl} name={post.userName || 'U'} size={36} />
+          )}
+          <div className="flex-1 min-w-0">
+            <span className="text-sm font-semibold text-[var(--foreground)] truncate block">
+              {post.isAnonymous ? 'Anonymous' : (post.userName || 'Someone')}
             </span>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {distance !== null && (
+                <span className="text-[11px] text-amber-400 font-medium">{formatDistance(distance)}</span>
+              )}
+              <span className="text-[11px] text-[var(--muted-strong)]">{timeAgo(post.createdAt)}</span>
+              <span className={`px-1.5 py-0.5 rounded-full text-[10px] font-bold ${
+                isSos ? 'bg-red-500/20 text-red-400' :
+                freshness === 'fresh' ? 'bg-green-500/20 text-green-400' :
+                freshness === 'active' ? 'bg-blue-500/15 text-blue-400' :
+                'bg-white/6 text-[var(--muted-strong)]'
+              }`}>
+                {isSos ? '🆘 SOS' : freshness === 'fresh' ? '🔥 live' : freshness}
+              </span>
+            </div>
           </div>
+          <button
+            onClick={() => setMenuPostId(menuPostId === post.id ? null : post.id)}
+            className="p-1.5 shrink-0 rounded-lg hover:bg-white/8 text-[var(--muted)] transition-colors"
+          >
+            <MoreHorizontal size={15} />
+          </button>
         </div>
-        <button
-          onClick={() => setMenuPostId(menuPostId === post.id ? null : post.id)}
-          className="p-1.5 shrink-0 rounded-lg hover:bg-[var(--surface)] text-[var(--muted)] transition-colors"
-        >
-          <MoreHorizontal size={14} />
-        </button>
-      </div>
 
-      {/* Menu dropdown */}
-      {menuPostId === post.id && (
-        <div className="flex gap-2 px-2">
-          {isOwn && (
-            <button onClick={() => { setDeleteConfirm(post.id); setMenuPostId(null); }} className="flex items-center gap-1 px-2 py-1 rounded-lg bg-red-500/10 text-red-400 text-[10px] font-medium">
-              <Trash2 size={10} /> Delete
-            </button>
-          )}
-          {!isOwn && (
-            <button className="flex items-center gap-1 px-2 py-1 rounded-lg bg-[var(--surface)] text-[var(--muted)] text-[10px] font-medium">
-              <Flag size={10} /> Report
-            </button>
-          )}
-        </div>
-      )}
-
-      {/* Tags */}
-      <div className="flex flex-wrap gap-1.5">
-        {catInfo && (
-          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-semibold ${isSos ? 'bg-red-500/20 text-red-400' : 'bg-[var(--primary)]/10 text-[var(--primary-light)]'}`}>
-            {catInfo.emoji} {catInfo.label}
-          </span>
+        {/* Menu */}
+        {menuPostId === post.id && (
+          <div className="flex gap-2 px-1">
+            {isOwn ? (
+              <button
+                onClick={() => { setDeleteConfirm(post.id); setMenuPostId(null); }}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-red-500/10 text-red-400 text-[11px] font-medium border border-red-500/15"
+              >
+                <Trash2 size={11} /> Delete post
+              </button>
+            ) : (
+              <button className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white/5 text-[var(--muted-strong)] text-[11px] font-medium border border-white/8">
+                <Flag size={11} /> Report
+              </button>
+            )}
+          </div>
         )}
-        {post.subcategory && (
-          <span className="px-2 py-0.5 rounded-lg text-[10px] font-medium bg-[var(--surface)] text-[var(--foreground)] border border-[var(--border)]">
-            {post.subcategory}
-          </span>
-        )}
-      </div>
 
-      {/* Content */}
-      <p className="text-sm text-[var(--foreground)] leading-relaxed">{post.content}</p>
-
-      {/* Engagement */}
-      {post.reactions && (post.reactions.imin > 0 || post.reactions.connect > 0) && (
-        <p className="text-[11px] text-[var(--muted-strong)]">
-          {post.reactions.imin > 0 && `${post.reactions.imin} joined`}
-          {post.reactions.imin > 0 && post.reactions.connect > 0 && ' · '}
-          {post.reactions.connect > 0 && `${post.reactions.connect} connected`}
-        </p>
-      )}
-
-      {/* Global Standardized Buttons: User complained some were colored and some outline. 
-          We'll make them all lightly tinted (surface-light) matching the modern UI, 
-          and nicely colored only when active. This removes the 'random colors' look. */}
-      <div className="flex gap-2">
-        {(['imin', 'reply', 'connect'] as const).map(type => {
-          const active = post.myReactions?.includes(type);
-          const label = type === 'imin' ? "I'm in!" : type === 'reply' ? 'Reply' : 'Connect';
-          
-          return (
-            <button
-              key={type}
-              onClick={() => onReact(post.id, type)}
-              className={`flex-1 py-1.5 rounded-xl text-[10px] font-semibold transition-all ${
-                active
-                ? 'bg-[var(--primary)] text-white shadow-md shadow-[var(--primary)]/20 border border-[var(--primary)]'
-                : 'bg-[var(--surface-light)] text-[var(--foreground)] border border-[var(--glass-border)] hover:bg-[var(--surface)]'
-              }`}
+        {/* Category tags */}
+        <div className="flex flex-wrap gap-1.5">
+          {catInfo && (
+            <span
+              className="px-2 py-0.5 rounded-lg text-[11px] font-semibold"
+              style={{
+                background: `${accentColor}18`,
+                color: accentColor,
+                border: `1px solid ${accentColor}30`,
+              }}
             >
-              {label}
-            </button>
-          );
-        })}
+              {catInfo.emoji} {catInfo.label}
+            </span>
+          )}
+          {post.subcategory && (
+            <span className="px-2 py-0.5 rounded-lg text-[11px] font-medium bg-white/6 text-[var(--foreground)] border border-white/8">
+              {post.subcategory}
+            </span>
+          )}
+        </div>
+
+        {/* Content */}
+        <p className="text-sm text-[var(--foreground)] leading-relaxed">{post.content}</p>
+
+        {/* Divider + action row */}
+        <div className="flex items-center gap-1 pt-0.5" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+          {/* I'm in */}
+          <button
+            onClick={() => onReact(post.id, 'imin')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ${
+              iminActive
+                ? 'bg-[var(--primary)] text-white shadow-sm shadow-[var(--primary)]/30'
+                : 'text-[var(--muted-strong)] hover:bg-white/6 hover:text-[var(--foreground)]'
+            }`}
+          >
+            <Users size={12} />
+            {iminCount > 0 ? iminCount : "I'm in"}
+          </button>
+
+          {/* Reply */}
+          <button
+            onClick={() => onReact(post.id, 'reply')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ${
+              replyActive
+                ? 'bg-blue-500/20 text-blue-400'
+                : 'text-[var(--muted-strong)] hover:bg-white/6 hover:text-[var(--foreground)]'
+            }`}
+          >
+            <MessageCircle size={12} />
+            Reply
+          </button>
+
+          {/* Connect */}
+          <button
+            onClick={() => onReact(post.id, 'connect')}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-[12px] font-semibold transition-all active:scale-95 ml-auto ${
+              connectActive
+                ? 'bg-green-500/20 text-green-400'
+                : 'text-[var(--muted-strong)] hover:bg-white/6 hover:text-[var(--foreground)]'
+            }`}
+          >
+            <Zap size={12} />
+            {connectCount > 0 ? `${connectCount} connected` : 'Connect'}
+          </button>
+        </div>
       </div>
     </div>
   );

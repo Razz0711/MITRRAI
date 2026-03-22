@@ -40,7 +40,7 @@ const MessageBubble = memo(function MessageBubble({
   const isUser = msg.role === 'user';
 
   return (
-    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1`}>
+    <div className={`flex ${isUser ? 'justify-end' : 'justify-start'} mb-1 animate-appear`}>
       {/* Arya avatar for received */}
       {!isUser && (
         <Image
@@ -202,7 +202,7 @@ export default function AryaChatPage() {
         const loaded: Message[] = [];
         const seen = new Set<string>();
         for (const m of msgData.data) {
-          if (!seen.has(m.id)) {
+          if (!seen.has(m.id) && !m.content?.startsWith('[DEBUG]')) {
             seen.add(m.id);
             loaded.push({ id: m.id, role: m.role, content: m.content, created_at: m.created_at, rating: m.rating });
           }
@@ -460,15 +460,17 @@ export default function AryaChatPage() {
         display: 'flex',
         flexDirection: 'column',
         overflow: 'hidden',
-        background: '#090909',
+        background: 'var(--background)',
       }}
     >
       {/* ─── Header ─── */}
       <div
         className="shrink-0 flex items-center gap-3 px-3 py-2.5"
         style={{
-          background: '#111111',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
+          background: 'var(--glass-bg)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          borderBottom: '1px solid var(--glass-border)',
         }}
       >
         <button onClick={() => router.push('/arya')} className="p-1.5 rounded-lg text-white/70 hover:text-white transition-colors">
@@ -521,8 +523,8 @@ export default function AryaChatPage() {
       <div
         ref={scrollAreaRef}
         onScroll={handleScroll}
-        className="flex-1 overflow-y-auto px-3 py-3"
-        style={{ overscrollBehavior: 'contain' }}
+        className="flex-1 overflow-y-auto px-3 py-3 relative"
+        style={{ overscrollBehavior: 'contain', backgroundImage: 'radial-gradient(ellipse 70% 40% at 50% 0%, rgba(124,58,237,0.07) 0%, transparent 60%)' }}
       >
         {loading && (
           <div className="text-center py-12">

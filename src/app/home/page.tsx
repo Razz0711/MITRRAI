@@ -426,8 +426,10 @@ export default function CampusFeedPage() {
 
         {/* ─── Feed Toolbar ─── */}
         <div className="flex items-center justify-between px-1">
-          <span className="text-xs text-[var(--muted-strong)]">
-            <span className="font-semibold text-[var(--foreground)]">{todayCount}</span> posts today
+          <span className="flex items-center gap-1.5 text-xs text-[var(--muted-strong)]">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse inline-block" />
+            <span className="font-semibold text-[var(--foreground)]">{todayCount}</span>
+            {todayCount === 1 ? 'post happening now' : 'posts happening now'}
           </span>
           <button
             onClick={() => {
@@ -489,7 +491,12 @@ export default function CampusFeedPage() {
         {/* ─── SOS Posts (always top) ─── */}
         {grouped.sos.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-red-400 px-1">🆘 SOS</h3>
+            <div className="flex items-center gap-2 px-1 pt-1">
+              <div className="w-1 h-4 rounded-full bg-red-500" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-red-400">SOS</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-red-500/20 text-red-400 border border-red-500/20">{grouped.sos.length}</span>
+              <span className="flex-1 h-px bg-red-500/10" />
+            </div>
             {grouped.sos.map(post => <PostCard key={post.id} post={post} userLat={userLat} userLng={userLng} userId={user?.id || ''} onReact={handleReact} menuPostId={menuPostId} setMenuPostId={setMenuPostId} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={handleDelete} isSos categories={CATEGORIES} />)}
           </div>
         )}
@@ -497,7 +504,13 @@ export default function CampusFeedPage() {
         {/* ─── Fresh Posts ─── */}
         {grouped.fresh.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-[10px] font-bold uppercase tracking-widest text-green-400 px-1">| FRESH</h3>
+            <div className="flex items-center gap-2 px-1 pt-1">
+              <div className="w-1 h-4 rounded-full bg-green-500" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-green-400">Fresh</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-green-500/20 text-green-400 border border-green-500/20">{grouped.fresh.length}</span>
+              <span className="flex-1 h-px bg-green-500/10" />
+              <span className="text-[10px] text-[var(--muted)] font-medium">last 15 min</span>
+            </div>
             {grouped.fresh.map(post => <PostCard key={post.id} post={post} userLat={userLat} userLng={userLng} userId={user?.id || ''} onReact={handleReact} menuPostId={menuPostId} setMenuPostId={setMenuPostId} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={handleDelete} categories={CATEGORIES} />)}
           </div>
         )}
@@ -505,7 +518,13 @@ export default function CampusFeedPage() {
         {/* ─── Active Posts ─── */}
         {grouped.active.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--muted-strong)] px-1">| ACTIVE</h3>
+            <div className="flex items-center gap-2 px-1 pt-1">
+              <div className="w-1 h-4 rounded-full bg-blue-500" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-blue-400">Active</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-blue-500/20 text-blue-400 border border-blue-500/20">{grouped.active.length}</span>
+              <span className="flex-1 h-px bg-blue-500/10" />
+              <span className="text-[10px] text-[var(--muted)] font-medium">last 2 hrs</span>
+            </div>
             {grouped.active.map(post => <PostCard key={post.id} post={post} userLat={userLat} userLng={userLng} userId={user?.id || ''} onReact={handleReact} menuPostId={menuPostId} setMenuPostId={setMenuPostId} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={handleDelete} categories={CATEGORIES} />)}
           </div>
         )}
@@ -513,7 +532,12 @@ export default function CampusFeedPage() {
         {/* ─── Older Posts ─── */}
         {grouped.older.length > 0 && (
           <div className="space-y-2">
-            <h3 className="text-[11px] font-bold uppercase tracking-widest text-[var(--muted-strong)] px-1">| OLDER</h3>
+            <div className="flex items-center gap-2 px-1 pt-1">
+              <div className="w-1 h-4 rounded-full bg-white/20" />
+              <span className="text-[11px] font-bold uppercase tracking-widest text-[var(--muted-strong)]">Older</span>
+              <span className="px-1.5 py-0.5 rounded-full text-[9px] font-bold bg-white/8 text-[var(--muted-strong)] border border-white/10">{grouped.older.length}</span>
+              <span className="flex-1 h-px bg-white/5" />
+            </div>
             {grouped.older.map(post => <PostCard key={post.id} post={post} userLat={userLat} userLng={userLng} userId={user?.id || ''} onReact={handleReact} menuPostId={menuPostId} setMenuPostId={setMenuPostId} deleteConfirm={deleteConfirm} setDeleteConfirm={setDeleteConfirm} onDelete={handleDelete} isOlder categories={CATEGORIES} />)}
           </div>
         )}

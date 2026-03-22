@@ -11,7 +11,7 @@ import Image from 'next/image';
 import { useAuth } from '@/lib/auth';
 import { StudentProfile } from '@/lib/types';
 import LoadingSkeleton from '@/components/LoadingSkeleton';
-import { X } from 'lucide-react';
+import { X, Star, Globe, Moon, Shield, MessageSquare, HelpCircle, Pencil, Camera, UserPlus } from 'lucide-react';
 
 export default function MePage() {
   const { user, logout } = useAuth();
@@ -94,66 +94,93 @@ export default function MePage() {
           href="/me/edit"
           className="w-10 h-10 rounded-full bg-[var(--surface)] border border-[var(--glass-border)] flex items-center justify-center text-[var(--muted-strong)] hover:text-[var(--foreground)] transition-colors"
         >
-          ✏️
+          <Pencil size={16} />
         </Link>
       </div>
 
       {/* ═══ PROFILE CARD ═══ */}
-      <div className="rounded-2xl p-5" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
-        <div className="flex items-center gap-4 mb-4">
-          {/* Avatar with camera icon */}
-          <div className="relative shrink-0">
-            {student?.photoUrl ? (
-              <Image
-                src={student.photoUrl}
-                alt={fullName}
-                width={64}
-                height={64}
-                className="w-16 h-16 rounded-full object-cover shadow-lg ring-2 ring-violet-500/30 cursor-pointer transition-transform active:scale-95"
-                onClick={() => setZoomPhoto(true)}
-                unoptimized
-              />
-            ) : (
-              <div
-                className="w-16 h-16 rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-white font-bold text-2xl shadow-lg ring-2 ring-violet-500/30 cursor-pointer transition-transform active:scale-95"
-                onClick={() => setZoomPhoto(true)}
-              >
-                {fullName.charAt(0).toUpperCase()}
-              </div>
-            )}
-            <button
-              onClick={() => setZoomPhoto(true)}
-              className="absolute -bottom-1 -right-1 w-6 h-6 rounded-full bg-violet-600 border-2 border-[var(--background)] flex items-center justify-center text-white text-[10px]"
-            >
-              📷
-            </button>
-          </div>
-
-          <div className="flex-1 min-w-0">
-            <h2 className="text-base font-bold truncate text-[var(--foreground)]">{fullName}</h2>
-            <p className="text-xs text-[var(--muted-strong)] mt-0.5">
-              {department}{yearLevel ? ` · ${yearLevel}` : ''}
-            </p>
-            <span className="inline-flex items-center gap-1 mt-1.5 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/20">
-              <span className="w-1.5 h-1.5 rounded-full bg-green-500" />
-              SVNIT Verified
-            </span>
-          </div>
+      <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
+        {/* Gradient banner */}
+        <div className="h-20 relative" style={{ background: 'linear-gradient(135deg, rgba(124,58,237,0.5) 0%, rgba(59,130,246,0.3) 50%, rgba(168,85,247,0.4) 100%)' }}>
+          <div className="absolute inset-0" style={{ background: 'radial-gradient(ellipse at 30% 50%, rgba(124,58,237,0.4) 0%, transparent 70%)' }} />
         </div>
 
-        {/* Stats Row */}
-        <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
-          <div className="text-center py-3">
-            <div className="text-lg font-bold text-[var(--foreground)]">{matchCount}</div>
-            <div className="text-[11px] text-[var(--muted-strong)]">Matches</div>
+        <div className="px-5 pb-5">
+          {/* Avatar row — overlapping the banner */}
+          <div className="flex items-end gap-4 -mt-8 mb-3">
+            <div className="relative shrink-0">
+              {student?.photoUrl ? (
+                <Image
+                  src={student.photoUrl}
+                  alt={fullName}
+                  width={72}
+                  height={72}
+                  className="w-18 h-18 rounded-full object-cover shadow-xl ring-3 ring-[var(--background)] cursor-pointer transition-transform active:scale-95"
+                  style={{ width: 72, height: 72, border: '3px solid var(--background)' }}
+                  onClick={() => setZoomPhoto(true)}
+                  unoptimized
+                />
+              ) : (
+                <div
+                  className="w-[72px] h-[72px] rounded-full bg-gradient-to-br from-violet-600 to-purple-700 flex items-center justify-center text-white font-bold text-2xl shadow-xl cursor-pointer transition-transform active:scale-95"
+                  style={{ border: '3px solid var(--background)' }}
+                  onClick={() => setZoomPhoto(true)}
+                >
+                  {fullName.charAt(0).toUpperCase()}
+                </div>
+              )}
+              <button
+                onClick={() => setZoomPhoto(true)}
+                className="absolute -bottom-0.5 -right-0.5 w-6 h-6 rounded-full bg-violet-600 border-2 border-[var(--background)] flex items-center justify-center text-white"
+              >
+                <Camera size={10} />
+              </button>
+            </div>
+            <div className="flex-1 min-w-0 pb-1">
+              <h2 className="text-base font-bold truncate text-[var(--foreground)]">{fullName}</h2>
+              <p className="text-xs text-[var(--muted-strong)] mt-0.5">
+                {department}{yearLevel ? ` · ${yearLevel}` : ''}
+              </p>
+            </div>
           </div>
-          <div className="text-center py-3 border-l border-[var(--border)]">
-            <div className="text-lg font-bold text-[var(--foreground)]">{circleCount}</div>
-            <div className="text-[11px] text-[var(--muted-strong)]">Circles</div>
-          </div>
-          <div className="text-center py-3 border-l border-[var(--border)]">
-            <div className="text-lg font-bold text-[var(--foreground)]">{topMatch > 0 ? `${topMatch}%` : '—'}</div>
-            <div className="text-[11px] text-[var(--muted-strong)]">Top match</div>
+
+          <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-2 py-0.5 rounded-full bg-green-500/15 text-green-400 border border-green-500/20 mb-4">
+            <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+            SVNIT Verified
+          </span>
+
+          {/* Stats Row */}
+          <div className="grid grid-cols-3 gap-1 rounded-xl overflow-hidden" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid var(--glass-border)' }}>
+            <Link href="/friends" className="text-center py-3 hover:bg-white/5 transition-colors">
+              {matchCount > 0 ? (
+                <>
+                  <div className="text-lg font-bold text-[var(--foreground)]">{matchCount}</div>
+                  <div className="text-[11px] text-[var(--muted-strong)]">Matches</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] font-bold text-violet-400 leading-tight">Find</div>
+                  <div className="text-[11px] text-[var(--muted-strong)]">Matches</div>
+                </>
+              )}
+            </Link>
+            <Link href="/circles" className="text-center py-3 border-l border-[var(--border)] hover:bg-white/5 transition-colors">
+              {circleCount > 0 ? (
+                <>
+                  <div className="text-lg font-bold text-[var(--foreground)]">{circleCount}</div>
+                  <div className="text-[11px] text-[var(--muted-strong)]">Circles</div>
+                </>
+              ) : (
+                <>
+                  <div className="text-[11px] font-bold text-violet-400 leading-tight">Join</div>
+                  <div className="text-[11px] text-[var(--muted-strong)]">Circles</div>
+                </>
+              )}
+            </Link>
+            <div className="text-center py-3 border-l border-[var(--border)]">
+              <div className="text-lg font-bold text-[var(--foreground)]">{topMatch > 0 ? `${topMatch}%` : '—'}</div>
+              <div className="text-[11px] text-[var(--muted-strong)]">Top match</div>
+            </div>
           </div>
         </div>
       </div>
@@ -194,7 +221,7 @@ export default function MePage() {
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
           {/* Pro Subscription */}
           <Link href="/subscription" className="flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-lg">⭐</div>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center"><Star size={18} className="text-amber-400" /></div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-[var(--foreground)]">Pro Subscription</p>
               <p className="text-[11px] text-[var(--muted-strong)]">Unlock unlimited matches & Arya AI</p>
@@ -213,7 +240,7 @@ export default function MePage() {
             }}
             className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left"
           >
-            <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-lg">🎁</div>
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/15 flex items-center justify-center"><UserPlus size={18} className="text-emerald-400" /></div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-[var(--foreground)]">Invite Friends</p>
               <p className="text-[11px] text-[var(--muted-strong)]">5 invites = 1 month Pro free</p>
@@ -233,7 +260,7 @@ export default function MePage() {
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
           {/* Change Language */}
           <Link href="/me/language" className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left">
-            <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center text-lg">🌐</div>
+            <div className="w-10 h-10 rounded-xl bg-blue-500/15 flex items-center justify-center"><Globe size={18} className="text-blue-400" /></div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Change Language</p>
               <p className="text-[11px] text-[var(--muted-strong)]">English (default)</p>
@@ -245,7 +272,7 @@ export default function MePage() {
 
           {/* Switch Theme */}
           <button onClick={toggleTheme} className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center text-lg">🌙</div>
+            <div className="w-10 h-10 rounded-xl bg-amber-500/15 flex items-center justify-center"><Moon size={18} className="text-amber-400" /></div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Switch Theme</p>
               <p className="text-[11px] text-[var(--muted-strong)]">{darkMode ? 'Dark mode is on' : 'Light mode is on'}</p>
@@ -260,7 +287,7 @@ export default function MePage() {
 
           {/* Privacy */}
           <Link href="/me/privacy" className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left">
-            <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center text-lg">🔒</div>
+            <div className="w-10 h-10 rounded-xl bg-violet-500/15 flex items-center justify-center"><Shield size={18} className="text-violet-400" /></div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Privacy</p>
               <p className="text-[11px] text-[var(--muted-strong)]">Control who sees you</p>
@@ -276,7 +303,7 @@ export default function MePage() {
         <div className="rounded-2xl overflow-hidden" style={{ background: 'var(--surface)', border: '1px solid var(--glass-border)' }}>
           {/* Feedback */}
           <Link href="/me/feedback" className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left">
-            <div className="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center text-lg">💬</div>
+            <div className="w-10 h-10 rounded-xl bg-pink-500/15 flex items-center justify-center"><MessageSquare size={18} className="text-pink-400" /></div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Feedback</p>
               <p className="text-[11px] text-[var(--muted-strong)]">Help us improve MitrrAi</p>
@@ -288,7 +315,7 @@ export default function MePage() {
 
           {/* Help & FAQ */}
           <Link href="/me/help" className="w-full flex items-center gap-3 p-4 hover:bg-white/[0.02] transition-colors text-left">
-            <div className="w-10 h-10 rounded-xl bg-red-500/15 flex items-center justify-center text-lg">❓</div>
+            <div className="w-10 h-10 rounded-xl bg-sky-500/15 flex items-center justify-center"><HelpCircle size={18} className="text-sky-400" /></div>
             <div className="flex-1">
               <p className="text-sm font-bold text-[var(--foreground)]">Help & FAQ</p>
               <p className="text-[11px] text-[var(--muted-strong)]">How to use MitrrAi</p>

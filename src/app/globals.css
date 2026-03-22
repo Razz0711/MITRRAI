@@ -8,8 +8,8 @@
    ════════════════════════════════════════════ */
 
 :root {
-  --background: #090909;
-  --background-secondary: #0d0d0d;
+  --background: #0a0a12;
+  --background-secondary: #0d0d18;
   --foreground: #fafafa;
   --primary: #7c3aed;
   --primary-light: #a78bfa;
@@ -18,11 +18,11 @@
   --secondary-light: #67e8f9;
   --accent: #f472b6;
   --accent-light: #f9a8d4;
-  --surface: rgba(17, 17, 17, 0.85);
-  --surface-solid: #111111;
-  --surface-card: #141414;
-  --surface-light: rgba(32, 32, 32, 0.7);
-  --surface-elevated: rgba(32, 32, 32, 0.95);
+  --surface: rgba(18, 18, 28, 0.9);
+  --surface-solid: #12121c;
+  --surface-card: #14141f;
+  --surface-light: rgba(32, 32, 48, 0.75);
+  --surface-elevated: rgba(28, 28, 42, 0.98);
   --border: rgba(255, 255, 255, 0.12);
   --border-light: rgba(255, 255, 255, 0.08);
   --muted: rgba(255, 255, 255, 0.35);
@@ -37,9 +37,9 @@
   --radius-xl: 1.25rem;
   --radius-2xl: 1.5rem;
   --shadow-glow: 0 0 20px rgba(124, 58, 237, 0.12);
-  --shadow-card: none;
-  --shadow-elevated: 0 0 1px rgba(255, 255, 255, 0.06) inset;
-  --glass-bg: rgba(14, 14, 14, 0.75);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+  --shadow-elevated: 0 4px 20px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(14, 14, 22, 0.8);
   --glass-border: rgba(255, 255, 255, 0.08);
   --motion-fast: 160ms;
   --motion-normal: 240ms;
@@ -104,6 +104,7 @@ body {
   padding: 0;
   color: var(--foreground);
   background: var(--background);
+  background-image: radial-gradient(ellipse 80% 50% at 50% -10%, rgba(124, 58, 237, 0.08) 0%, transparent 60%);
   font-family: var(--font-sans), 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   font-size: 15px;
   line-height: 1.55;
@@ -569,6 +570,12 @@ h1, h2, h3, h4, h5, h6 {
   50% { background-position: 100% 50%; }
   100% { background-position: 0% 50%; }
 }
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.animate-appear { animation: appear 0.18s ease-out forwards; }
 
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
