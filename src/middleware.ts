@@ -63,11 +63,8 @@ export async function middleware(request: NextRequest) {
   }
 
   // Allow public pages and public APIs without auth
+  // Logged-in users on /login are handled client-side via WelcomeSplash
   if (isPublicPage || isPublicApi) {
-    // If user is logged in and on login page, redirect to home
-    if (user && pathname === '/login') {
-      return NextResponse.redirect(new URL('/home', request.url));
-    }
     return supabaseResponse;
   }
 
