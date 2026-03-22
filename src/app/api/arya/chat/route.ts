@@ -9,6 +9,7 @@ import OpenAI from 'openai';
 import { getAuthUser, unauthorized } from '@/lib/api-auth';
 import { supabase } from '@/lib/store/core';
 import { ARYA_SYSTEM_PROMPT } from '@/lib/arya-prompt';
+import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
 
 export const dynamic = 'force-dynamic';
 export const maxDuration = 60; // Allow more time for image generation if needed
@@ -16,6 +17,9 @@ export const maxDuration = 60; // Allow more time for image generation if needed
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return unauthorized();
+
+  // Rate limit: 20 messages per minute per user
+  if (!rateLimit(`arya-chat:${user.id}`, 20, 60_000)) return rateLimitExceeded();
 
   // Check API key
   const apiKey = process.env.GROK_API_KEY;

@@ -8,6 +8,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getAuthUser, unauthorized } from '@/lib/api-auth';
 import { supabase } from '@/lib/store/core';
+import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
 
 // is_deleted_by_user only affects UI rendering.
 // Arya context loader always reads full message history
@@ -54,6 +55,9 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   const user = await getAuthUser();
   if (!user) return unauthorized();
+
+  // Rate limit: 60 message inserts per minute per user
+  if (!rateLimit(`arya-messages:${user.id}`, 60, 60_000)) return rateLimitExceeded();
 
   const body = await req.json();
   const { conversation_id, role, content, is_voice } = body;

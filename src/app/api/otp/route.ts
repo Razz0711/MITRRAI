@@ -9,6 +9,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
 import crypto from 'crypto';
 import { supabase } from '@/lib/supabase';
+import { rateLimit, rateLimitExceeded } from '@/lib/rate-limit';
 
 // Create reusable transporter with connection pooling and timeouts
 const transporter = nodemailer.createTransport({
@@ -71,6 +72,9 @@ export async function POST(request: NextRequest) {
     const normalizedEmail = email.trim().toLowerCase();
 
     if (action === 'send') {
+      // IP-level guard: 5 OTP sends per 10 minutes per IP
+      const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'unknown';
+      if (!rateLimit(`otp-send:${ip}`, 5, 10 * 60_000)) return rateLimitExceeded();
       // Clean expired OTPs (non-blocking — don’t delay the user)
       supabase.from('otp_codes').delete().lt('expires_at', new Date().toISOString()).then(() => {}, () => {});
 
